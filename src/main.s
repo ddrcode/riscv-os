@@ -1,3 +1,4 @@
+.include "config.s"
 .include "macros.s"
 
 .section .text
@@ -5,17 +6,16 @@
     mv s0, sp
 
     call clear_screen
-    # mv a0, zero
-    # li a0, 0
-    # li a1, 5
-    # call set_cursor_pos
     la a0, helloworld   # Load address of string
-    call print_str
+    call println
+    li a0, 5
+    li a1, 23
+    call set_cursor_pos
     la a0, another_str
-    call print_str
+    call println
+    call scroll
+    call show_cursor
     call print_screen
-    # li a1, UART_BASE    # Load uart tx base address
-    # call puts           # Print string
 
 loop:	j loop          # End program; spin forever
 

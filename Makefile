@@ -1,6 +1,6 @@
 TOOL := riscv64-none-elf
 FLAGS := -march=rv32i -mabi=ilp32
-SRC := src/main.s src/uart.s src/screen.s
+SRC := src/main.s src/uart.s src/screen.s src/mem.s
 
 default: build
 
