@@ -18,6 +18,10 @@ itoa:
         li a0, 1                       # hardcode result to 1
         j 5f                           # exit
 
+    bgez a0, 1f                        # jump to 1: for number >= 0
+        xori a0, a0, -1                # make number positive (a = (a^-1)+1)
+        inc a0
+
 1:
     li a4, 10                          # constant for comparisons
     beqz a0, 3f                        # jump if number is zero
