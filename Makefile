@@ -13,6 +13,8 @@ build: compile baremetal.ld
 run: build
 	@echo "Ctrl-A C for QEMU console, then quit to exit"
 	qemu-system-riscv32 -nographic -serial mon:stdio -machine virt -bios build/riscvos
+	# qemu-system-riscv32 -nographic -serial pty -machine virt -bios build/riscvos
+	# qemu-system-riscv32 -nographic -serial unix:/tmp/serial.socket,server -machine virt -bios build/riscvos
 
 .PHONY: clean
 

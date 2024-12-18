@@ -22,8 +22,9 @@ loop:	j loop          # End program; spin forever
 
 
 .section .data
+
 helloworld: .string "Hello World! This string is longer than 40 characters"
 another_str: .string "Second string"
 cursor: .half 0
-screen: .fill 1000, 1, 32
+screen: .fill SCREEN_WIDTH*SCREEN_HEIGHT, 1, 32
 
