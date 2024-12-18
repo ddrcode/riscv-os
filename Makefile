@@ -1,5 +1,7 @@
 TOOL := riscv64-none-elf
-FLAGS := -march=rv32i -mabi=ilp32
+# use im and -mabi=ilp32 if planning to not use reduced base integer extension
+RISC_V_EXTENSIONS := em
+FLAGS := -march=rv32$(RISC_V_EXTENSIONS) -mabi=ilp32e
 SRC := src/main.s src/uart.s src/screen.s src/mem.s
 
 default: build
