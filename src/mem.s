@@ -48,3 +48,25 @@ memfill:
     j 1b
 2:
     ret
+
+
+# reverses bytes in memory range
+# params
+#    a0 pointer
+#    a1 number of bytes to reverse
+# TODO contains bugs - fix them
+mem_reverse:
+    mv a0, t0
+    add t1, a0, a1
+    dec t1
+1:
+    bge t0, t1, 2f
+    lb t2, (t0)
+    lb a4, (t1)
+    sb a4, (t0)
+    sb t2, (t1)
+    dec t1
+    inc t0
+    j 1b
+2:
+    ret
