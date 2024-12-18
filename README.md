@@ -24,3 +24,6 @@ references that helped me to learn the subject. Here are the key ones:
   a very handy list of assembler directives by Michael Clark
 - [Generic Virtual Platform (virt)](https://www.qemu.org/docs/master/system/riscv/virt.html) -
   A documentaion of qemu's virt platform that I use for testing
+- [RISC-V Options (for gcc)](https://gcc.gnu.org/onlinedocs/gcc/RISC-V-Options.html) -
+  very handy list of options for bompilation/building. One of the best documentations of
+  RISC-V extensions
