@@ -1,10 +1,11 @@
 TOOL := riscv64-none-elf
 FLAGS := -march=rv32i -mabi=ilp32
+SRC := src/main.s src/uart.s src/screen.s
 
 default: build
 
 compile: src/main.s src/screen.s
-	${TOOL}-as $(FLAGS) -I src src/main.s src/screen.s -o build/riscvos.o
+	${TOOL}-as $(FLAGS) -I src $(SRC) -o build/riscvos.o
 
 build: compile baremetal.ld
 	${TOOL}-gcc -T baremetal.ld $(FLAGS) -nostdlib -static -o build/riscvos build/riscvos.o
