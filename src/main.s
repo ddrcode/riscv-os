@@ -18,14 +18,14 @@
 
     la a1, screen
     addi a1, a1, 80
-    li a0, 256
-    li a2, 10
+    li a0, 1023
+    li a2, 16
     call itoa
 
-    la a0, screen
-    addi a0, a0, 80
-    li a1, 4
-    call mem_reverse
+ #  la a0, screen
+ #  addi a0, a0, 80
+ #  li a1, 3
+ #  call mem_reverse
 
     call print_screen
 

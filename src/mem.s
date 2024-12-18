@@ -54,9 +54,8 @@ memfill:
 # params
 #    a0 pointer
 #    a1 number of bytes to reverse
-# TODO contains bugs - fix them
 mem_reverse:
-    mv a0, t0
+    mv t0, a0
     add t1, a0, a1
     dec t1
 1:
