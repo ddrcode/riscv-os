@@ -13,6 +13,8 @@ references that helped me to learn the subject. Here are the key ones:
   a collection of great, deep posts by Will Green on various aspects
   of RISC-V assembly programming. It includes a
   [cheat sheet](https://projectf.io/posts/riscv-cheat-sheet/) that I use frequently
+- [An Introduction to Assembly Programming with RISC-V](https://riscv-programming.org/book/riscv-book.html) -
+  very helpful free book by Prof. Edson Borin
 - [RISC-V from scratch](https://twilco.github.io/riscv-from-scratch/2019/04/27/riscv-from-scratch-2.html) -
   Tyler Wilcock post on hardware layouts, linker, etc - very detailed!
   Other posts on RISC-V worth checking too.
