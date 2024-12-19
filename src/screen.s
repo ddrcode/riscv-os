@@ -16,24 +16,52 @@ clear_screen:
 #     a0 - x position of the cursor
 #     a1 - y position of the cursor
 print_str:
-    push ra
-    push a0
-    call get_cursor_offset          # get cursorsor offset to a0
+    addi sp, sp, -16                # prepare the stack
+    sw ra, 12(sp)
+    sw a0, 8(sp)
+    sw a1, 4(sp)
+
+    call strlen                     # get string length
+    sw a0, 0(sp)                    # and push it to the stack
+
+    call get_cursor_offset          # get cursor offset
     la a1, screen                   # load screen address..
     mv t1, a1                       # copy screen address to t1
     add a1, a1, a0                  # ...and increase it by the offset
-    pop a0
+
+    lw t2, 0(sp)                    # retrieve string length
+    add t2, t2, a1                  # and compute the end address
+
+    li t0, SCREEN_WIDTH*SCREEN_HEIGHT
+    add t0, t0, t1                  # compute the end address of the screen
+
+    ble t2, t0, 1f                  # skip if string fits on the screen, scroll otherwise
+        sub t0, t2, t0              # compute how many lines to scroll...
+        li a0, SCREEN_WIDTH
+        mv t0, a0
+        div a0, t0, a0
+        mul t0, t0, a0              # and adjust the start address (a1) accordingly
+        sub a1, a1, t0
+        sw a1, 0(sp)                # preserver the start address on the stack
+        call scroll                 # and scroll
+        la t1, screen
+        lw a1, 0(sp)
+
 1:
-    lb t0, (a0)                     # Load a single byte of a string
-    beqz t0, 2f                     # Exit loop if \0
-    sb t0, (a1)                     # Write character to screen memory
-    inc a0                          # Increment string pointer
-    inc a1                          # Increment screen memory pointer
-    j 1b
+    lw a0, 8(sp)                    # retrieve pointer to string
 2:
+    lb t0, (a0)                     # Load a single byte of a string
+    beqz t0, 3f                     # Exit loop if \0
+        sb t0, (a1)                     # Write character to screen memory
+        inc a0                          # Increment string pointer
+        inc a1                          # Increment screen memory pointer
+        j 2b
+3:
     sub a0, a1, t1                  # Compute offset for new cursor position
     call set_cursor_pos_from_offset
-    pop ra
+
+    lw ra, 12(sp)
+    addi sp, sp, 16
     ret
 
 
@@ -50,14 +78,13 @@ println:
     inc a1                          # increment cursor_y
 
     li t0, SCREEN_HEIGHT
-    blt a1, t0, 1f                  # if cusory_y < SCREEN_HEIGHT jump to end
-
-    dec a1
-    push a0
-    push a1
-    call scroll                     # scroll screen content up
-    pop a1
-    pop a0
+    blt a1, t0, 1f                  # if cursor_y < SCREEN_HEIGHT jump to end
+        dec a1
+        push a0
+        push a1
+        call scroll                 # scroll screen content up
+        pop a1
+        pop a0
 
 1:
     call set_cursor_pos             # set cursor position to a new value

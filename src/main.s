@@ -2,18 +2,20 @@
 .include "macros.s"
 
 .section .text
+    la gp, __global_pointer$        # initialize global pointer, see:
+                                    # https://www.five-embeddev.com//quickref/global_pointer.html
     la sp, __stack_top              # initialize stack pointer
     mv s0, sp
 
     call clear_screen
     la a0, helloworld   # Load address of string
     call println
-    li a0, 5
-    li a1, 23
+    li a0, 36
+    li a1, 24
     call set_cursor_pos
     la a0, another_str
-    call println
-    call scroll
+    call print_str
+    # call scroll
     call show_cursor
 
     la a1, screen

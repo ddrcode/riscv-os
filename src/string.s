@@ -55,3 +55,19 @@ itoa:
     ret
 
 
+# Computes length of a string
+# Arguments:
+#     a0 - string pointer
+# Returns:
+#     a0 - length
+strlen:
+    setz t0
+1:
+    lb t1, (a0)
+    beqz t1, 2f
+        inc a0
+        inc t0
+        j 1b
+2:
+    mv a0, t0
+    ret
