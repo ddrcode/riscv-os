@@ -56,16 +56,16 @@ memfill:
 #    a1 number of bytes to reverse
 mem_reverse:
     mv t0, a0
-    add t1, a0, a1
-    dec t1
+    add t1, a0, a1                      # Compute the end addr...
+    dec t1                              # end=start+len-1
 1:
-    bge t0, t1, 2f
-    lb t2, (t0)
+    bge t0, t1, 2f                      # Break if start>=end
+    lb t2, (t0)                         # Swap bytes...
     lb a4, (t1)
     sb a4, (t0)
     sb t2, (t1)
-    dec t1
-    inc t0
+    dec t1                              # decrement end pointer
+    inc t0                              # increment start pointer
     j 1b
 2:
     ret

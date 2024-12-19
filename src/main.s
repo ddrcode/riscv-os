@@ -18,8 +18,8 @@
 
     la a1, screen
     addi a1, a1, 80
-    li a0, 45
-    li a2, 10
+    li a0, 245
+    li a2, 16
     call itoa
 
  #  la a0, screen
