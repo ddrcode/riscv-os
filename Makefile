@@ -1,6 +1,8 @@
 TOOL := riscv64-none-elf
-FLAGS := -march=rv32i -mabi=ilp32
-SRC := src/main.s src/uart.s src/screen.s
+# use im and -mabi=ilp32 if planning to not use reduced base integer extension
+RISC_V_EXTENSIONS := em
+FLAGS := -march=rv32$(RISC_V_EXTENSIONS) -mabi=ilp32e
+SRC := src/main.s src/uart.s src/screen.s src/mem.s src/string.s
 
 default: build
 
@@ -13,6 +15,8 @@ build: compile baremetal.ld
 run: build
 	@echo "Ctrl-A C for QEMU console, then quit to exit"
 	qemu-system-riscv32 -nographic -serial mon:stdio -machine virt -bios build/riscvos
+	# qemu-system-riscv32 -nographic -serial pty -machine virt -bios build/riscvos
+	# qemu-system-riscv32 -nographic -serial unix:/tmp/serial.socket,server -machine virt -bios build/riscvos
 
 .PHONY: clean
 

@@ -7,12 +7,10 @@ MEMORY
 SECTIONS
 {
     . = 0x80000000;
-    .text : {
-        *(.text)
-		}
+    .text : { *(.text) }
     . = ALIGN (CONSTANT (COMMONPAGESIZE));
-    .data : {
-        *(.data)
-		}
+    .data : { *(.data) }
+    . = ALIGN (CONSTANT (COMMONPAGESIZE));
+    PROVIDE( __global_pointer$ = . + 0x800 );
     PROVIDE(__stack_top = ORIGIN(RAM) + LENGTH(RAM));
 }
