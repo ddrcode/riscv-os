@@ -1,3 +1,9 @@
+.section .text
+
+.global clear_screen
+.global print_str
+.global println
+.global show_cursor
 
 clear_screen:
     push ra
@@ -5,6 +11,11 @@ clear_screen:
     li a1, SCREEN_WIDTH*SCREEN_HEIGHT
     li a2, 0x20
     call memfill
+
+    setz a0
+    setz a1
+    call set_cursor_pos
+
     pop ra
     ret
 
@@ -20,7 +31,6 @@ print_str:
     sw ra, 12(sp)
     sw a0, 8(sp)
     sw a1, 4(sp)
-
     call strlen                     # get string length
     sw a0, 0(sp)                    # and push it to the stack
 
@@ -194,4 +204,10 @@ scroll:
 1:
     pop ra
     ret
+
+
+.section .data
+
+cursor: .half 0
+screen: .fill SCREEN_WIDTH*SCREEN_HEIGHT, 1, 32
 

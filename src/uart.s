@@ -1,9 +1,13 @@
 .equ UART_BASE, 0x10000000
 
+.global print_screen
+.global puts
+
 
 puts:
   # a0 - String address
   # a1 - UART base address
+  li a1, UART_BASE
 1:                    # While string byte is not null
   lb t0, 0(a0)        # Get byte at current string pos
   beq zero, t0, 2f    # Is null?
@@ -25,11 +29,15 @@ putc:
 
 # Prints the content of screen memory to uart
 print_screen:
+    push ra
+    call _print_frame
     la a0, screen                   # set a0 to beginning of screen region
     li a1, UART_BASE
     li t1, SCREEN_WIDTH             # t1 is a  char counter within line
     li t2, SCREEN_HEIGHT            # t2 is a line counter
     li a4, 32                       # space character
+    li t0, '|'
+    sb t0, (a1)
 1:
     lb t0, (a0)                     # load a single byte to t0
     bge t0, a4, 2f                  # if it's printable character jump to 2
@@ -41,17 +49,36 @@ print_screen:
     beqz t1, 3f
     j 1b                            # jump to 1
 3:
+    li t0, '|'
+    sb t0, (a1)
     li t0, '\n'                     # EOL character
     sb t0, (a1)                     # send to UART
     li t1, SCREEN_WIDTH             # reset t1 to 40
     dec t2                          # decrement t2
     beqz t2, 4f                     # if t2 is zero jump to 3:
+    li t0, '|'
+    sb t0, (a1)
     j 1b
 4:
-    push ra
     setz a0
     setz a1
     call set_cursor_pos
+    call _print_frame
     pop ra
+    ret
+
+
+_print_frame:
+    li t0, '-'
+    li t1, 42
+    la t2, UART_BASE
+1:
+    beqz t1, 2f
+        sb t0, (t2)
+        dec t1
+        j 1b
+2:
+    li t0, '\n'
+    sb t0, (t2)
     ret
 
