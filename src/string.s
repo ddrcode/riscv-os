@@ -71,3 +71,26 @@ strlen:
 2:
     mv a0, t0
     ret
+
+
+# Compare two strings
+# Arguments
+#     a0 - pointer to string 1
+#     a1 - pointer to string 2
+strcmp:
+    setz t2                                        # default result (strings not equal)
+1:                                                 # do
+        lb t0, (a0)
+        lb t1, (a1)
+        bne t0, t1, 3f                             # break when characters don't match
+        beqz t0, 2f                                # break when end of the string
+        inc a0
+        inc a1
+        j 1b
+2:                                                 # strings equal
+    li t2, 1
+3:
+    mv a0, t2                                      # set the result
+    ret
+
+

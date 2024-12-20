@@ -10,6 +10,7 @@
     call clear_screen
     la a0, helloworld   # Load address of string
     call println
+    call parse
     li a0, 36
     li a1, 24
     call set_cursor_pos
