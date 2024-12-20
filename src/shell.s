@@ -36,7 +36,6 @@ exec_cmd:
 #     a0 - system function id (or 0 when not found)
 # TODO make index byte not word
 parse_cmd:
-    la a0, prompt
     la a1, commands
     li a2, SYS_FN_LEN
 
@@ -78,7 +77,6 @@ cmd_not_found:
 
 .section .data
 
-cmd_len: .byte 4
 prompt: .string "> "
 commands: .string "cls", "date", "prompt", "print"
 welcome: .string "Welcome to RISC-V OS v0.1"

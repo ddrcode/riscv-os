@@ -11,6 +11,11 @@ clear_screen:
     li a1, SCREEN_WIDTH*SCREEN_HEIGHT
     li a2, 0x20
     call memfill
+
+    setz a0
+    setz a1
+    call set_cursor_pos
+
     pop ra
     ret
 

@@ -35,7 +35,7 @@ run: build
 
 test: build_tests
 	@echo "Ctrl-A C for QEMU console, then quit to exit"
-	qemu-system-riscv32 -nographic -serial mon:stdio -machine virt -bios build/test_string
+	qemu-system-riscv32 -nographic -serial mon:stdio -machine virt -bios build/test_commands
 
 .PHONY: clean
 
