@@ -1,5 +1,7 @@
 .section .text
 
+.global shell_init
+
 shell_init:
     push ra
     call clear_screen

@@ -17,7 +17,6 @@
     # call set_cursor_pos
     # la a0, another_str
     # call print_str
-    # call show_cursor
     #
     # la a1, screen
     # addi a1, a1, 80
@@ -40,6 +39,4 @@ loop:	j loop          # End program; spin forever
 
 helloworld: .string "Hello World! This string is longer than 40 characters"
 another_str: .string "Second string"
-cursor: .half 0
-screen: .fill SCREEN_WIDTH*SCREEN_HEIGHT, 1, 32
 
