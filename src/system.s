@@ -1,0 +1,4 @@
+.section .text
+
+sysinit:
+    ret

@@ -7,23 +7,23 @@
     la sp, __stack_top              # initialize stack pointer
     mv s0, sp
 
-    call clear_screen
-    la a0, helloworld   # Load address of string
-    call println
-    call parse
-    li a0, 36
-    li a1, 24
-    call set_cursor_pos
-    la a0, another_str
-    call print_str
-    # call scroll
-    call show_cursor
-
-    la a1, screen
-    addi a1, a1, 80
-    li a0, 245
-    li a2, 16
-    call itoa
+    call sysinit
+    call shell_init
+    # la a0, helloworld   # Load address of string
+    # call println
+    # call parse
+    # li a0, 36
+    # li a1, 24
+    # call set_cursor_pos
+    # la a0, another_str
+    # call print_str
+    # call show_cursor
+    #
+    # la a1, screen
+    # addi a1, a1, 80
+    # li a0, 245
+    # li a2, 16
+    # call itoa
 
  #  la a0, screen
  #  addi a0, a0, 80

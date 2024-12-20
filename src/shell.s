@@ -1,5 +1,16 @@
 .section .text
 
+shell_init:
+    push ra
+    call clear_screen
+    la a0, welcome
+    call println
+    la a0, prompt
+    call print_str
+    call show_cursor
+    pop ra
+    ret
+
 # Parses command line
 # Arguments:
 #     a0 - pointer to command line string
@@ -44,6 +55,7 @@ parse:
 .section .data
 
 cmd_len: .byte 4
-prompt: .string "cls"
+prompt: .string "> "
 commands: .string "cls", "date", "prompt", "print"
+welcome: .string "Welcome to RISC-V OS v0.1"
 
