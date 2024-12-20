@@ -10,8 +10,12 @@
     call shell_init
 
     la a0, cmd1
-    call print_str
+    call println
 
+    la a0, cmd1
+    call exec_cmd
+
+    call show_cursor
     call print_screen
 
 loop:	j loop          # End program; spin forever

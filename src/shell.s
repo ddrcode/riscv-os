@@ -1,6 +1,7 @@
 .section .text
 
 .global shell_init
+.global exec_cmd
 
 shell_init:
     push ra
@@ -13,17 +14,31 @@ shell_init:
     pop ra
     ret
 
+
+# Arguments
+#    a0 - cmd string pointer
+exec_cmd:
+    push ra
+    call parse_cmd
+    call syscall
+
+    la a0, prompt
+    call print_str
+
+    pop ra
+    ret
+
+
 # Parses command line
 # Arguments:
 #     a0 - pointer to command line string
 # Returns:
 #     a0 - system function id (or 0 when not found)
 # TODO make index byte not word
-parse:
+parse_cmd:
     la a0, prompt
     la a1, commands
-    la a2, cmd_len
-    lb a2, (a2)
+    li a2, SYS_FN_LEN
 
     addi sp, sp, -16
     sw ra, 12(sp)
@@ -42,8 +57,7 @@ parse:
         lw a0, 8(sp)                 # retrieve command pointer from the stack
     j 1b
 2:                                   # cmd found
-    la t0, cmd_len                   # retrieve num of commands
-    lb t0, (t0)
+    li t0, SYS_FN_LEN                # retrieve num of commands
     sub a0, t0, a2                   # fn_no = (no_of_comands-index) + 1
     inc a0
     j 4f
@@ -54,10 +68,18 @@ parse:
     addi sp, sp, 16
     ret
 
+
+cmd_not_found:
+    push ra
+    la a0, not_found
+    call println
+    pop ra
+    ret
+
 .section .data
 
 cmd_len: .byte 4
 prompt: .string "> "
 commands: .string "cls", "date", "prompt", "print"
 welcome: .string "Welcome to RISC-V OS v0.1"
-
+not_found: .string "Command not found"

@@ -3,6 +3,7 @@
 .global clear_screen
 .global print_str
 .global println
+.global show_cursor
 
 clear_screen:
     push ra
