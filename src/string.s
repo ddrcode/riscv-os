@@ -1,3 +1,9 @@
+.global itoa
+.global strlen
+.global strcmp
+
+.section .text
+
 # Converts a number (integer) into a string
 # Inspired by this implementation in C:
 # https://www.geeksforgeeks.org/implement-itoa/

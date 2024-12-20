@@ -19,9 +19,11 @@ build: compile baremetal.ld
 
 compile_tests: compile tests/test_commands.s
 	${TOOL}-as $(FLAGS) -I src tests/test_commands.s -o $(OBJ)/test_commands.o
+	${TOOL}-as $(FLAGS) -I src tests/test_string.s -o $(OBJ)/test_string.o
 
 build_tests: compile_tests
 	${TOOL}-gcc -T baremetal.ld $(FLAGS) -nostdlib -static -o build/test_commands $(OBJ)/test_commands.o $(OBJ)/riscvos.o
+	${TOOL}-gcc -T baremetal.ld $(FLAGS) -nostdlib -static -o build/test_string $(OBJ)/test_string.o $(OBJ)/riscvos.o
 
 build_all: build build_tests
 
@@ -33,7 +35,7 @@ run: build
 
 test: build_tests
 	@echo "Ctrl-A C for QEMU console, then quit to exit"
-	qemu-system-riscv32 -nographic -serial mon:stdio -machine virt -bios build/test_commands
+	qemu-system-riscv32 -nographic -serial mon:stdio -machine virt -bios build/test_string
 
 .PHONY: clean
 

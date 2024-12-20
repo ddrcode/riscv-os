@@ -24,5 +24,5 @@ loop:	j loop          # End program; spin forever
 
 .section .data
 
-cmd1: .string "edwardize"
+cmd1: .string "cls"
 

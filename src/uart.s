@@ -1,11 +1,13 @@
 .equ UART_BASE, 0x10000000
 
 .global print_screen
+.global puts
 
 
 puts:
   # a0 - String address
   # a1 - UART base address
+  li a1, UART_BASE
 1:                    # While string byte is not null
   lb t0, 0(a0)        # Get byte at current string pos
   beq zero, t0, 2f    # Is null?
