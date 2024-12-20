@@ -1,4 +1,11 @@
+# Memory
 .equ MEM_MIN_ADDR, 0x8000000
 .equ MEM_MAX_ADDR, 0x80000000
+
+# Screen
 .equ SCREEN_WIDTH, 40
 .equ SCREEN_HEIGHT, 25
+
+# Devices
+.equ RTC_BASE, 0x101000
+.equ UART_BASE, 0x10000000
