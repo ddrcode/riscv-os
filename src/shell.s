@@ -87,13 +87,17 @@ show_date_time:
     pop ra
     ret
 
+
 .section .data
 
 prompt: .string "> "
+
+
+.section .rodata
+
 commands: .string "cls", "date", "prompt", "print"
 welcome: .string "Welcome to RISC-V OS v0.1"
 not_found: .string "Command not found"
 date: .string "2024-12-20 21:17:32 (fake date)"
 
-str: .fill 1, 32, 0
 

@@ -25,3 +25,9 @@ Linux](https://github.com/torvalds/linux/blob/master/drivers/rtc/rtc-goldfish.c#
 ## Linker
 
 - [setting initial value of __global_pointer$](https://gnu-mcu-eclipse.github.io/arch/riscv/programmer/#the-gp-global-pointer-register)
+
+## Make
+
+- [How patterns match](https://www.gnu.org/software/make/manual/html_node/Pattern-Match.html)
+- [Automatic variables](https://www.gnu.org/software/make/manual/html_node/Automatic-Variables.html)
+

@@ -3,7 +3,9 @@
 
 .section .text
 
-.__start:
+.global _start
+
+_start:
     la gp, __global_pointer$        # initialize global pointer, see:
                                     # https://www.five-embeddev.com//quickref/global_pointer.html
     la sp, __stack_top              # initialize stack pointer

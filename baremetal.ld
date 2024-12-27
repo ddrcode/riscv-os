@@ -10,13 +10,16 @@ MEMORY
 SECTIONS
 {
     . = 0x80000000;
-    .text : ALIGN(32) { *(.text) } > RAM
+    .text : ALIGN(32) {
+        *(.text)
+    } > RAM
     /* . = ALIGN (CONSTANT (COMMONPAGESIZE)); */
+    .rodata : ALIGN(32) { *(.rodata) } > RAM
     .bss : ALIGN(32) { *(.bss) }
     .data : ALIGN(32) { *(.data) }
     PROVIDE( __global_pointer$ = . + 0x800 );
     PROVIDE(__stack_top = ORIGIN(RAM) + LENGTH(RAM));
 }
 
-ENTRY(__start)
+ENTRY(_start)
 

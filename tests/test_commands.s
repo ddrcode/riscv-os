@@ -1,11 +1,11 @@
 .include "config.s"
 .include "macros.s"
 
-.global __start
+.global _start
 
 .section .text
 
-__start:
+_start:
     la gp, __global_pointer$        # initialize global pointer, see:
     la sp, __stack_top              # initialize stack pointer
     mv s0, sp
