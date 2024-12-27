@@ -1,5 +1,10 @@
 # riscv-os
-An attempt to create a tiny OS in RISC-V assembly
+An attempt to create a tiny OS in RISC-V 32-bit assembly
+
+Currently, the OS runs on [virt](https://www.qemu.org/docs/master/system/riscv/virt.html) machine under QEMU.
+It uses very minimalistic configuration of the device: 4MB or RAM and 1 core.
+It's also minimalistic in terms of RISC-V instruction set, as it only utilizes the E and M
+extensions.
 
 ## Credits
 The initial setup and linker file were inspired by

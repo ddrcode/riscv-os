@@ -1,3 +1,9 @@
+.section .text
+
+.global memcpy
+.global memfill
+.global mem_reverse
+
 # Copies n-bytes from address to address.
 # It copies data by words (4 bytes at once) decreasing
 # for every iteration a2 by 4. If a2 < 4 then copies the

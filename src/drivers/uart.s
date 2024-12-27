@@ -1,12 +1,12 @@
-.equ UART_BASE, 0x10000000
+.section .text
 
 .global print_screen
+.global putc
 .global puts
 
 
 puts:
   # a0 - String address
-  # a1 - UART base address
   li a1, UART_BASE
 1:                    # While string byte is not null
   lb t0, 0(a0)        # Get byte at current string pos
@@ -19,11 +19,10 @@ puts:
 
 
 # prints a single character to the screen
-# a0 - screen address of a character
-# a1 - char code
+# a0 - char code
 putc:
     li t0, UART_BASE
-    sb a1, (t0)
+    sb a0, (t0)
     ret
 
 
