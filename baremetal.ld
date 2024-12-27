@@ -10,14 +10,13 @@ MEMORY
 SECTIONS
 {
     . = 0x80000000;
-    .text : { *(.text) } > RAM
-    . = ALIGN (CONSTANT (COMMONPAGESIZE));
-    .bss : { *(.bss) }
-    .data : { *(.data) }
-    . = ALIGN (CONSTANT (COMMONPAGESIZE));
+    .text : ALIGN(32) { *(.text) } > RAM
+    /* . = ALIGN (CONSTANT (COMMONPAGESIZE)); */
+    .bss : ALIGN(32) { *(.bss) }
+    .data : ALIGN(32) { *(.data) }
     PROVIDE( __global_pointer$ = . + 0x800 );
     PROVIDE(__stack_top = ORIGIN(RAM) + LENGTH(RAM));
 }
 
-ENTRY(start)
+ENTRY(__start)
 

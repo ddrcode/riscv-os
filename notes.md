@@ -21,3 +21,7 @@ Memory:
 - [Implementationf of Goldfish in
 Linux](https://github.com/torvalds/linux/blob/master/drivers/rtc/rtc-goldfish.c#L110)
 - [Implementation of rtc_time64_to_tm](https://elixir.bootlin.com/linux/v6.12.6/source/drivers/rtc/lib.c#L142)
+
+## Linker
+
+- [setting initial value of __global_pointer$](https://gnu-mcu-eclipse.github.io/arch/riscv/programmer/#the-gp-global-pointer-register)

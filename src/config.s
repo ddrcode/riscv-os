@@ -1,6 +1,6 @@
 # Memory
-.equ MEM_MIN_ADDR, 0x8000000
-.equ MEM_MAX_ADDR, 0x80000000
+.equ MEM_MIN_ADDR, 0x80000000
+.equ MEM_MAX_ADDR, 0x803fffff
 
 # Screen
 .equ SCREEN_WIDTH, 40

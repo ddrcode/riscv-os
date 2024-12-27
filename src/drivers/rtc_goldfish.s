@@ -9,8 +9,13 @@
 
 .global rtc_read_time
 
+# Returns 64-bit number containing a number of nanoseconds
+# since 01.01.1970.
+# a0 - low bits
+# a1 - high bits
 rtc_read_time:
     li t0, RTC_BASE
-    lw a0, (t0)
-    lw a1, 4(t0)
+    lw a1, (t0)
+    lw a0, 4(t0)
     ret
+
