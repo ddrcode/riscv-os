@@ -6,6 +6,17 @@ It uses very minimalistic configuration of the device: 4MB or RAM and 1 core.
 It's also minimalistic in terms of RISC-V instruction set, as it only utilizes the E and M
 extensions.
 
+## Usage
+
+I strongly recommend using [nix](https://nixos.org/download/#download-nix) for handling this project, as it configures all the necessary dependencies.
+In such case just enter the project's folder and type `nix-shell`. 
+
+Most important Makefile options:
+- `make run` - runs the system in QEMU
+- `make test TEST_NAME=commands` - runs a specific test and outputs results to stdout
+- `make debug TEST_NAME=commands` - loads test to QEMU and waits for connection from GDB
+- `make gdb TEST_NAME=commands` - connects GDB with QEMU
+
 ## Credits
 The initial setup and linker file were inspired by
 [chuckb/riscv-helloworld](https://github.com/chuckb/riscv-helloworld) project
