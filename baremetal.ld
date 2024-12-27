@@ -14,7 +14,7 @@ SECTIONS
         *(.text)
     } > RAM
     /* . = ALIGN (CONSTANT (COMMONPAGESIZE)); */
-    .rodata : ALIGN(32) { *(.rodata) } > RAM
+    .rodata (READONLY) : ALIGN(32) { *(.rodata) } > RAM
     .bss : ALIGN(32) { *(.bss) }
     .data : ALIGN(32) { *(.data) }
     PROVIDE( __global_pointer$ = . + 0x800 );
