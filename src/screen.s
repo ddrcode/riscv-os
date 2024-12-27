@@ -16,6 +16,7 @@ clear_screen:
     setz a1
     call set_cursor_pos
 
+    setz a5
     pop ra
     ret
 
@@ -81,24 +82,30 @@ print_str:
 # Returns:
 #     a0 - x position of the cursor
 #     a1 - y position of the cursor
+#     a5 - error code
 println:
     push ra
-    call print_str                  # Print text at cursor position
-    setz a0                         # Set cursor_x to 0
-    inc a1                          # increment cursor_y
+    beqz a0, 1f                        # handle null pointer
+
+    call print_str                     # Print text at cursor position
+    setz a0                            # Set cursor_x to 0
+    inc a1                             # increment cursor_y
 
     li t0, SCREEN_HEIGHT
-    blt a1, t0, 1f                  # if cursor_y < SCREEN_HEIGHT jump to end
+    blt a1, t0, 2f                     # if cursor_y < SCREEN_HEIGHT jump to end
         dec a1
         push a0
         push a1
-        call scroll                 # scroll screen content up
+        call scroll                    # scroll screen content up
         pop a1
         pop a0
-
-1:
-    call set_cursor_pos             # set cursor position to a new value
-    call get_cursor_pos             # and get it (for return)
+1:                                     # handling null
+    li a5, 2                           # set error code
+    j 3f
+2:  call set_cursor_pos                # set cursor position to a new value
+    setz a5                            # exit code
+3:
+    call get_cursor_pos                # and get it (for return)
     pop ra
     ret
 

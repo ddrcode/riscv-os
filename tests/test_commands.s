@@ -19,17 +19,16 @@ _start:
 1:
     lw a0, (t0)
     beqz a0, 2f
-    sw t0, 12(sp)
-    call run_cmd
-    lw t0, 12(sp)
-    addi t0, t0, 4
-    j 1b
+        sw t0, 12(sp)
+        call run_cmd
+        lw t0, 12(sp)
+        addi t0, t0, 4
+        j 1b
 2:
     call show_cursor
     call print_screen
 
     addi sp, sp, 16
-
 
 
 loop:	j loop          # End program; spin forever
@@ -57,11 +56,13 @@ cmd2: .string "prompt $"
 cmd3: .string "date"
 cmd4: .string "prompt"
 cmd5: .string "print \"Hello, world!\""
+cmd6: .string "print"
 
 tests:  .word cmd1
         .word cmd2
         .word cmd3
         .word cmd4
         .word cmd5
+        .word cmd6
         .word 0
 

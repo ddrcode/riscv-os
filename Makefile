@@ -51,9 +51,12 @@ run: build
 test: build_tests
 	@echo "Ctrl-A C for QEMU console, then quit to exit"
 	$(MACHINE) -bios build/test_$(TEST_NAME)
-	# $(MACHINE) -s -S -bios build/test_commands
 
-.PHONY: clean gdb
+.PHONY: clean gdb debug
+
+debug: build_tests
+	@echo "Ctrl-A C for QEMU console, then quit to exit"
+	$(MACHINE) -s -S -bios build/test_$(TEST_NAME)
 
 gdb:
 	gdb -ex 'target remote localhost:1234' ./build/test_commands

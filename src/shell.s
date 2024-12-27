@@ -128,6 +128,7 @@ show_error:
     add t0, t0,t1
     lw a0, (t0)
     call println
+    setz a5
     pop ra
     ret
 
@@ -135,6 +136,7 @@ show_date_time:
     push ra
     la a0, date
     call println
+    setz a5
     pop ra
     ret
 
@@ -146,7 +148,11 @@ set_prompt:
     la t0, prompt
     lb t1, (a0)
     sb t1, (t0)
-1:  ret
+    setz a5
+    j 2f
+1:
+    li a5, 2                           # set error code
+2:  ret
 
 
 .section .data

@@ -7,6 +7,10 @@ Notes, links and hints that helped me to develop the project.
 
 Finding addresses of memory devices: `info mtree`
 
+### Syscalls / `ecall`
+- [Who provides syscalls in qemu-riscv?](https://stackoverflow.com/questions/52723900/who-provides-syscalls-in-qemu-riscv)
+- [riscv-probe](https://github.com/michaeljclark/riscv-probe)
+
 ## Devices / drivers
 
 ### UART
