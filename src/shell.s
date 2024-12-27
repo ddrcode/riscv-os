@@ -1,7 +1,10 @@
 .section .text
 
+.equ NUM_OF_ERRORS, 3                  # number of error codes
+
 .global shell_init
 .global exec_cmd
+.global set_prompt
 
 shell_init:
     push ra
@@ -18,16 +21,53 @@ shell_init:
 # Arguments
 #    a0 - cmd string pointer
 exec_cmd:
-    push ra
+    addi sp, sp, -16
+    sw ra, 12(sp)
+    sw a0, 8(sp)
+    sw zero, 4(sp)
+
+    call split_cmd                     # split command from its args
+    mv t0, a0
+    lw a0, 8(sp)
+    bltz t0, 1f                        # jump if there are no args
+        add t0, t0, a0                 # compute args address...
+        sw t0, 4(sp)                   # and place it on the stack
+1:
     call parse_cmd
+
+    lw a1, 4(sp)                       # restore args addr from the stack
     call syscall
 
     la a0, prompt
     call print_str
 
-    pop ra
+    lw ra, 12(sp)
+    addi sp, sp, 16
     ret
 
+
+# Splits string between command and argument(s).
+# It inserts '\0' after the command (instead of space)
+# Arguments
+#    a0 - cmd string pointer
+# Returns
+#    a0 - address of arguments string (or 0 if none)
+split_cmd:
+    addi sp, sp, -16
+    sw ra, 12(sp)
+    sw a0, 8(sp)
+
+    li a1, ' '
+    call str_find_char                 # search for space in cmd line
+    bltz a0, 1f                        # exit if there is none (no args)
+        lw t1, 8(sp)
+        add t1, t1, a0                 # compute args addr
+        sb zero, (t1)                  # replace space with '\0'
+        inc a0                         # increment args addr
+1:
+    lw ra, 12(sp)
+    addi sp, sp, 16
+    ret
 
 # Parses command line
 # Arguments:
@@ -73,9 +113,20 @@ parse_cmd:
     ret
 
 
-cmd_not_found:
+# Shows error
+# Arguments:
+#     a0 - error code
+show_error:
     push ra
-    la a0, not_found
+    li t0, NUM_OF_ERRORS
+    blt a0, t0, 1f                     # jump if valid error code
+        setz a0                        # otherwise set to unknown error
+1:
+    la t0, errors                      # compute error msg address...
+    li t1, 4
+    mul t1, t1, a0
+    add t0, t0,t1
+    lw a0, (t0)
     call println
     pop ra
     ret
@@ -87,6 +138,16 @@ show_date_time:
     pop ra
     ret
 
+# Set single-character prompt
+# arguments:
+#    a0 - pointer to prompt string (only the first char will be taken)
+set_prompt:
+    beqz a0, 1f
+    la t0, prompt
+    lb t1, (a0)
+    sb t1, (t0)
+1:  ret
+
 
 .section .data
 
@@ -95,9 +156,14 @@ prompt: .string "> "
 
 .section .rodata
 
-commands: .string "cls", "date", "prompt", "print"
 welcome: .string "Welcome to RISC-V OS v0.1"
-not_found: .string "Command not found"
+commands: .string "cls", "date", "prompt", "print"
 date: .string "2024-12-20 21:17:32 (fake date)"
 
+err_unknown: .string "Unknown error"
+err_not_found: .string "Command not found"
+err_missing_arg: .string "Missing argument"
+errors: .word err_unknown
+        .word err_not_found
+        .word err_missing_arg
 

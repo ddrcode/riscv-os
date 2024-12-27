@@ -10,6 +10,7 @@ MACHINE := qemu-system-riscv32 -nographic -serial mon:stdio -machine virt -m 4 -
 # TEST_OBJS := $(patsubst %.s,%.o,$(wildcard tests/test_*))
 TEST_OBJS = test_commands.o test_string.o test_rtc.o
 TESTS = test_commands test_string test_rtc
+TEST_NAME ?= commands
 
 default: build_all
 
@@ -49,7 +50,7 @@ run: build
 
 test: build_tests
 	@echo "Ctrl-A C for QEMU console, then quit to exit"
-	$(MACHINE) -bios build/test_commands
+	$(MACHINE) -bios build/test_$(TEST_NAME)
 	# $(MACHINE) -s -S -bios build/test_commands
 
 .PHONY: clean gdb

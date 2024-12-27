@@ -1,6 +1,7 @@
 .global itoa
 .global strlen
 .global strcmp
+.global str_find_char
 
 .section .text
 
@@ -99,4 +100,25 @@ strcmp:
     mv a0, t2                                      # set the result
     ret
 
+
+# Find position of a char inside a string
+# Arguments
+#     a0 - pointer to a string
+#     a1 - char to find
+# Returns
+#     a0 - position of a char (or -1 if not found)
+str_find_char:
+    li t0, -1                                      # set default result
+    mv t1, a0
+1:
+    lb t2, (t1)
+    beqz t2, 3f
+    beq a1, t2, 2f
+    inc t1
+    j 1b
+2:
+    sub t0, t1, a0
+3:
+    mv a0, t0
+    ret
 
