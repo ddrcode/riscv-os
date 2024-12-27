@@ -42,22 +42,27 @@ parse_cmd:
     addi sp, sp, -16
     sw ra, 12(sp)
     sw a0, 8(sp)
+    sw a2, (sp)
 1:                                   # do
         sw a1, 4(sp)
-        sw a2, (sp)
-
         call strcmp
-        lw a2, (sp)                  # retrieve index from the stack
         bgtz a0, 2f                  # finish when command matches
-        dec a2                       # decrement index
-        beqz a2, 3f                  # finnish if index is 0
-        lw a1, 4(sp)                 # retrieve array pointer for the stack
-        inc a1                       # and increment it
-        lw a0, 8(sp)                 # retrieve command pointer from the stack
+            lw a2, (sp)              # retrieve index from the stack
+            dec a2                   # decrement index
+            beqz a2, 3f              # finnish if index is 0
+            sw a2, (sp)
+
+            lw a1, 4(sp)             # retrieve array pointer from the stack
+            mv a0, a1
+            call strlen
+            lw a1, 4(sp)
+            add a1, a1, a0           # Move array pointer to the next item
+            inc a1
+            lw a0, 8(sp)             # retrieve command pointer from the stack
     j 1b
 2:                                   # cmd found
     li t0, SYS_FN_LEN                # retrieve num of commands
-    sub a0, t0, a2                   # fn_no = (no_of_comands-index) + 1
+    sub a0, t0, a2                   # fn_no = (no_of_comands - index) + 1
     inc a0
     j 4f
 3:                                   # cmd not found
@@ -75,9 +80,20 @@ cmd_not_found:
     pop ra
     ret
 
+show_date_time:
+    push ra
+    la a0, date
+    call println
+    pop ra
+    ret
+
 .section .data
 
 prompt: .string "> "
 commands: .string "cls", "date", "prompt", "print"
 welcome: .string "Welcome to RISC-V OS v0.1"
 not_found: .string "Command not found"
+date: .string "2024-12-20 21:17:32 (fake date)"
+
+str: .fill 1, 32, 0
+

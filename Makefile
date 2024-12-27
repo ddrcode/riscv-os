@@ -2,7 +2,7 @@ TOOL := riscv64-none-elf
 # use im and -mabi=ilp32 if planning to not use reduced base integer extension
 RISC_V_EXTENSIONS := em
 FLAGS := -march=rv32$(RISC_V_EXTENSIONS) -mabi=ilp32e -g
-SRC := src/system.s src/uart.s src/screen.s src/mem.s src/string.s src/shell.s src/drivers/rtc_goldfish.s
+SRC := src/system.s src/screen.s src/mem.s src/string.s src/shell.s src/drivers/uart.s src/drivers/rtc_goldfish.s
 OBJ := build/obj
 MACHINE := qemu-system-riscv32 -nographic -serial mon:stdio -machine virt -m 4 -smp 1
 

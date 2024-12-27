@@ -19,7 +19,7 @@ sysinit:
     li a1, 1
     call add_sys_fn
 
-    la a0, cmd_not_found  # FIXME
+    la a0, show_date_time
     li a1, 2
     call add_sys_fn
 
