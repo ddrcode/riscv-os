@@ -7,7 +7,7 @@
 
 .section .text
 
-.equ NUM_OF_ERRORS, 5                  # number of error codes
+.equ NUM_OF_ERRORS, 6                  # number of error codes
 
 .global shell_init
 .global exec_cmd
@@ -178,10 +178,12 @@ err_not_found: .string "Command not found"
 err_missing_arg: .string "Missing argument"
 err_not_supported: .string "Not supported"
 err_invalid_argument: .string "Invalid argument"
+err_stack_overflow: .string "Stack overflow"
 
 errors: .word err_unknown
         .word err_not_found
         .word err_missing_arg
         .word err_not_supported
         .word err_invalid_argument
+        .word err_stack_overflow
 

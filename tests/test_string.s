@@ -15,7 +15,9 @@ _start:
     call test_atoi
     call test_str_find_char
 
-loop:	j loop          # End program; spin forever
+loop:
+    wfi
+    j loop          # End program; spin forever
 
 
 test_itoa:

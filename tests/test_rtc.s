@@ -13,7 +13,9 @@ _start:
     call sysinit
     call test_time
 
-loop:	j loop          # End program; spin forever
+loop:
+    wfi
+    j loop          # End program; spin forever
 
 
 # 17 04067200

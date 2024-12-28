@@ -3,14 +3,15 @@ TOOL := riscv64-none-elf
 RISC_V_EXTENSIONS := em
 FLAGS := -march=rv32$(RISC_V_EXTENSIONS) -mabi=ilp32e -g
 AS_FLAGS := -I include
+GCC_FLAGS := -T baremetal.ld -nostdlib -static
 SRC := src/system.s src/screen.s src/mem.s src/string.s src/shell.s src/math.s src/drivers/uart.s src/drivers/rtc_goldfish.s
 OBJ := build/obj
 QEMU := qemu-system-riscv32 -machine virt -m 4 -smp 1
 MACHINE = $(QEMU) -nographic -serial mon:stdio
 
 # TEST_OBJS := $(patsubst %.s,%.o,$(wildcard tests/test_*))
-TEST_OBJS = test_commands.o test_string.o test_rtc.o
-TESTS = test_commands test_string test_rtc
+TEST_OBJS = test_commands.o test_string.o test_rtc.o test_stack.o
+TESTS = test_commands test_string test_rtc test_stack
 TEST_NAME ?= commands
 
 default: build_all
@@ -24,7 +25,7 @@ compile: setup src/main.s src/screen.s
 
 build: compile baremetal.ld
 	# ${TOOL}-gcc -T baremetal.ld $(FLAGS) -nostdlib -static -Oz -o build/riscvos $(OBJ)/main.o $(OBJ)/riscvos.o
-	${TOOL}-gcc -T baremetal.ld $(FLAGS) -nostdlib -static -o build/riscvos $(OBJ)/main.o $(OBJ)/riscvos.o
+	${TOOL}-gcc $(FLAGS) $(GCC_FLAGS) -o build/riscvos $(OBJ)/main.o $(OBJ)/riscvos.o
 
 # $(TEST_OBJS): %o: tests/%s
 # 	${TOOL}-as $(FLAGS) $(AS_FLAGS) $< -o $(OBJ)/$@
@@ -37,7 +38,7 @@ compile_tests: setup $(TEST_OBJS)
 $(TESTS): %.o:
 # %: build/obj/test%.o
 	@echo "1:" $< ", 2: " $@
-	${TOOL}-gcc -T baremetal.ld $(FLAGS) -nostdlib -static -o build/$@ $(OBJ)/$@.o $(OBJ)/riscvos.o
+	${TOOL}-gcc $(FLAGS) $(GCC_FLAGS) -o build/$@ $(OBJ)/$@.o $(OBJ)/riscvos.o
 
 build_tests: compile compile_tests $(TESTS)
 

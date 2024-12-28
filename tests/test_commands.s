@@ -31,7 +31,9 @@ _start:
     addi sp, sp, 16
 
 
-loop:	j loop          # End program; spin forever
+loop:
+    wfi
+    j loop          # End program; spin forever
 
 
 run_cmd:

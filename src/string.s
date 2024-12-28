@@ -73,19 +73,25 @@ itoa:
 # TODO Handle negative numbers
 # TODO Hanlde base (a1) > 10
 atoi:
-    addi    sp, sp, -16
+    addi    sp, sp, -16                # handle the stack
     sw      ra, 12(sp)
     sb      a1, 8(sp)
     sw      a0, 4(sp)
+    call    check_stack
 
-    call    strlen
-    mv      t0, a0
+    li      t0, 2
+    blt     a1, t0, 2f                 # check if base < 2
+    li      t0, 36
+    bgt     a1, t0, 2f                 # check if base > 36
+
+    call    strlen                     # get string length
+    mv      t0, a0                     # loop/string counter
     dec     t0
-    lw      a0, 4(sp)
-    lb      a1, 8(sp)
-    li      t2, 1
-    setz    a3                         # initialize result
-    li      a5, '0'
+    lw      a0, 4(sp)                  # string pointer
+    lb      a1, 8(sp)                  # base
+    li      t2, 1                      # multiplier (1, 10, 100, etc)
+    setz    a3                         # result
+    li      a5, '0'                    # constant
 
 1:
     add     t1, a0, t0                 # compute digit address
@@ -94,14 +100,18 @@ atoi:
     mul     a4, a4, t2                 # a4 *= t2 (position multiplier)
     add     a3, a3, a4                 # a3 += a4
     dec     t0                         # decrease pointer
-    bltz    t0, 2f                     # stop if pointer < 0
-    mul     t2, t2, a1                 # computer position multiplier (1, 10, 100, ...)
+    bltz    t0, 3f                     # stop if pointer < 0
+    mul     t2, t2, a1                 # compute position multiplier (1, 10, 100, ...)
     j       1b
-2:
+2:                                     # handle invalid base
+    li      a5, ERR_INVALID_ARGUMENT
+    setz    a0
+    j       4f
+3:                                     # Handle correct result
     setz    a5                         # Error code
     mv      a0, a3                     # Set result value
-3:
-    lw      ra, 12(sp)
+4:
+    lw      ra, 12(sp)                 # restore stack
     addi    sp, sp, 16
     ret
 
@@ -129,19 +139,19 @@ strlen:
 #     a0 - pointer to string 1
 #     a1 - pointer to string 2
 strcmp:
-    setz t2                                        # default result (strings not equal)
-1:                                                 # do
+    setz t2                            # default result (strings not equal)
+1:                                     # do
         lb t0, (a0)
         lb t1, (a1)
-        bne t0, t1, 3f                             # break when characters don't match
-        beqz t0, 2f                                # break when end of the string
+        bne t0, t1, 3f                 # break when characters don't match
+        beqz t0, 2f                    # break when end of the string
         inc a0
         inc a1
         j 1b
-2:                                                 # strings equal
+2:                                     # strings equal
     li t2, 1
 3:
-    mv a0, t2                                      # set the result
+    mv a0, t2                          # set the result
     ret
 
 
@@ -152,7 +162,7 @@ strcmp:
 # Returns
 #     a0 - position of a char (or -1 if not found)
 str_find_char:
-    li t0, -1                                      # set default result
+    li t0, -1                          # set default result
     mv t1, a0
 1:
     lb t2, (t1)

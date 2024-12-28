@@ -26,7 +26,9 @@ _start:
 
     pop ra
 
-loop:	j loop
+loop:
+    wfi
+    j loop
 
 
 

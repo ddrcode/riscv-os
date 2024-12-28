@@ -12,6 +12,8 @@
 
 .global sysinit
 .global syscall
+.global check_stack
+.global panic
 
 .equ SYS_FN_LEN, 4
 
@@ -48,12 +50,38 @@ syscall:
     ret
 
 
+check_stack:
+    push ra
+    la t0, __stack_top
+    li t1, STACK_SIZE
+    sub t0, t0, t1
+    bgt sp, t0, 1f
+
+    li a0, ERR_STACK_OVERFLOW
+    call show_error
+    call panic
+
+1:  pop ra
+    ret
+
+
+panic:
+    push ra
+    la a0, kernel_panic
+    call println
+    pop ra
+    ret
+
+#------------------------------------------------------------------------------
+
 .section .rodata
 
 # Jump table to system functions
-fnjumptable: .word show_error           # function pointer
+fnjumptable: .word show_error
              .word clear_screen
              .word show_date_time
              .word set_prompt
              .word println
+
+kernel_panic: .string "Kernel panic!"
 
