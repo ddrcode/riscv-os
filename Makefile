@@ -3,7 +3,7 @@ TOOL := riscv64-none-elf
 RISC_V_EXTENSIONS := em
 FLAGS := -march=rv32$(RISC_V_EXTENSIONS) -mabi=ilp32e -g
 AS_FLAGS := -I include
-SRC := src/system.s src/screen.s src/mem.s src/string.s src/shell.s src/drivers/uart.s src/drivers/rtc_goldfish.s
+SRC := src/system.s src/screen.s src/mem.s src/string.s src/shell.s src/math.s src/drivers/uart.s src/drivers/rtc_goldfish.s
 OBJ := build/obj
 QEMU := qemu-system-riscv32 -machine virt -m 4 -smp 1
 MACHINE = $(QEMU) -nographic -serial mon:stdio
@@ -48,11 +48,6 @@ run: build
 	$(MACHINE) -bios build/riscvos
 	# qemu-system-riscv32 -nographic -serial pty -machine virt -bios build/riscvos
 	# qemu-system-riscv32 -nographic -serial unix:/tmp/serial.socket,server -machine virt -bios build/riscvos
-
-run_tpm: build
-	@echo "Ctrl-A C for QEMU console, then quit to exit"
-	# swtpm socket --tpm2 -t -d --tpmstate dir=/tmp/tpm --ctrl type=unixio,path=swtpm-sock
-	$(QEMU) -bios build/riscvos -chardev socket,id=chrtpm,path=swtpm-sock -tpmdev emulator,id=tpm0,chardev=chrtpm -device tpm-tis-device,tpmdev=tpm0
 
 test: build_tests
 	@echo "Ctrl-A C for QEMU console, then quit to exit"

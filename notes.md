@@ -13,13 +13,15 @@ Finding addresses of memory devices: `info mtree`
 
 ## Devices / drivers
 
-### UART
+### UART / serial / chardev
+- [Chardev device options](https://www.qemu.org/docs/master/system/invocation.html#hxtool-6)
+- Try chardev: `qemu-system-riscv64 -nographic -M virt -cpu rv64 -m 4G -smp $(QEMU_N_HARTS) -serial pty -bios
+opensbi/output/path/fw_payload.elf -device virtio-serial-device -chardev pty,id=serial3 -device
+virtconsole,chardev=serial3 -S -gdb tcp:localhost:9000`
 
 ### GoldfishRTC
 
-Memory:
-`0000000000101000-0000000000101023 (prio 0, i/o): goldfish_rt`
-
+- Memory: `0000000000101000-0000000000101023 (prio 0, i/o): goldfish_rt`
 - [Goldfish docs](https://android.googlesource.com/platform/external/qemu/+/master/docs/GOLDFISH-VIRTUAL-HARDWARE.TXT)
 - [Risc-V patch for qemu](https://lists.sr.ht/~philmd/qemu/patches/8697)
 - [Implementationf of Goldfish in
