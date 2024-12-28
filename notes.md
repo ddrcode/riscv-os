@@ -35,3 +35,8 @@ Linux](https://github.com/torvalds/linux/blob/master/drivers/rtc/rtc-goldfish.c#
 - [How patterns match](https://www.gnu.org/software/make/manual/html_node/Pattern-Match.html)
 - [Automatic variables](https://www.gnu.org/software/make/manual/html_node/Automatic-Variables.html)
 
+## Minicom
+
+- Connect via socket: `minicom -D unix\#/tmp/xxx`
+
+

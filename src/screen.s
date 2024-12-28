@@ -16,7 +16,7 @@ clear_screen:
     setz a1
     call set_cursor_pos
 
-    setz a5
+    setz a5                            # set exit code
     pop ra
     ret
 

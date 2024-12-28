@@ -1,6 +1,6 @@
   { pkgs ? import <nixpkgs> {} }:
 
   pkgs.pkgsCross.riscv64-embedded.mkShell {
-    nativeBuildInputs = with pkgs.buildPackages; [ qemu gdb minicom ];
+    nativeBuildInputs = with pkgs.buildPackages; [ qemu gdb swtpm minicom ];
   }
 
