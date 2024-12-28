@@ -1,3 +1,9 @@
+# UART "driver" for RISC-V OS
+# author: David de Rosier
+# https://github.com/ddrcode/riscv-os
+#
+# See LICENSE for license details.
+
 .section .text
 
 .global print_screen

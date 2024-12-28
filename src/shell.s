@@ -1,6 +1,13 @@
+# Simple shell with a few standard commands
+# for RISC-V OS
+# author: David de Rosier
+# https://github.com/ddrcode/riscv-os
+#
+# See LICENSE for license details.
+
 .section .text
 
-.equ NUM_OF_ERRORS, 3                  # number of error codes
+.equ NUM_OF_ERRORS, 5                  # number of error codes
 
 .global shell_init
 .global exec_cmd
@@ -169,7 +176,12 @@ date: .string "2024-12-20 21:17:32 (fake date)"
 err_unknown: .string "Unknown error"
 err_not_found: .string "Command not found"
 err_missing_arg: .string "Missing argument"
+err_not_supported: .string "Not supported"
+err_invalid_argument: .string "Invalid argument"
+
 errors: .word err_unknown
         .word err_not_found
         .word err_missing_arg
+        .word err_not_supported
+        .word err_invalid_argument
 

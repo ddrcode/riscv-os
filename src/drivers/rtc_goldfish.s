@@ -4,6 +4,11 @@
 # https://elixir.bootlin.com/linux/v6.12.6/source/drivers/rtc/lib.c#L142
 # And Goldfish documentation
 # https://android.googlesource.com/platform/external/qemu/+/master/docs/GOLDFISH-VIRTUAL-HARDWARE.TXT
+#
+# author: David de Rosier
+# https://github.com/ddrcode/riscv-os
+#
+# See LICENSE for license details.
 
 .section .text
 

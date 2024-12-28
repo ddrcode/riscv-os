@@ -1,3 +1,9 @@
+# (Text) Screen handling functions
+# author: David de Rosier
+# https://github.com/ddrcode/riscv-os
+#
+# See LICENSE for license details.
+
 .section .text
 
 .global clear_screen

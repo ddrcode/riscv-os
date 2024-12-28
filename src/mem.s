@@ -1,3 +1,10 @@
+# Memory manipulation functions
+# author: David de Rosier
+# https://github.com/ddrcode/riscv-os
+#
+# See LICENSE for license details.
+
+
 .section .text
 
 .global memcpy

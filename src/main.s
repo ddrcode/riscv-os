@@ -1,4 +1,11 @@
+# Starting script of RISC-V OS
+# author: David de Rosier
+# https://github.com/ddrcode/riscv-os
+#
+# See LICENSE for license details.
+
 .include "config.s"
+.include "consts.s"
 .include "macros.s"
 
 .section .text
