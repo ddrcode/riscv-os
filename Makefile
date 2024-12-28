@@ -10,8 +10,8 @@ QEMU := qemu-system-riscv32 -machine virt -m 4 -smp 1
 MACHINE = $(QEMU) -nographic -serial mon:stdio
 
 # TEST_OBJS := $(patsubst %.s,%.o,$(wildcard tests/test_*))
-TEST_OBJS = test_commands.o test_string.o test_rtc.o test_stack.o
-TESTS = test_commands test_string test_rtc test_stack
+TEST_OBJS = test_commands.o test_string.o test_rtc.o test_stack.o test_math.o
+TESTS = test_commands test_string test_rtc test_stack test_math
 TEST_NAME ?= commands
 
 default: build_all
