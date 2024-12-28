@@ -12,6 +12,7 @@ _start:
 
     call sysinit
     call test_itoa
+    call test_atoi
     call test_str_find_char
 
 loop:	j loop          # End program; spin forever
@@ -38,6 +39,21 @@ test_itoa:
     pop ra
     ret
 
+test_atoi:
+    push ra
+    la a0, tname_atoi
+    call puts
+
+    la a0, str
+    li a1, 10
+    call atoi
+
+    li a1, 322
+    call assert
+
+    call puts
+    pop ra
+    ret
 
 test_str_find_char:
     push ra
@@ -79,6 +95,7 @@ ok: .string "\t\t\t[OK]\n"
 fail: .string "\t\t\t[Failed]\n"
 
 tname_itoa: .string "Test itoa"
+tname_atoi: .string "Test atoi"
 tname_str_find_char: .string "Test str_find_char"
 
 

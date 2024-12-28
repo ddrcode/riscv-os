@@ -1,4 +1,5 @@
 .global itoa
+.global atoi
 .global strlen
 .global strcmp
 .global str_find_char
@@ -59,6 +60,49 @@ itoa:
     pop a0                             # return string length
     pop ra
 6:
+    ret
+
+
+# Converts string to a number (if possible)
+# Arguments:
+#     a0: pinter to a string
+#     a1: base
+# Returns:
+#     a0: Result (number)
+#     a5: Error code
+# TODO Handle negative numbers
+# TODO Hanlde base (a1) > 10
+atoi:
+    addi    sp, sp, -16
+    sw      ra, 12(sp)
+    sb      a1, 8(sp)
+    sw      a0, 4(sp)
+
+    call    strlen
+    mv      t0, a0
+    dec     t0
+    lw      a0, 4(sp)
+    lb      a1, 8(sp)
+    li      t2, 1
+    setz    a3                         # initialize result
+    li      a5, '0'
+
+1:
+    add     t1, a0, t0                 # compute digit address
+    lb      a4, (t1)                   # load byte (character)
+    sub     a4, a4, a5                 # a4 -= '0'
+    mul     a4, a4, t2                 # a4 *= t2 (position multiplier)
+    add     a3, a3, a4                 # a3 += a4
+    dec     t0                         # decrease pointer
+    bltz    t0, 2f                     # stop if pointer < 0
+    mul     t2, t2, a1                 # computer position multiplier (1, 10, 100, ...)
+    j       1b
+2:
+    setz    a5                         # Error code
+    mv      a0, a3                     # Set result value
+3:
+    lw      ra, 12(sp)
+    addi    sp, sp, 16
     ret
 
 
