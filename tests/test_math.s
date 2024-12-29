@@ -6,10 +6,11 @@
     call putc
 .endm
 
-.macro callfn, name, arg0, arg1=0, arg2=0
+.macro callfn, name, arg0, arg1=0, arg2=0, arg3=0
     li a0, \arg0
     li a1, \arg1
     li a2, \arg2
+    li a3, \arg3
     call \name
 .endm
 
@@ -24,8 +25,9 @@ _start:
 
     call sysinit
     call test_bitlen32
-    call test_udiv32
-    call test_bitlen64
+    callfn test_udiv32, 7, 3, 2, 1
+    callfn test_udiv32, 320, 9, 35, 5
+    callfn test_bitlen64, 1, 1, 33
 
 loop:
     wfi
@@ -44,48 +46,58 @@ test_bitlen32:
     li a1, 8
     call assert
 
+    callfn putc, '\n'
     pop ra
     ret
 
 test_udiv32:
-    push ra
+    push ra, 32
+    sw a3, 24(sp)
+    sw a2, 20(sp)
+    sw a1, 16(sp)
+    sw a0, 12(sp)
+
     la a0, tname_udiv32
     call puts
+    callfn putc, '\t'
+    callfn putc, '\t'
 
-    li a0, 320
-    li a1, 9
+    lw a0, 12(sp)
+    lw a1, 16(sp)
     call udiv32
-    mv a4, a1
+    sw a1, 8(sp)
 
-    li a1, 35
+    lw a1, 20(sp)
     call assert
 
-    mv a0, a4
-    li a1, 5
-    dec t0
+    lw a0, 8(sp)
+    lw a1, 24(sp)
     call assert
 
     call puts
-    pop ra
+    callfn putc, '\n'
+
+    pop ra, 32
     ret
 
 test_bitlen64:
-    push ra
+    push ra, 16
+    sw a2, 8(sp)
+    sw a1, 4(sp)
+    sw a0, 0(sp)
 
     la a0, tname_bitlen64
     call puts
 
-    callfn bitlen64, 1024, 0
+    lw a0, 0(sp)
+    lw a1, 4(sp)
+    call bitlen64
 
-    li a1, 11
+    lw a1, 8(sp)
     call assert
 
-    callfn bitlen64, 7, 1
-
-    li a1, 33
-    call assert
-
-    pop ra
+    callfn putc, '\n'
+    pop ra, 16
     ret
 
 assert:
@@ -146,8 +158,8 @@ out_str: .fill 32, 1, 0
 .section .rodata
 
 str: .string "322"
-ok: .string "\t\t\t[OK]\n"
-fail: .string "\t\t\t[Failed]\n"
+ok: .string " [OK] "
+fail: .string " [Failed] "
 
 tname_bitlen32: .string "Test bitlen32"
 tname_udiv32: .string "Test udiv32"
