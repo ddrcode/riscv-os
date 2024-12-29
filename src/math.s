@@ -133,6 +133,8 @@ udiv64:
     ret
 
 # 64-bit unsigned subtraction
+# It uses 64-bit add based on principle that
+# x-y = x + ~y + 1
 # Arguments
 #     a0 - least significant byte of x
 #     a1 - most significant byte of x
@@ -142,6 +144,14 @@ udiv64:
 #     a0 - least significant byte of the result
 #     a1 - most significant byte of the result
 usub64:
+    stack_alloc
+    not a2, a2
+    not a3, a3
+    call add64
+    li a2, 1
+    li a3, 0
+    call add64
+    stack_free
     ret
 
 # returns number of bits in 32-bit number
