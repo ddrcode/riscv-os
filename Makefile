@@ -6,8 +6,10 @@ AS_FLAGS := -I include
 GCC_FLAGS := -T baremetal.ld -nostdlib -static
 SRC := src/system.s src/screen.s src/mem.s src/string.s src/shell.s src/math.s src/drivers/uart.s src/drivers/rtc_goldfish.s
 OBJ := build/obj
-QEMU := qemu-system-riscv32 -machine virt -m 4 -smp 1
-MACHINE = $(QEMU) -nographic -serial mon:stdio
+
+QEMU_EXTENSIONS := e=on,m=on,i=off,h=off,f=off,d=off,a=off,f=off,c=off,zawrs=off,sstc=off,zicntr=off,zihpm=off,zicboz=off,zicbom=off,svadu=off
+QEMU := qemu-system-riscv32 -machine virt -m 4 -smp 1 -cpu rv32,$(QEMU_EXTENSIONS)
+MACHINE = $(QEMU) -nographic -serial mon:stdio -echr 17
 
 # TEST_OBJS := $(patsubst %.s,%.o,$(wildcard tests/test_*))
 TEST_OBJS = test_commands.o test_string.o test_rtc.o test_stack.o test_math.o
@@ -45,19 +47,19 @@ build_tests: compile compile_tests $(TESTS)
 build_all: build build_tests
 
 run: build
-	@echo "Ctrl-A C for QEMU console, then quit to exit"
+	@echo "Ctrl-Q C for QEMU console, then quit to exit"
 	$(MACHINE) -bios build/riscvos
 	# qemu-system-riscv32 -nographic -serial pty -machine virt -bios build/riscvos
 	# qemu-system-riscv32 -nographic -serial unix:/tmp/serial.socket,server -machine virt -bios build/riscvos
 
 test: build_tests
-	@echo "Ctrl-A C for QEMU console, then quit to exit"
+	@echo "Ctrl-Q C for QEMU console, then quit to exit"
 	$(MACHINE) -bios build/test_$(TEST_NAME)
 
 .PHONY: clean gdb debug
 
 debug: build_tests
-	@echo "Ctrl-A C for QEMU console, then quit to exit"
+	@echo "Ctrl-Q C for QEMU console, then quit to exit"
 	$(MACHINE) -s -S -bios build/test_$(TEST_NAME)
 
 gdb:
