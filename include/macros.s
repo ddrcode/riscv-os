@@ -1,11 +1,11 @@
-.macro push, reg
-    addi sp, sp, -4
-    sw \reg, (sp)
+.macro push, reg, size=4
+    addi sp, sp, -\size
+    sw \reg, \size-4(sp)
 .endm
 
-.macro pop, reg
-    lw \reg, (sp)
-    addi sp, sp, 4
+.macro pop, reg, size=4
+    lw \reg, \size-4(sp)
+    addi sp, sp, \size
 .endm
 
 .macro inc, reg
