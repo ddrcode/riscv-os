@@ -20,16 +20,15 @@ loop:
 
 # 17 04067200
 test_time:
-    addi sp, sp, -16
-    sw ra, 12(sp)
+    stack_alloc
 
     li t0, 10
 1:
     beqz t0, 2f
-    sw t0, 8(sp)
+    push t0, 8
 
     call rtc_read_time
-    sw a0, (sp)
+    push a0, 0
 
     mv a0, a1
     li t0, 1
@@ -41,7 +40,7 @@ test_time:
     la a0, out_str
     call puts
 
-    lw a0, (sp)
+    pop a0, 0
     li t0, 1000000
     div a0, a0, t0
     la a1, out_str
@@ -54,13 +53,12 @@ test_time:
     la a0, '\n'
     call putc
 
-    lw t0, 8(sp)
+    pop t0, 8
     dec t0
     j 1b
 
 2:
-    lw ra, 12(sp)
-    addi sp, sp, 16
+    stack_free
     ret
 
 

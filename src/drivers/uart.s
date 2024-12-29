@@ -37,7 +37,7 @@ putc:
 
 # Prints the content of screen memory to uart
 print_screen:
-    push ra
+    stack_alloc 4
     call _print_frame
     la a0, screen                      # set a0 to beginning of screen region
     li a1, UART_BASE
@@ -72,7 +72,7 @@ print_screen:
     setz a1
     call set_cursor_pos
     call _print_frame
-    pop ra
+    stack_free 4
     ret
 
 

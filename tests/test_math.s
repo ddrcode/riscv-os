@@ -6,14 +6,6 @@
     call putc
 .endm
 
-.macro callfn, name, arg0, arg1=0, arg2=0, arg3=0
-    li a0, \arg0
-    li a1, \arg1
-    li a2, \arg2
-    li a3, \arg3
-    call \name
-.endm
-
 .section .text
 
 .global _start
@@ -28,6 +20,7 @@ _start:
     callfn test_udiv32, 7, 3, 2, 1
     callfn test_udiv32, 320, 9, 35, 5
     callfn test_bitlen64, 1, 1, 33
+    callfn test_bitlen64, 16, 0, 5
 
 loop:
     wfi
@@ -35,7 +28,7 @@ loop:
 
 
 test_bitlen32:
-    push ra
+    stack_alloc
 
     la a0, tname_bitlen32
     call puts
@@ -47,68 +40,69 @@ test_bitlen32:
     call assert
 
     callfn putc, '\n'
-    pop ra
+    stack_free
     ret
 
 test_udiv32:
-    push ra, 32
-    sw a3, 24(sp)
-    sw a2, 20(sp)
-    sw a1, 16(sp)
-    sw a0, 12(sp)
+    stack_alloc 32
+
+    push a3, 24
+    push a2, 20
+    push a1, 16
+    push a0, 12
 
     la a0, tname_udiv32
     call puts
     callfn putc, '\t'
     callfn putc, '\t'
 
-    lw a0, 12(sp)
-    lw a1, 16(sp)
+    pop a0, 12
+    pop a1, 16
     call udiv32
-    sw a1, 8(sp)
+    push a1, 8
 
-    lw a1, 20(sp)
+    pop a1, 20
     call assert
 
-    lw a0, 8(sp)
-    lw a1, 24(sp)
+    pop a0, 8
+    pop a1, 24
     call assert
 
     call puts
-    callfn putc, '\n'
+    printchar '\n'
 
-    pop ra, 32
+    stack_free 32
     ret
 
 test_bitlen64:
-    push ra, 16
-    sw a2, 8(sp)
-    sw a1, 4(sp)
-    sw a0, 0(sp)
+    stack_alloc
+    push a2, 8
+    push a1, 4
+    push a0, 0
 
     la a0, tname_bitlen64
     call puts
 
-    lw a0, 0(sp)
-    lw a1, 4(sp)
+    pop a0, 0
+    pop a1, 4
     call bitlen64
 
-    lw a1, 8(sp)
+    pop a1, 8
     call assert
 
     callfn putc, '\n'
-    pop ra, 16
+    stack_free
     ret
 
 assert:
-    push ra, 16
-    sw a0, 8(sp)
-    sw a1, 4(sp)
+    stack_alloc
+    push a0, 8
+    push a1, 4
 
     call print_comaprison
 
-    lw a0, 8(sp)
-    lw a1, 4(sp)
+    pop a0, 8
+    pop a1, 4
 
     la t0, ok
     beq a0, a1, 1f
@@ -116,18 +110,18 @@ assert:
 1:
     mv a0, t0
     call puts
-    pop ra, 16
+    stack_free
     ret
 
 print_comaprison:
-    push ra, 16
-    sw a0, 8(sp)
-    sw a1, 4(sp)
+    stack_alloc
+    push a0, 8
+    push a1, 4
 
     printchar ' '
     printchar '('
 
-    lw a0, 8(sp)
+    pop a0, 8
     la a1, out_str
     li a2, 10
     call itoa
@@ -137,7 +131,7 @@ print_comaprison:
 
     printchar '='
 
-    lw a0, 4(sp)
+    pop a0, 4
     la a1, out_str
     li a2, 10
     call itoa
@@ -147,7 +141,7 @@ print_comaprison:
 
     printchar ')'
 
-    pop ra, 16
+    stack_free
     ret
 
 .section .data

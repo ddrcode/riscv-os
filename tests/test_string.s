@@ -21,7 +21,7 @@ loop:
 
 
 test_itoa:
-    push ra
+    stack_alloc
 
     la a0, tname_itoa
     call puts
@@ -38,11 +38,11 @@ test_itoa:
     li a1, 1
     call assert
 
-    pop ra
+    stack_free
     ret
 
 test_atoi:
-    push ra
+    stack_alloc
     la a0, tname_atoi
     call puts
 
@@ -54,11 +54,11 @@ test_atoi:
     call assert
 
     call puts
-    pop ra
+    stack_free
     ret
 
 test_str_find_char:
-    push ra
+    stack_alloc
 
     la a0, tname_str_find_char
     call puts
@@ -69,12 +69,12 @@ test_str_find_char:
     li a1, -1
     call assert
 
-    pop ra
+    stack_free
     ret
 
 
 assert:
-    push ra
+    stack_alloc
 
     la t0, ok
     beq a0, a1, 1f
@@ -82,7 +82,7 @@ assert:
 1:
     mv a0, t0
     call puts
-    pop ra
+    stack_free
     ret
 
 .section .data

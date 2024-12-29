@@ -18,13 +18,13 @@ _start:
     la sp, __stack_top              # initialize stack pointer
     mv s0, sp
 
-    push ra
+    stack_alloc
 
     call sysinit
     call shell_init
     call print_screen
 
-    pop ra
+    stack_free
 
 loop:
     wfi

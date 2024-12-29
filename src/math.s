@@ -32,15 +32,14 @@
 # R - a3
 # i - t0
 udiv32:
-    addi sp, sp, -16
-    sw ra, 12(sp)
-    sw a0, 8(sp)
-    sw a1, 4(sp)
+    stack_alloc
+    push a0, 8
+    push a1, 4
 
     call bitlen32
     mv t0, a0
-    lw a0, 8(sp)
-    lw a1, 4(sp)
+    pop a0, 8
+    pop a1, 4
     setz a2
     setz a3
 
@@ -64,8 +63,7 @@ udiv32:
     mv a0, a2
     mv a1, a3
 
-    lw ra, 12(sp)
-    addi sp, sp, 16
+    stack_free
     ret
 
 # 64-bit unsigned divison (x/y)
@@ -80,7 +78,7 @@ udiv32:
 #     a2 - least significant byte of the remainder
 #     a3 - most significant byte of the remainder
 udiv64:
-    push ra, 32
+    stack_alloc 32
 
     bnez a1, 1f                        # test whether 32-bit div can be executed
     bnez a3, 1f                        # which is when both most significant bytes are 0
@@ -94,10 +92,10 @@ udiv64:
     j 4f
 
 1:                                     # handle 62-bit division
-    sw a0, 24(sp)
-    sw a1, 20(sp)
-    sw a2, 16(sp)
-    sw a3, 12(sp)
+    push a0, 24
+    push a1, 20
+    push a2, 16
+    push a3, 12
 
     call bitlen64
     mv t0, a0
@@ -131,7 +129,7 @@ udiv64:
     j 2b
 
 
-4:  pop ra, 32
+4:  stack_free 32
     ret
 
 # 64-bit unsigned subtraction
@@ -166,16 +164,16 @@ bitlen32:
 #     a0 - least significant byte
 #     a1 - most significant byte
 bitlen64:
-    push ra, 16
-    sb zero, 8(sp)                     # set adder to 0
+    stack_alloc
+    pushb zero, 8                      # set adder to 0
     beqz a1, 1f                        # jump if most significant byte is zero
         mv a0, a1                      # make a0 most significant byte
         li t0, 32                      # set adder to 32
-        sb t0, 8(sp)                   # and save it on the stack
+        pushb t0, 8                    # and save it on the stack
 1:  call bitlen32
-    lb t0, 8(sp)
+    popb t0, 8
     add a0, a0, t0                     # increase the result by the adder
-    pop ra, 16
+    stack_free
     ret
 
 # Computes 32-bit integer power of x^y

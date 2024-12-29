@@ -10,7 +10,7 @@ _start:
     la sp, __stack_top              # initialize stack pointer
     mv s0, sp
 
-    addi sp, sp, -16
+    stack_alloc
 
     call sysinit
     call shell_init
@@ -19,16 +19,16 @@ _start:
 1:
     lw a0, (t0)
     beqz a0, 2f
-        sw t0, 12(sp)
+        push t0, 12
         call run_cmd
-        lw t0, 12(sp)
+        pop t0, 12
         addi t0, t0, 4
         j 1b
 2:
     call show_cursor
     call print_screen
 
-    addi sp, sp, 16
+    stack_free
 
 
 loop:
@@ -37,17 +37,15 @@ loop:
 
 
 run_cmd:
-    addi sp, sp, -16
-    sw ra, 12(sp)
-    sw a0, 8(sp)
+    stack_alloc
+    push a0, 8
 
     call println
 
-    lw a0, 8(sp)
+    pop a0, 8
     call exec_cmd
 
-    lw ra, 12(sp)
-    addi sp, sp, 16
+    stack_free
     ret
 
 

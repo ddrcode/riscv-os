@@ -14,42 +14,40 @@
 .global set_prompt
 
 shell_init:
-    push ra
+    stack_alloc
     call clear_screen
     la a0, welcome
     call println
     la a0, prompt
     call print_str
     call show_cursor
-    pop ra
+    stack_free
     ret
 
 
 # Arguments
 #    a0 - cmd string pointer
 exec_cmd:
-    addi sp, sp, -16
-    sw ra, 12(sp)
-    sw a0, 8(sp)
-    sw zero, 4(sp)
+    stack_alloc
+    push a0, 8
+    push zero, 4
 
     call split_cmd                     # split command from its args
     mv t0, a0
-    lw a0, 8(sp)
+    pop a0, 8
     bltz t0, 1f                        # jump if there are no args
         add t0, t0, a0                 # compute args address...
-        sw t0, 4(sp)                   # and place it on the stack
+        push t0, 4                     # and place it on the stack
 1:
     call parse_cmd
 
-    lw a1, 4(sp)                       # restore args addr from the stack
+    pop a1, 4                          # restore args addr from the stack
     call syscall
 
     la a0, prompt
     call print_str
 
-    lw ra, 12(sp)
-    addi sp, sp, 16
+    stack_free
     ret
 
 
@@ -60,20 +58,18 @@ exec_cmd:
 # Returns
 #    a0 - address of arguments string (or 0 if none)
 split_cmd:
-    addi sp, sp, -16
-    sw ra, 12(sp)
-    sw a0, 8(sp)
+    stack_alloc
+    push a0, 8
 
     li a1, ' '
     call str_find_char                 # search for space in cmd line
     bltz a0, 1f                        # exit if there is none (no args)
-        lw t1, 8(sp)
+        pop t1, 8
         add t1, t1, a0                 # compute args addr
         sb zero, (t1)                  # replace space with '\0'
         inc a0                         # increment args addr
 1:
-    lw ra, 12(sp)
-    addi sp, sp, 16
+    stack_free
     ret
 
 # Parses command line
@@ -83,29 +79,29 @@ split_cmd:
 #     a0 - system function id (or 0 when not found)
 # TODO make index byte not word
 parse_cmd:
+    stack_alloc
+
     la a1, commands
     li a2, SYS_FN_LEN
 
-    addi sp, sp, -16
-    sw ra, 12(sp)
-    sw a0, 8(sp)
-    sw a2, (sp)
+    push a0, 8
+    push a2, 0
 1:                                   # do
-        sw a1, 4(sp)
+        push a1, 4
         call strcmp
         bgtz a0, 2f                  # finish when command matches
-            lw a2, (sp)              # retrieve index from the stack
+            pop a2, 0                # retrieve index from the stack
             dec a2                   # decrement index
             beqz a2, 3f              # finnish if index is 0
-            sw a2, (sp)
+            push a2, 0
 
-            lw a1, 4(sp)             # retrieve array pointer from the stack
+            pop a1, 4                # retrieve array pointer from the stack
             mv a0, a1
             call strlen
-            lw a1, 4(sp)
+            pop a1, 4
             add a1, a1, a0           # Move array pointer to the next item
             inc a1
-            lw a0, 8(sp)             # retrieve command pointer from the stack
+            pop a0, 8                # retrieve command pointer from the stack
     j 1b
 2:                                   # cmd found
     li t0, SYS_FN_LEN                # retrieve num of commands
@@ -115,8 +111,7 @@ parse_cmd:
 3:                                   # cmd not found
     setz a0
 4:                                   # end
-    lw ra, 12(sp)
-    addi sp, sp, 16
+    stack_free
     ret
 
 
@@ -124,7 +119,7 @@ parse_cmd:
 # Arguments:
 #     a0 - error code
 show_error:
-    push ra
+    stack_alloc 4
     li t0, NUM_OF_ERRORS
     blt a0, t0, 1f                     # jump if valid error code
         setz a0                        # otherwise set to unknown error
@@ -136,15 +131,15 @@ show_error:
     lw a0, (t0)
     call println
     setz a5
-    pop ra
+    stack_free 4
     ret
 
 show_date_time:
-    push ra
+    stack_alloc 4
     la a0, date
     call println
     setz a5
-    pop ra
+    stack_free 4
     ret
 
 # Set single-character prompt

@@ -12,7 +12,7 @@
 .global show_cursor
 
 clear_screen:
-    push ra
+    stack_alloc 4
     la a0, screen
     li a1, SCREEN_WIDTH*SCREEN_HEIGHT
     li a2, 0x20
@@ -23,7 +23,7 @@ clear_screen:
     call set_cursor_pos
 
     setz a5                            # set exit code
-    pop ra
+    stack_free 4
     ret
 
 
@@ -34,19 +34,18 @@ clear_screen:
 #     a0 - x position of the cursor
 #     a1 - y position of the cursor
 print_str:
-    addi sp, sp, -16                # prepare the stack
-    sw ra, 12(sp)
-    sw a0, 8(sp)
-    sw a1, 4(sp)
+    stack_alloc                     # prepare the stack
+    push a0, 8
+    push a1, 4
     call strlen                     # get string length
-    sw a0, 0(sp)                    # and push it to the stack
+    push a0, 0                      # and push it to the stack
 
     call get_cursor_offset          # get cursor offset
     la a1, screen                   # load screen address..
     mv t1, a1                       # copy screen address to t1
     add a1, a1, a0                  # ...and increase it by the offset
 
-    lw t2, 0(sp)                    # retrieve string length
+    pop t2, 0                       # retrieve string length
     add t2, t2, a1                  # and compute the end address
 
     li t0, SCREEN_WIDTH*SCREEN_HEIGHT
@@ -59,13 +58,13 @@ print_str:
         div a0, t0, a0
         mul t0, t0, a0              # and adjust the start address (a1) accordingly
         sub a1, a1, t0
-        sw a1, 0(sp)                # preserver the start address on the stack
+        push a1, 0                  # preserver the start address on the stack
         call scroll                 # and scroll
         la t1, screen
-        lw a1, 0(sp)
+        pop a1, 0
 
 1:
-    lw a0, 8(sp)                    # retrieve pointer to string
+    pop a0, 8                       # retrieve pointer to string
 2:
     lb t0, (a0)                     # Load a single byte of a string
     beqz t0, 3f                     # Exit loop if \0
@@ -77,8 +76,7 @@ print_str:
     sub a0, a1, t1                  # Compute offset for new cursor position
     call set_cursor_pos_from_offset
 
-    lw ra, 12(sp)
-    addi sp, sp, 16
+    stack_free
     ret
 
 
@@ -90,7 +88,7 @@ print_str:
 #     a1 - y position of the cursor
 #     a5 - error code
 println:
-    push ra
+    stack_alloc
     beqz a0, 1f                        # handle null pointer
 
     call print_str                     # Print text at cursor position
@@ -100,11 +98,11 @@ println:
     li t0, SCREEN_HEIGHT
     blt a1, t0, 2f                     # if cursor_y < SCREEN_HEIGHT jump to end
         dec a1
-        push a0
-        push a1
+        push a0, 8
+        push a1, 4
         call scroll                    # scroll screen content up
-        pop a1
-        pop a0
+        pop a1, 4
+        pop a0, 8
 1:                                     # handling null
     li a5, 2                           # set error code
     j 3f
@@ -112,7 +110,7 @@ println:
     setz a5                            # exit code
 3:
     call get_cursor_pos                # and get it (for return)
-    pop ra
+    stack_free
     ret
 
 
@@ -169,25 +167,25 @@ get_cursor_pos:
 # Returns:
 #     a0: offset
 get_cursor_offset:
-    push ra
+    stack_alloc 4
     call get_cursor_pos             # get cursor position as x,y coords
-    pop ra
 
     slli t0, a1, 5                  # multiply y by 32
     slli t1, a1, 3                  # multiply y by 8
     add t0, t0, t1                  # sum the above to get y*40
     add a0, a0, t0                  # x+y
+    stack_free 4
     ret
 
 
 show_cursor:
-    push ra
+    stack_alloc 4
     call get_cursor_offset
     la t0, screen
     add t0, t0, a0
     li t1, '_'
     sb t1, (t0)
-    pop ra
+    stack_free 4
     ret
 
 
@@ -196,7 +194,7 @@ show_cursor:
 # TODO make it respect a0 argument
 scroll:
     # copy screen memory one line up
-    push ra
+    stack_alloc 4
     la a0, screen
     addi a1, a0, SCREEN_WIDTH
     li a2, SCREEN_WIDTH*(SCREEN_HEIGHT-1)
@@ -215,7 +213,7 @@ scroll:
     sb t1, 1(t0)
 
 1:
-    pop ra
+    stack_free 4
     ret
 
 

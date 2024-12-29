@@ -25,7 +25,7 @@ sysinit:
 #     a0 - function id
 #     a1 - pointer to arguments (or 0)
 syscall:
-    push ra
+    stack_alloc 4
     li t0, SYS_FN_LEN
     bgt a0, t0, 3f                       # exit if fn id is too big
     bltz a0, 3f                          # exit if fn id is negative
@@ -46,12 +46,12 @@ syscall:
     mv a0, a5
     call show_error                      # otherwise show error
 3:                                       # exit
-    pop ra
+    stack_free 4
     ret
 
 
 check_stack:
-    push ra
+    stack_alloc 4
     la t0, __stack_top
     li t1, STACK_SIZE
     sub t0, t0, t1
@@ -61,15 +61,15 @@ check_stack:
     call show_error
     call panic
 
-1:  pop ra
+1:  stack_free 4
     ret
 
 
 panic:
-    push ra
+    stack_alloc 4
     la a0, kernel_panic
     call println
-    pop ra
+    stack_free 4
     ret
 
 #------------------------------------------------------------------------------

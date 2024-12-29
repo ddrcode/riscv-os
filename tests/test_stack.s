@@ -21,7 +21,7 @@ loop:
 
 
 stackinfo:
-    push ra
+    stack_alloc
     la a0, lab_stack_info
     call puts
 
@@ -58,11 +58,11 @@ stackinfo:
         la a0, out_str
         call puts
 
-    pop ra
+    stack_free
     ret
 
 test_overflow:
-    push ra
+    stack_alloc
 
     li t0, STACK_SIZE
     addi t0, t0, 16
@@ -79,11 +79,11 @@ test_overflow:
     call assert
     call print_screen
 
-    pop ra
+    stack_free
     ret
 
 assert:
-    push ra
+    stack_alloc
 
     la t0, ok
     beq a0, a1, 1f
@@ -91,7 +91,7 @@ assert:
 1:
     mv a0, t0
     call puts
-    pop ra
+    stack_free
     ret
 
 #------------------------------------------------------------------------------

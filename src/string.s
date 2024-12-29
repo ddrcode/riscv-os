@@ -16,6 +16,7 @@
 # Returns:
 #     a0 - string length
 itoa:
+    stack_alloc
     mv t0, a1
     bnez a0, 1f                        # jump if number is not zero
         li t1, '0'                     # generate "0\0" string and jump to the end
@@ -52,14 +53,13 @@ itoa:
     sb t1, (t0)
     sub t0, t0, a1                     # compute string length
 
-    push ra
-    push t0                            # preserve string length on stack
+    push t0, 8                         # preserve string length on stack
     mv a0, a1                          # pointer to the string
     mv a1, t0                          # string length
     call mem_reverse                   # reverse the string
-    pop a0                             # return string length
-    pop ra
+    pop a0, 8                          # return string length
 6:
+    stack_free
     ret
 
 
@@ -73,11 +73,10 @@ itoa:
 # TODO Handle negative numbers
 # TODO Hanlde base (a1) > 10
 atoi:
-    addi    sp, sp, -16                # handle the stack
-    sw      ra, 12(sp)
-    sb      a1, 8(sp)
-    sw      a0, 4(sp)
-    call    check_stack
+    stack_alloc
+    pushb   a1, 8
+    push    a0, 4
+
 
     li      t0, 2
     blt     a1, t0, 2f                 # check if base < 2
@@ -87,8 +86,8 @@ atoi:
     call    strlen                     # get string length
     mv      t0, a0                     # loop/string counter
     dec     t0
-    lw      a0, 4(sp)                  # string pointer
-    lb      a1, 8(sp)                  # base
+    pop     a0, 4                      # string pointer
+    popb    a1, 8                      # base
     li      t2, 1                      # multiplier (1, 10, 100, etc)
     setz    a3                         # result
     li      a5, '0'                    # constant
@@ -111,8 +110,7 @@ atoi:
     setz    a5                         # Error code
     mv      a0, a3                     # Set result value
 4:
-    lw      ra, 12(sp)                 # restore stack
-    addi    sp, sp, 16
+    stack_free
     ret
 
 
