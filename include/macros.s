@@ -36,11 +36,13 @@
     mv \reg, zero
 .endm
 
-.macro callfn, name, arg0, arg1=0, arg2=0, arg3=0
+.macro callfn, name, arg0, arg1=0, arg2=0, arg3=0, arg4=0, arg5=0
     li a0, \arg0
     li a1, \arg1
     li a2, \arg2
     li a3, \arg3
+    li a4, \arg4
+    li a5, \arg5
     call \name
 .endm
 

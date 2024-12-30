@@ -9,6 +9,8 @@
 .global pow32
 .global udiv32
 .global bitlen32
+.global getbit
+.global setbit
 
 # Unsigned, 32-bit division
 # Implements the following algorithm:
@@ -81,6 +83,32 @@ bitlen32:
     mv a0, t1
     ret
 
+# Get n-th bit from word
+# Arguments:
+#     a0 - word
+#     a1 - bit
+# Returns: 0 or 1
+getbit:
+    li t0, 1
+    sll t0, t0, a1
+    and t0, a0, t0
+    snez a0, t0
+    ret
+
+# Set n-th bit from word
+# Arguments:
+#     a0 - word
+#     a1 - bit
+#     a2 - value
+setbit:
+    li t0, 1
+    sll t0, t0, a1
+    bnez a2, 1f
+        not t0, t0
+        and a0, a0, t0                 # clear bit
+        j 2f
+1:  or a0, a0, t0                      # set bit
+2:  ret
 
 # Computes 32-bit integer power of x^y
 # Arguments:
