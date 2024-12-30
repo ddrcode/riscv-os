@@ -77,6 +77,7 @@ panic:
 .section .rodata
 
 # Jump table to system functions
+# TODO function address size could be half-words
 fnjumptable: .word show_error
              .word clear_screen
              .word show_date_time

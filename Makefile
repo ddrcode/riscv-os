@@ -4,7 +4,7 @@ RISC_V_EXTENSIONS := em
 FLAGS := -march=rv32$(RISC_V_EXTENSIONS) -mabi=ilp32e -g
 AS_FLAGS := -I include
 GCC_FLAGS := -T baremetal.ld -nostdlib -static
-SRC := src/system.s src/screen.s src/mem.s src/string.s src/shell.s src/math.s src/drivers/uart.s src/drivers/rtc_goldfish.s
+SRC := src/system.s src/screen.s src/mem.s src/string.s src/shell.s src/math32.s src/math64.s src/drivers/uart.s src/drivers/rtc_goldfish.s
 OBJ := build/obj
 
 QEMU_EXTENSIONS := e=on,m=on,i=off,h=off,f=off,d=off,a=off,f=off,c=off,zawrs=off,sstc=off,zicntr=off,zihpm=off,zicboz=off,zicbom=off,svadu=off
@@ -55,6 +55,9 @@ run: build
 test: build_tests
 	@echo "Ctrl-Q C for QEMU console, then quit to exit"
 	$(MACHINE) -bios build/test_$(TEST_NAME)
+
+c: div64.c
+	${TOOL}-gcc $(FLAGS) $(GCC_FLAG) -S div64.c
 
 .PHONY: clean gdb debug
 

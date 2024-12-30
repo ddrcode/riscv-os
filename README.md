@@ -9,13 +9,14 @@ extensions.
 ## Usage
 
 I strongly recommend using [nix](https://nixos.org/download/#download-nix) for handling this project, as it configures all the necessary dependencies.
-In such case just enter the project's folder and type `nix-shell`. 
+In such case just enter the project's folder and type `nix-shell`.
 
 Most important Makefile options:
 - `make run` - runs the system in QEMU
 - `make test TEST_NAME=commands` - runs a specific test and outputs results to stdout
 - `make debug TEST_NAME=commands` - loads test to QEMU and waits for connection from GDB
 - `make gdb TEST_NAME=commands` - connects GDB with QEMU
+Other available tests (among others): `math`, `string`, `rtc`
 
 ## Credits
 The initial setup and linker file were inspired by
@@ -41,5 +42,5 @@ references that helped me to learn the subject. Here are the key ones:
 - [Generic Virtual Platform (virt)](https://www.qemu.org/docs/master/system/riscv/virt.html) -
   A documentation of qemu's virt platform that I use for testing
 - [RISC-V Options (for gcc)](https://gcc.gnu.org/onlinedocs/gcc/RISC-V-Options.html) -
-  very handy list of options for compilation/building. One of the best documentations of
+  very handy list of options for compilation/building. Also, quite clear documentation of
   RISC-V extensions
