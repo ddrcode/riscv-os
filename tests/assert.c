@@ -2,6 +2,10 @@
 #include "mem.h"
 #include "uart.h"
 
+void print(char* str) {
+    puts(str);
+}
+
 char* citoa(u32 num, char* str, u32 base)
 {
     u32 i = 0;
@@ -47,8 +51,21 @@ void asser_eq(u32 val, u32 expected) {
 }
 
 void assert_arr(u32* vals, u32* expected, i32 len) {
+    int ok = 1;
+    char str[64];
     for (int i=0; i < len; ++i) {
-
+        if (vals[i] != expected[i]) {
+            ok = 0;
+        }
+        print("0x");
+        citoa(vals[i], str, 16);
+        print(str);
+        print("=>0x");
+        citoa(expected[i], str, 16);
+        print(str);
+        if (i < len-1 ) print(", ");
     }
+    print(ok ? "\t[OK]" : "\n[FAILED]");
+    print("\n");
 }
 
