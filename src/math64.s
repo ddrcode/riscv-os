@@ -11,6 +11,7 @@
 .global udiv64
 .global bitlen32
 .global bitlen64
+.global lshift64
 
 .macro stack_to_args2 arg0, arg1
     pop a0, \arg0
@@ -165,6 +166,7 @@ usub64:
 # Arguments:
 #     a0 - least significant word
 #     a1 - most significant word
+.type bitlen64, @function
 bitlen64:
     stack_alloc
     pushb zero, 8                      # set adder to 0
@@ -184,6 +186,7 @@ bitlen64:
 #     a0 - least significant word
 #     a1 - most significant word
 # Returns: same as above
+.type lshift64, @function
 lshift64:
     .set BIT19, 1 << 19
     lui t0, BIT19                      # set bit 31 to 1

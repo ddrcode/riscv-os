@@ -1,11 +1,7 @@
 #include "types.h"
 #include "test.h"
 #include "uart.h"
-
-// extern int itoa(u32, char*, int);
-
-extern u32 add64(u32, u32, u32, u32);
-extern u32 udiv64(u32, u32, u32, u32);
+#include "math64.h"
 
 
 void test_add64(u32 xlo, u32 xhi, u32 ylo, u32 yhi) {

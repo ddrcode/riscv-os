@@ -45,3 +45,10 @@ char* citoa(u32 num, char* str, u32 base)
 void asser_eq(u32 val, u32 expected) {
 
 }
+
+void assert_arr(u32* vals, u32* expected, i32 len) {
+    for (int i=0; i < len; ++i) {
+
+    }
+}
+
