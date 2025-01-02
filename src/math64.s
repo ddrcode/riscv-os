@@ -188,8 +188,10 @@ bitlen64:
 # Returns: same as above
 .type lshift64, @function
 lshift64:
-    .set BIT19, 1 << 19
-    lui t0, BIT19                      # set bit 31 to 1
+    # .set BIT19, 1 << 19
+    # lui t0, BIT19                      # set bit 31 to 1
+    li t0, 1
+    slli t0, t0, 31
     and t0, a0, t0                     # AND it with the least significant word
     snez t0, t0                        # produce carry flag
     slli a0, a0, 1                     # shift both words left
