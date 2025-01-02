@@ -12,6 +12,7 @@
 
 
 # a0 - String address
+.type puts, @function
 puts:
     beqz a0, 2f
     li a1, UART_BASE

@@ -15,6 +15,7 @@
 #     a2 - base
 # Returns:
 #     a0 - string length
+.type itoa, @function
 itoa:
     stack_alloc
     mv t0, a1
@@ -29,14 +30,15 @@ itoa:
     li a4, 10                          # constant to compare base 10
     setz t2                            # sign indicator (1 for negative, 0 otherwise)
     bgez a0, 2f                        # skip if number >= 0
+    bne a0, a4, 2f                     # or if base in != 10
         xori a0, a0, -1                # make number positive (a = (a^-1)+1)
         inc a0
         li t2, 1                       # mark sign indicator as negative
 2:
     beqz a0, 4f                        # jump if number is zero
         rem t1, a0, a2                 # t1 = number % base
-        blt t1, a4, 3f                 # jump to 2: if t1 < 10
-            addi t1, t1, 7             # magic :-)  ('A'-t1+'0' = 7)
+        blt t1, a4, 3f                 # jump to 3: if t1 < 10
+            addi t1, t1, 87        # magic :-)  ('A'-t1+'0' = 7)
 3:
         addi t1, t1, '0'               # t1 += '0'
         sb t1, (t0)                    # store bcharacter
@@ -72,6 +74,7 @@ itoa:
 #     a5: Error code
 # TODO Handle negative numbers
 # TODO Hanlde base (a1) > 10
+.type atoi, @function
 atoi:
     stack_alloc
     pushb   a1, 8

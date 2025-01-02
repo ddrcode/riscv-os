@@ -67,6 +67,7 @@ memfill:
 # params
 #    a0 pointer
 #    a1 number of bytes to reverse
+.type mem_reverse, @function
 mem_reverse:
     mv t0, a0
     add t1, a0, a1                      # Compute the end addr...

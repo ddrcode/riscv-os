@@ -2,8 +2,8 @@ TOOL := riscv64-none-elf
 # use im and -mabi=ilp32 if planning to not use reduced base integer extension
 RISC_V_EXTENSIONS := em
 FLAGS := -march=rv32$(RISC_V_EXTENSIONS) -mabi=ilp32e -g
-AS_FLAGS := -I include
-GCC_FLAGS := -T baremetal.ld -nostdlib -static
+AS_FLAGS := -I headers
+GCC_FLAGS := -T baremetal.ld -nostdlib -static -I headers
 SRC := src/system.s src/screen.s src/mem.s src/string.s src/shell.s src/math32.s src/math64.s src/drivers/uart.s src/drivers/rtc_goldfish.s
 OBJ := build/obj
 
@@ -43,6 +43,10 @@ $(TESTS): %.o:
 	${TOOL}-gcc $(FLAGS) $(GCC_FLAGS) -o build/$@ $(OBJ)/$@.o $(OBJ)/riscvos.o
 
 build_tests: compile compile_tests $(TESTS)
+	$(TOOL)-gcc $(FLAGS) $(GCC_FLAGS) -o $(OBJ)/assert.o -c tests/assert.c
+	$(TOOL)-gcc $(FLAGS) $(GCC_FLAGS) -o $(OBJ)/test_math64.o -c tests/test_math64.c
+	$(TOOL)-as $(FLAGS) $(AS_FLAGS) -o $(OBJ)/startup.o tests/startup.s tests/helpers.s
+	$(TOOL)-gcc $(FLAGS) $(GCC_FLAGS) -o build/test_math64 $(OBJ)/startup.o $(OBJ)/assert.o $(OBJ)/test_math64.o $(OBJ)/riscvos.o
 
 build_all: build build_tests
 

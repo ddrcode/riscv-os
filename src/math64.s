@@ -40,6 +40,7 @@
 #     a1 (qhi) - most significant word of the result
 #     a2 (rlo) - least significant word of the remainder
 #     a3 (rhi) - most significant word of the remainder
+.type udiv64, @function
 udiv64:
     .set nlo, 40
     .set nhi, 36
@@ -124,6 +125,7 @@ udiv64:
 #     a0 - least significant word of the result
 #     a1 - most significant word of the result
 #     a2 - carry bit if overflow
+.type add64, @function
 add64:
     add t0, a0, a2                     # add the least significant words
     sltu t2, t0, a2                    # carry bit from previous addition
@@ -146,6 +148,7 @@ add64:
 # Returns
 #     a0 - least significant word of the result
 #     a1 - most significant word of the result
+.type usub64, @function
 usub64:
     stack_alloc
     not a2, a2
