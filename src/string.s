@@ -36,14 +36,14 @@ itoa:
         li t2, 1                       # mark sign indicator as negative
 2:
     beqz a0, 4f                        # jump if number is zero
-        rem t1, a0, a2                 # t1 = number % base
+        remu t1, a0, a2                 # t1 = number % base
         blt t1, a4, 3f                 # jump to 3: if t1 < 10
             addi t1, t1, 87        # magic :-)  ('A'-t1+'0' = 7)
 3:
         addi t1, t1, '0'               # t1 += '0'
         sb t1, (t0)                    # store bcharacter
         inc t0                         # increment string pointer
-        div a0, a0, a2                 # number /= base
+        divu a0, a0, a2                 # number /= base
         j 2b
 4:
     beqz t2, 5f                        # skip if sign indicator is 0

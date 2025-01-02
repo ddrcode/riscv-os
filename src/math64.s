@@ -6,7 +6,7 @@
 
 .section .text
 
-.global add64
+.global uadd64
 .global usub64
 .global udiv64
 .global bitlen32
@@ -126,8 +126,8 @@ udiv64:
 #     a0 - least significant word of the result
 #     a1 - most significant word of the result
 #     a2 - carry bit if overflow
-.type add64, @function
-add64:
+.type uadd64, @function
+uadd64:
     add t0, a0, a2                     # add the least significant words
     sltu t2, t0, a2                    # carry bit from previous addition
                                        # t2 = 1 if (a0+a2) < a2
@@ -154,10 +154,10 @@ usub64:
     stack_alloc
     not a2, a2
     not a3, a3
-    call add64
+    call uadd64
     li a2, 1
     li a3, 0
-    call add64
+    call uadd64
     stack_free
     ret
 
