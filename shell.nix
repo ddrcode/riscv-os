@@ -8,6 +8,7 @@ in
     nativeBuildInputs = with pkgs.buildPackages; [
       qemu
       minicom
+      ccls
     ] ++ optionals isLinux [
       gdb
     ];

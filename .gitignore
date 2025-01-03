@@ -1,2 +1,4 @@
 build
 .direnv
+.ccls-cache
+
