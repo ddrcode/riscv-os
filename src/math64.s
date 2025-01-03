@@ -12,6 +12,7 @@
 .global bitlen32
 .global bitlen64
 .global lshift64
+.global getbit64
 
 .macro stack_to_args2 arg0, arg1
     pop a0, \arg0
@@ -217,6 +218,7 @@ ucmp64:
 #     a0 - lo-word
 #     a1 - hi-word
 #     a2 - bit no
+.type getbit64, @function
 getbit64:
     stack_alloc 4
     slti t0, a2, 32

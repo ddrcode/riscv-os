@@ -16,7 +16,10 @@ void print_test_name(char* prefix, char* case_name) {
 
 
 int asser_eq(u32 val, u32 expected) {
-    return 0;
+    int ok = val != expected;
+    print(ok==0 ? "\t[OK]" : "\n[FAILED]");
+    print("\n");
+    return ok;
 }
 
 int assert_arr(u32* vals, u32* expected, i32 len) {
