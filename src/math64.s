@@ -222,7 +222,7 @@ ucmp64:
 getbit64:
     stack_alloc 4
     slti t0, a2, 32
-    beqz t0, 1f
+    bnez t0, 1f
         mv a0, a1
         addi a1, a2, -32
         j 2f
