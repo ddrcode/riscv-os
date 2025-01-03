@@ -1,6 +1,10 @@
 #include "assert.h"
 #include "uart.h"
 #include "string.h"
+#include "types.h"
+
+static u32 test_results = 0;
+static u32 test_count = 0;
 
 void print(char* str) {
     puts(str);
@@ -9,11 +13,29 @@ void print(char* str) {
 void print_test_name(char* prefix, char* case_name) {
     print("Testing ");
     print(prefix);
-    print(" (");
+    print("(");
     print(case_name);
     print("): ");
 }
 
+inline void eol(void) {
+    print("\n");
+}
+
+
+void print_summary(void) {
+    char total[32], failed[32], ok[32];
+    itoa(test_count, total, 10);
+    itoa(test_results, failed, 10);
+    itoa(test_count-test_results, ok, 10);
+    print("\nRun ");
+    print(total);
+    print(" tests. ");
+    print(failed);
+    print(" tests failed, ");
+    print(ok);
+    print(" tests OK\n");
+}
 
 int assert_eq(u32 val, u32 expected) {
     char str[64];
@@ -26,6 +48,9 @@ int assert_eq(u32 val, u32 expected) {
     print(str);
     print(ok==0 ? "\t[OK]" : "\n[FAILED]");
     print("\n");
+
+    ++test_count;
+    test_results += ok;
     return ok;
 }
 
@@ -46,6 +71,9 @@ int assert_arr(u32* vals, u32* expected, i32 len) {
     }
     print(ok==0 ? "\t[OK]" : "\n[FAILED]");
     print("\n");
+
+    ++test_count;
+    test_results += ok;
     return ok;
 }
 

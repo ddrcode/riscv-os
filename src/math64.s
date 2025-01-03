@@ -14,6 +14,7 @@
 .global lshift64
 .global getbit64
 .global setbit64
+.global ucmp64
 
 .macro stack_to_args2 arg0, arg1
     pop a0, \arg0
@@ -56,6 +57,7 @@ udiv64:
     .set rhi, 8
 
     stack_alloc 48
+    j 1f # TODO remove!!!
 
     bnez a1, 1f                        # test whether 32-bit div can be executed
     bnez a3, 1f                        # which is when both most significant words are 0
@@ -201,6 +203,7 @@ lshift64:
     ret
 
 
+.type ucmp64, @function
 ucmp64:
     bgtu a1, a3, 2f                    # xhi > yhi
     bltu a1, a3, 3f                    # xhi < yhi
@@ -253,7 +256,7 @@ setbit64:
         j 2f
 1:
     mv a0, a1
-    addi a1, a3, -32
+    addi a1, a2, -32
     mv a2, a3
     call setbit
     mv a1, a0

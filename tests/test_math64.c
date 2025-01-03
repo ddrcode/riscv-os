@@ -50,9 +50,15 @@ void test_setbit64(char* test_case, u32 xlo, u32 xhi, i32 bit, u32 val, u32 rlo,
     res = setbit64(xlo, xhi, bit, val);
     regarr(regs);
     print_test_name("setbit64", test_case);
-    u32 ex[] = { xlo, xhi };
+    u32 ex[] = { rlo, rhi };
     u32 results[] = { res, regs[0] };
     assert_arr(results, ex, 2);
+}
+
+void test_ucmp64(char* test_case, u32 xlo, u32 xhi, u32 ylo, u32 yhi, i32 expected) {
+    print_test_name("ucmp64", test_case);
+    u32 res = ucmp64(xlo, xhi, ylo, yhi);
+    assert_eq(res, expected);
 }
 
 void test_udiv64(char* test_case, u32 nlo, u32 nhi, u32 dlo, u32 dhi, u32 qlo, u32 qhi, u32 rlo, u32 rhi) {
@@ -66,23 +72,38 @@ void test_udiv64(char* test_case, u32 nlo, u32 nhi, u32 dlo, u32 dhi, u32 qlo, u
 }
 
 int test_main(int argc, char **argv) {
-    test_uadd64("lo(~0) hi(0) + lo(1) hi(0)", ~0, 0, 1, 0, 0, 1);
-    test_uadd64("lo(256) hi(1024) + lo(88) hi(156)", 256, 1024, 88, 156, 344, 1180);
-
-    test_usub64("lo(0) hi(1) - lo(1) hi(0)", 0, 1, 1, 0, 0xffffffff, 0);
-    test_usub64("lo(4096) hi(1) - lo(1) hi(1)", 0, 1, 1, 0, 0xffffffff, 0);
-
-    test_lshift64("(1 << 31) << 1", 1 << 31, 0, 1, 0, 1);
-    test_lshift64("shift with no carry", 0b11, 0b10, 1, 0b110, 0b100);
-
+    eol();
+    test_uadd64("~0, 0, 1, 0", ~0, 0, 1, 0, 0, 1);
+    test_uadd64("256, 1024, 88, 156", 256, 1024, 88, 156, 344, 1180);
+    eol();
+    test_usub64("0, 1, 1, 0", 0, 1, 1, 0, 0xffffffff, 0);
+    test_usub64("4096, 1, 1, 1,", 4096, 1, 1, 1, 4095, 0);
+    eol();
+    test_lshift64("1 << 31, 0, 1", 1 << 31, 0, 1, 0, 1);
+    test_lshift64("~(1 << 31), ~0, 1", ~(1 << 31), ~0, 1, ~1, ~1);
+    test_lshift64("0b11, 0b10, 1", 0b11, 0b10, 1, 0b110, 0b100);
+    eol();
     test_getbit64("1, 0b11, 0", 1, 0b11, 0, 1);
     test_getbit64("0, 0b11, 32", 0, 0b11, 32, 1);
-
+    test_getbit64("1, ~0, 31", 1, ~0, 31, 0);
+    test_getbit64("~0, 0, 63", ~0, 0, 63, 0);
+    eol();
     test_setbit64("1, 0b11, 34, 1", 1, 0b11, 34, 1, 1, 0b111);
     test_setbit64("1, 0b11, 0, 0", 1, 0b11, 0, 0, 0, 0b11);
-
+    test_setbit64("1, 0b11, 32, 0", 1, 0b11, 32, 0, 1, 0b10);
+    eol();
+    test_ucmp64("0, 1, 1, 0", 0, 1, 1, 0, 1);
+    test_ucmp64("8, 0, 1, 0", 8, 0, 1, 0, 1);
+    test_ucmp64("7, 5, 7, 5", 7, 5, 7, 5, 0);
+    test_ucmp64("1, 1, 0, 3", 1, 1, 0, 3, -1);
+    test_ucmp64("0, 1, 9, 1", 0, 1, 9, 1, -1);
+    eol();
     test_udiv64("2, 16, 2, 0", 2, 16, 2, 0, 1, 8, 0, 0);
+    test_udiv64("329, 0, 5, 0", 329, 0, 5, 0, 65, 0, 4, 0);
+    test_udiv64("0, 800, 0, 500", 0, 800, 0, 500, 0, 1, 0, 300);
+    test_udiv64("800, 0, 500, 0", 800, 0, 500, 0, 1, 0, 300, 0);
 
+    print_summary();
     return 0;
 }
 
