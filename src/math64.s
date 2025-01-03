@@ -13,6 +13,7 @@
 .global bitlen64
 .global lshift64
 .global getbit64
+.global setbit64
 
 .macro stack_to_args2 arg0, arg1
     pop a0, \arg0
@@ -58,13 +59,12 @@ udiv64:
 
     bnez a1, 1f                        # test whether 32-bit div can be executed
     bnez a3, 1f                        # which is when both most significant words are 0
-
-    mv a1, a2                          # run 32-bit division on lo-words
-    call udiv32
-    mv a2, a1                          # and set result register according to div64
-    setz a1
-    setz a3
-    j 4f                               # and jump to the end
+        mv a1, a2                      # run 32-bit division on lo-words
+        call udiv32
+        mv a2, a1                      # and set result register according to div64
+        setz a1
+        setz a3
+        j 4f                           # and jump to the end
 
 1:                                     # handle 64-bit division
     push a0, nlo                       # prepare the stack
@@ -238,6 +238,7 @@ getbit64:
 #     a1 - hi-word
 #     a2 - bit no
 #     a3 - value
+.type setbit64, @function
 setbit64:
     stack_alloc
     push a0, 8
@@ -252,7 +253,8 @@ setbit64:
         j 2f
 1:
     mv a0, a1
-    addi a2, a3, -32
+    addi a1, a3, -32
+    mv a2, a3
     call setbit
     mv a1, a0
     pop a0, 8

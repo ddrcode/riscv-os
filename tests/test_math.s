@@ -22,7 +22,7 @@ _start:
     callfn test_bitlen64, 1, 1, 33
     callfn test_bitlen64, 16, 0, 5
     callfn test_usub64, 0, 1, 1, 0, 0xffffffff, 0
-    callfn test_udiv64, 2, 16, 2, 0, 0x80000001, 8
+    callfn test_udiv64, 2, 16, 2, 0, 1, 8
 
 loop:
     wfi
