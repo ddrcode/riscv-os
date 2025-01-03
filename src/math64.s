@@ -57,7 +57,6 @@ udiv64:
     .set rhi, 8
 
     stack_alloc 48
-    j 1f # TODO remove!!!
 
     bnez a1, 1f                        # test whether 32-bit div can be executed
     bnez a3, 1f                        # which is when both most significant words are 0
@@ -87,7 +86,7 @@ udiv64:
 
 2:
     dec s1                             # idx--
-    bltz s1, 4f                        # finish if idx < 0
+    bltz s1, 3f                        # finish if idx < 0
         stack_to_args2 rlo, rhi        # R = R << 1
         li a2, 1
         call lshift64
@@ -114,6 +113,8 @@ udiv64:
             result_to_stack2 qlo, qhi
     j 2b
 
+3:                                     # Prepare results
+    stack_to_args4 qlo, qhi, rlo, rhi
 
 4:  pop s1, idx                        # retrieve s1
     stack_free 48
