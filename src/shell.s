@@ -1,33 +1,79 @@
+# Simple shell with a few standard commands
+# for RISC-V OS
+# author: David de Rosier
+# https://github.com/ddrcode/riscv-os
+#
+# See LICENSE for license details.
+
+.include "macros.s"
+.include "consts.s"
+
 .section .text
 
 .global shell_init
 .global exec_cmd
+.global set_prompt
+.global show_error
+.global show_date_time
 
 shell_init:
-    push ra
+    stack_alloc
     call clear_screen
     la a0, welcome
     call println
     la a0, prompt
     call print_str
     call show_cursor
-    pop ra
+    stack_free
     ret
 
 
 # Arguments
 #    a0 - cmd string pointer
 exec_cmd:
-    push ra
+    stack_alloc
+    push a0, 8
+    push zero, 4
+
+    call split_cmd                     # split command from its args
+    mv t0, a0
+    pop a0, 8
+    bltz t0, 1f                        # jump if there are no args
+        add t0, t0, a0                 # compute args address...
+        push t0, 4                     # and place it on the stack
+1:
     call parse_cmd
+
+    pop a1, 4                          # restore args addr from the stack
     call syscall
 
     la a0, prompt
     call print_str
 
-    pop ra
+    stack_free
     ret
 
+
+# Splits string between command and argument(s).
+# It inserts '\0' after the command (instead of space)
+# Arguments
+#    a0 - cmd string pointer
+# Returns
+#    a0 - address of arguments string (or 0 if none)
+split_cmd:
+    stack_alloc
+    push a0, 8
+
+    li a1, ' '
+    call str_find_char                 # search for space in cmd line
+    bltz a0, 1f                        # exit if there is none (no args)
+        pop t1, 8
+        add t1, t1, a0                 # compute args addr
+        sb zero, (t1)                  # replace space with '\0'
+        inc a0                         # increment args addr
+1:
+    stack_free
+    ret
 
 # Parses command line
 # Arguments:
@@ -36,29 +82,29 @@ exec_cmd:
 #     a0 - system function id (or 0 when not found)
 # TODO make index byte not word
 parse_cmd:
+    stack_alloc
+
     la a1, commands
     li a2, SYS_FN_LEN
 
-    addi sp, sp, -16
-    sw ra, 12(sp)
-    sw a0, 8(sp)
-    sw a2, (sp)
+    push a0, 8
+    push a2, 0
 1:                                   # do
-        sw a1, 4(sp)
+        push a1, 4
         call strcmp
         bgtz a0, 2f                  # finish when command matches
-            lw a2, (sp)              # retrieve index from the stack
+            pop a2, 0                # retrieve index from the stack
             dec a2                   # decrement index
             beqz a2, 3f              # finnish if index is 0
-            sw a2, (sp)
+            push a2, 0
 
-            lw a1, 4(sp)             # retrieve array pointer from the stack
+            pop a1, 4                # retrieve array pointer from the stack
             mv a0, a1
             call strlen
-            lw a1, 4(sp)
+            pop a1, 4
             add a1, a1, a0           # Move array pointer to the next item
             inc a1
-            lw a0, 8(sp)             # retrieve command pointer from the stack
+            pop a0, 8                # retrieve command pointer from the stack
     j 1b
 2:                                   # cmd found
     li t0, SYS_FN_LEN                # retrieve num of commands
@@ -68,32 +114,74 @@ parse_cmd:
 3:                                   # cmd not found
     setz a0
 4:                                   # end
-    lw ra, 12(sp)
-    addi sp, sp, 16
+    stack_free
     ret
 
 
-cmd_not_found:
-    push ra
-    la a0, not_found
+# Shows error
+# Arguments:
+#     a0 - error code
+show_error:
+    stack_alloc 4
+    li t0, NUM_OF_ERRORS
+    blt a0, t0, 1f                     # jump if valid error code
+        setz a0                        # otherwise set to unknown error
+1:
+    la t0, errors                      # compute error msg address...
+    li t1, 4
+    mul t1, t1, a0
+    add t0, t0,t1
+    lw a0, (t0)
     call println
-    pop ra
+    setz a5
+    stack_free 4
     ret
 
 show_date_time:
-    push ra
+    stack_alloc 4
     la a0, date
     call println
-    pop ra
+    setz a5
+    stack_free 4
     ret
+
+# Set single-character prompt
+# arguments:
+#    a0 - pointer to prompt string (only the first char will be taken)
+set_prompt:
+    beqz a0, 1f
+    la t0, prompt
+    lb t1, (a0)
+    sb t1, (t0)
+    setz a5
+    j 2f
+1:
+    li a5, 2                           # set error code
+2:  ret
+
 
 .section .data
 
 prompt: .string "> "
-commands: .string "cls", "date", "prompt", "print"
+
+
+.section .rodata
+
 welcome: .string "Welcome to RISC-V OS v0.1"
-not_found: .string "Command not found"
+commands: .string "cls", "date", "prompt", "print"
 date: .string "2024-12-20 21:17:32 (fake date)"
 
-str: .fill 1, 32, 0
+err_unknown: .string "Unknown error"
+err_not_found: .string "Command not found"
+err_missing_arg: .string "Missing argument"
+err_not_supported: .string "Not supported"
+err_invalid_argument: .string "Invalid argument"
+err_stack_overflow: .string "Stack overflow"
+
+errors: .word err_unknown
+        .word err_not_found
+        .word err_missing_arg
+        .word err_not_supported
+        .word err_invalid_argument
+        .word err_stack_overflow
 

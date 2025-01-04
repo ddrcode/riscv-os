@@ -4,10 +4,17 @@
 # https://elixir.bootlin.com/linux/v6.12.6/source/drivers/rtc/lib.c#L142
 # And Goldfish documentation
 # https://android.googlesource.com/platform/external/qemu/+/master/docs/GOLDFISH-VIRTUAL-HARDWARE.TXT
+#
+# author: David de Rosier
+# https://github.com/ddrcode/riscv-os
+#
+# See LICENSE for license details.
 
-.section .text
+.include "config.s"
 
 .global rtc_read_time
+
+.section .text
 
 # Returns 64-bit number containing a number of nanoseconds
 # since 01.01.1970.

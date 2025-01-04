@@ -2,50 +2,86 @@ TOOL := riscv64-none-elf
 # use im and -mabi=ilp32 if planning to not use reduced base integer extension
 RISC_V_EXTENSIONS := em
 FLAGS := -march=rv32$(RISC_V_EXTENSIONS) -mabi=ilp32e -g
-SRC := src/system.s src/screen.s src/mem.s src/string.s src/shell.s src/drivers/uart.s src/drivers/rtc_goldfish.s
-OBJ := build/obj
-MACHINE := qemu-system-riscv32 -nographic -serial mon:stdio -machine virt -m 4 -smp 1
+AS_FLAGS := -I headers
+GCC_FLAGS := -T baremetal.ld -nostdlib -static -I headers
+
+QEMU_EXTENSIONS := e=on,m=on,i=off,h=off,f=off,d=off,a=off,f=off,c=off,zawrs=off,sstc=off,zicntr=off,zihpm=off,zicboz=off,zicbom=off,svadu=off
+QEMU := qemu-system-riscv32 -machine virt -m 4 -smp 1 -cpu rv32,$(QEMU_EXTENSIONS)
+MACHINE = $(QEMU) -nographic -serial mon:stdio -echr 17
+
+TEST_NAME ?= commands
+
+SRC := $(wildcard src/*.s)
+# SRC_NO_MAIN := $(filter-out src/main.s, $(SRC))
+OBJ_DIR := build/obj
+OBJ := $(patsubst %.s, %.o, $(notdir $(SRC)))
+OBJ_FILES := $(addprefix $(OBJ_DIR)/, $(OBJ))
+
+DRIVERS_SRC := $(wildcard src/drivers/*.s)
+DRIVERS_OBJ := $(patsubst %.s, %.o, $(notdir $(DRIVERS_SRC)))
+OBJ_FILES += $(addprefix $(OBJ_DIR)/, $(DRIVERS_OBJ))
+
+TEST_ASM_SRC := $(wildcard tests/*.s)
+TEST_ASM_OBJ := $(patsubst %.s, %.o, $(notdir $(TEST_ASM_SRC)))
+TEST_ASM_OBJ_FILES := $(addprefix $(OBJ_DIR)/, $(TEST_ASM_OBJ))
+
+TEST_C_SRC := $(wildcard tests/*.c)
+TEST_C_OBJ := $(patsubst %.c, %.o, $(notdir $(TEST_C_SRC)))
+TEST_C_OBJ_FILES := $(addprefix $(OBJ_DIR)/, $(TEST_C_OBJ))
+
+TEST_FILES := $(patsubst %.o, %.elf, $(filter test_%.o, $(TEST_ASM_OBJ)))
+TEST_FILES += $(patsubst %.o, %.elf, $(filter test_%.o, $(TEST_C_OBJ)))
+TEST_SUPPORT_OBJ := $(OBJ_DIR)/assert.o $(OBJ_DIR)/helpers.o $(OBJ_DIR)/startup.o
 
 default: build_all
 
 setup:
 	mkdir -p build/obj
 
-compile: setup src/main.s src/screen.s
-	${TOOL}-as $(FLAGS) -I src $(SRC) -o $(OBJ)/riscvos.o
-	${TOOL}-as $(FLAGS) -I src src/main.s -o $(OBJ)/main.o
+$(OBJ): %.o: src/%.s
+	${TOOL}-as $(AS_FLAGS) $(FLAGS) -o $(OBJ_DIR)/$@ $<
+
+$(DRIVERS_OBJ): %.o: src/drivers/%.s
+	${TOOL}-as $(AS_FLAGS) $(FLAGS) -o $(OBJ_DIR)/$@ $<
+
+compile: setup $(OBJ) $(DRIVERS_OBJ)
 
 build: compile baremetal.ld
-	# ${TOOL}-gcc -T baremetal.ld $(FLAGS) -nostdlib -static -Oz -o build/riscvos $(OBJ)/main.o $(OBJ)/riscvos.o
-	${TOOL}-gcc -T baremetal.ld $(FLAGS) -nostdlib -static -o build/riscvos $(OBJ)/main.o $(OBJ)/riscvos.o
+	${TOOL}-gcc $(FLAGS) $(GCC_FLAGS) -o build/riscvos.elf $(OBJ_FILES)
 
-compile_tests: compile tests/test_commands.s
-	${TOOL}-as $(FLAGS) -I src tests/test_commands.s -o $(OBJ)/test_commands.o
-	${TOOL}-as $(FLAGS) -I src tests/test_string.s -o $(OBJ)/test_string.o
-	${TOOL}-as $(FLAGS) -I src tests/test_rtc.s -o $(OBJ)/test_rtc.o
+$(TEST_ASM_OBJ): %.o: tests/%.s
+	${TOOL}-as $(AS_FLAGS) $(FLAGS) -o $(OBJ_DIR)/$@ $<
 
-build_tests: compile_tests
-	${TOOL}-gcc -T baremetal.ld $(FLAGS) -nostdlib -static -o build/test_commands $(OBJ)/test_commands.o $(OBJ)/riscvos.o
-	${TOOL}-gcc -T baremetal.ld $(FLAGS) -nostdlib -static -o build/test_string $(OBJ)/test_string.o $(OBJ)/riscvos.o
-	${TOOL}-gcc -T baremetal.ld $(FLAGS) -nostdlib -static -o build/test_rtc $(OBJ)/test_rtc.o $(OBJ)/riscvos.o
+$(TEST_C_OBJ): %.o: tests/%.c
+	$(TOOL)-gcc $(FLAGS) $(GCC_FLAGS) -o $(OBJ_DIR)/$@ -c $<
+
+compile_tests: setup $(TEST_ASM_OBJ) $(TEST_C_OBJ)
+
+$(TEST_FILES): %.elf: $(OBJ_DIR)/%.o
+	${TOOL}-gcc $(FLAGS) $(GCC_FLAGS) -o build/$@ $< $(filter-out $(OBJ_DIR)/main.o, $(OBJ_FILES)) $(TEST_SUPPORT_OBJ)
+
+build_tests: compile compile_tests $(TEST_FILES)
 
 build_all: build build_tests
 
 run: build
-	@echo "Ctrl-A C for QEMU console, then quit to exit"
-	$(MACHINE) -bios build/riscvos
+	@echo "Ctrl-Q C for QEMU console, then quit to exit"
+	$(MACHINE) -bios build/riscvos.elf
 	# qemu-system-riscv32 -nographic -serial pty -machine virt -bios build/riscvos
 	# qemu-system-riscv32 -nographic -serial unix:/tmp/serial.socket,server -machine virt -bios build/riscvos
 
 test: build_tests
-	@echo "Ctrl-A C for QEMU console, then quit to exit"
-	$(MACHINE) -bios build/test_commands
-	# $(MACHINE) -s -S -bios build/test_commands
+	@echo "Ctrl-Q C for QEMU console, then quit to exit"
+	$(MACHINE) -bios build/test_$(TEST_NAME).elf
 
-.PHONY: clean debug
+.PHONY: clean gdb debug
 
-debug:
-	gdb -ex 'target remote localhost:1234' ./build/test_commands
+debug: build_tests
+	@echo "Ctrl-Q C for QEMU console, then quit to exit"
+	$(MACHINE) -s -S -bios build/test_$(TEST_NAME)
+
+gdb:
+	gdb -ex 'target remote localhost:1234' ./build/test_$(TEST_NAME)
 
 clean:
 	rm -rf build/*

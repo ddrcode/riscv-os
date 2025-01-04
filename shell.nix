@@ -1,6 +1,16 @@
-  { pkgs ? import <nixpkgs> {} }:
+{ pkgs ? import <nixpkgs> {} }:
 
+let
+  inherit (pkgs.lib) optional optionals;
+  inherit (pkgs.stdenv) isLinux;
+in
   pkgs.pkgsCross.riscv64-embedded.mkShell {
-    nativeBuildInputs = with pkgs.buildPackages; [ qemu gdb minicom ];
+    nativeBuildInputs = with pkgs.buildPackages; [
+      qemu
+      minicom
+      ccls
+    ] ++ optionals isLinux [
+      gdb
+    ];
   }
 

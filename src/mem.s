@@ -1,3 +1,11 @@
+# Memory manipulation functions
+# author: David de Rosier
+# https://github.com/ddrcode/riscv-os
+#
+# See LICENSE for license details.
+
+.include "macros.s"
+
 .section .text
 
 .global memcpy
@@ -16,6 +24,7 @@
 #     a0 - dst address where copying has finished
 #     a1 - src address where copying has finished
 # TODO add check for address boundaries
+.type memcpy, @function
 memcpy:
 1:                                  # copy words
     addi t0, a2, -4                 # compute next index
@@ -45,6 +54,7 @@ memcpy:
 #     a2 - value (byte)
 # TODO respect memory boundaries
 # TODO optimize it with 32-bit operations
+.type memfill, @function
 memfill:
 1:
     beqz a1, 2f
@@ -60,6 +70,7 @@ memfill:
 # params
 #    a0 pointer
 #    a1 number of bytes to reverse
+.type mem_reverse, @function
 mem_reverse:
     mv t0, a0
     add t1, a0, a1                      # Compute the end addr...
