@@ -1,6 +1,7 @@
 #include "types.h"
 #include "assert.h"
 #include "math64.h"
+#include "bit64.h"
 
 void test_uadd64(char* test_case, u32 xlo, u32 xhi, u32 ylo, u32 yhi, u32 rlo, u32 rhi) {
     u32 hi, res, regs[6];

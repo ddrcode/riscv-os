@@ -4,7 +4,7 @@ RISC_V_EXTENSIONS := em
 FLAGS := -march=rv32$(RISC_V_EXTENSIONS) -mabi=ilp32e -g
 AS_FLAGS := -I headers
 GCC_FLAGS := -T baremetal.ld -nostdlib -static -I headers
-SRC := src/system.s src/screen.s src/mem.s src/string.s src/shell.s src/math32.s src/math64.s src/drivers/uart.s src/drivers/rtc_goldfish.s
+SRC := src/system.s src/screen.s src/mem.s src/string.s src/shell.s src/bit32.s src/bit64.s src/math32.s src/math64.s src/drivers/uart.s src/drivers/rtc_goldfish.s
 OBJ := build/obj
 
 QEMU_EXTENSIONS := e=on,m=on,i=off,h=off,f=off,d=off,a=off,f=off,c=off,zawrs=off,sstc=off,zicntr=off,zihpm=off,zicboz=off,zicbom=off,svadu=off
@@ -12,21 +12,34 @@ QEMU := qemu-system-riscv32 -machine virt -m 4 -smp 1 -cpu rv32,$(QEMU_EXTENSION
 MACHINE = $(QEMU) -nographic -serial mon:stdio -echr 17
 
 # TEST_OBJS := $(patsubst %.s,%.o,$(wildcard tests/test_*))
-TEST_OBJS = test_commands.o test_string.o test_rtc.o test_stack.o test_math.o
-TESTS = test_commands test_string test_rtc test_stack test_math
+TEST_OBJS = test_commands.o test_string.o test_rtc.o test_stack.o test_math32.o
+TESTS = test_commands test_string test_rtc test_stack test_math32
 TEST_NAME ?= commands
+
+
+# SRC := $(wildcard src/*.s)
+# SRC_NO_MAIN := $(filter-out src/main.s, $(SRC))
+# OBJ_DIR := build/obj
+# OBJ := $(addprefix $(OBJ_DIR), $(patsubst %.s, %.o, $(notdir $(SRC))))
+# OBJ := $(patsubst %.s, %.o, $(notdir $(SRC)))
 
 default: build_all
 
 setup:
 	mkdir -p build/obj
 
+# $(OBJ): %.o: src/%.s
+# 	${TOOL}-as $(AS_FLAGS) $(FLAGS) -o $(OBJ_DIR)/$@ $<
+#
+# misio: $(OBJ)
+# 	@echo "koza $(OBJ)"
+
 compile: setup src/main.s src/screen.s
 	${TOOL}-as $(FLAGS) $(AS_FLAGS) $(SRC) -o $(OBJ)/riscvos.o
 	${TOOL}-as $(FLAGS) $(AS_FLAGS) src/main.s -o $(OBJ)/main.o
 
 build: compile baremetal.ld
-	# ${TOOL}-gcc -T baremetal.ld $(FLAGS) -nostdlib -static -Oz -o build/riscvos $(OBJ)/main.o $(OBJ)/riscvos.o
+	${TOOL}-gcc -T baremetal.ld $(FLAGS) -nostdlib -static -Oz -o build/riscvos $(OBJ)/main.o $(OBJ)/riscvos.o
 	${TOOL}-gcc $(FLAGS) $(GCC_FLAGS) -o build/riscvos $(OBJ)/main.o $(OBJ)/riscvos.o
 
 # $(TEST_OBJS): %o: tests/%s

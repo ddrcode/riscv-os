@@ -17,6 +17,7 @@
 
 .equ SYS_FN_LEN, 4
 
+.type sysinit, @function
 sysinit:
     ret
 
@@ -24,6 +25,7 @@ sysinit:
 # Arguments:
 #     a0 - function id
 #     a1 - pointer to arguments (or 0)
+.type syscall, @function
 syscall:
     stack_alloc 4
     li t0, SYS_FN_LEN
@@ -50,6 +52,7 @@ syscall:
     ret
 
 
+.type check_stack, @function
 check_stack:
     stack_alloc 4
     la t0, __stack_top
@@ -65,6 +68,7 @@ check_stack:
     ret
 
 
+.type panic, @function
 panic:
     stack_alloc 4
     la a0, kernel_panic

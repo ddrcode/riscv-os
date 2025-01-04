@@ -23,6 +23,7 @@
 #     a0 - dst address where copying has finished
 #     a1 - src address where copying has finished
 # TODO add check for address boundaries
+.type memcpy, @function
 memcpy:
 1:                                  # copy words
     addi t0, a2, -4                 # compute next index
@@ -52,6 +53,7 @@ memcpy:
 #     a2 - value (byte)
 # TODO respect memory boundaries
 # TODO optimize it with 32-bit operations
+.type memfill, @function
 memfill:
 1:
     beqz a1, 2f

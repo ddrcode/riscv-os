@@ -19,44 +19,11 @@ _start:
     call test_bitlen32
     callfn test_udiv32, 7, 3, 2, 1
     callfn test_udiv32, 320, 9, 35, 5
-    callfn test_bitlen64, 1, 1, 33
-    callfn test_bitlen64, 16, 0, 5
-    callfn test_usub64, 0, 1, 1, 0, 0xffffffff, 0
-    callfn test_udiv64, 2, 16, 2, 0, 1, 8
 
 loop:
     wfi
     j loop          # End program; spin forever
 
-test_usub64:
-    stack_alloc 32
-    push a5, 24
-    push a4, 20
-    push a3, 16
-    push a2, 12
-    push a1, 8
-    push a0, 4
-
-    la a0, tname_usub64
-    call puts
-
-    pop a0, 4
-    pop a1, 8
-    pop a2, 12
-    pop a3, 16
-    call usub64
-
-    push a1, 8
-    pop a1, 20
-    call assert
-
-    pop a0, 8
-    pop a1, 24
-    call assert
-
-    printchar '\n'
-    stack_free 32
-    ret
 
 test_bitlen32:
     stack_alloc
@@ -101,55 +68,6 @@ test_udiv32:
 
     call puts
     printchar '\n'
-
-    stack_free 32
-    ret
-
-test_bitlen64:
-    stack_alloc
-    push a2, 8
-    push a1, 4
-    push a0, 0
-
-    la a0, tname_bitlen64
-    call puts
-
-    pop a0, 0
-    pop a1, 4
-    call bitlen64
-
-    pop a1, 8
-    call assert
-
-    callfn putc, '\n'
-    stack_free
-    ret
-
-test_udiv64:
-    stack_alloc 32
-    push a5, 24
-    push a4, 20
-    push a3, 16
-    push a2, 12
-    push a1, 8
-    push a0, 4
-
-    la a0, tname_udiv64
-    call puts
-
-    pop a0, 4
-    pop a1, 8
-    pop a2, 12
-    pop a3, 16
-    call udiv64
-
-    push a1, 8
-    pop a1, 20
-    call assert
-
-    pop a0, 8
-    pop a1, 24
-    call assert
 
     stack_free 32
     ret

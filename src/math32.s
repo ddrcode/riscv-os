@@ -6,11 +6,9 @@
 
 .section .text
 
-.global pow32
 .global udiv32
-.global bitlen32
-.global getbit
-.global setbit
+.global pow32
+.global smul32
 
 # Unsigned, 32-bit division
 # Implements the following algorithm:
@@ -32,6 +30,7 @@
 # Q - a2
 # R - a3
 # i - t0
+.type udiv32, @function
 udiv32:
     stack_alloc
     push a0, 8
@@ -67,49 +66,6 @@ udiv32:
     stack_free
     ret
 
-
-# returns number of bits in 32-bit number
-bitlen32:
-    li t0, 0b11111111111111111111111111111111
-    setz t1
-1:
-    and t2, a0, t0
-    beqz t2, 2f
-    inc t1
-    slli t0, t0, 1
-    beqz t0, 2f
-    j 1b
-2:
-    mv a0, t1
-    ret
-
-# Get n-th bit from word
-# Arguments:
-#     a0 - word
-#     a1 - bit
-# Returns: 0 or 1
-getbit:
-    li t0, 1
-    sll t0, t0, a1
-    and t0, a0, t0
-    snez a0, t0
-    ret
-
-# Set n-th bit from word
-# Arguments:
-#     a0 - word
-#     a1 - bit
-#     a2 - value
-setbit:
-    li t0, 1
-    sll t0, t0, a1
-    bnez a2, 1f
-        not t0, t0
-        and a0, a0, t0                 # clear bit
-        j 2f
-1:  or a0, a0, t0                      # set bit
-2:  ret
-
 # Computes 32-bit integer power of x^y
 # Arguments:
 #     a0 - x
@@ -117,6 +73,7 @@ setbit:
 # Returns:
 #     a0 - result (or x if error)
 #     a5 - error code (or 0)
+.type pow32, @function
 pow32:
     setz a5                            # set error code
     bltz a1, 2f
@@ -145,6 +102,7 @@ pow32:
 # Returns:
 #     a0 - x*y lower 32 bits
 #     a1 - x*y upper 32 bits
+.type smul32, @function
 smul32:
     mulh    t0, a1, a0
     mul     a0, a1, a0

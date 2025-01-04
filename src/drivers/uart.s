@@ -30,6 +30,7 @@ puts:
 
 # prints a single character to the screen
 # a0 - char code
+.type putc, @function
 putc:
     li t0, UART_BASE
     sb a0, (t0)
@@ -37,6 +38,7 @@ putc:
 
 
 # Prints the content of screen memory to uart
+.type print_screen, @function
 print_screen:
     stack_alloc 4
     call _print_frame

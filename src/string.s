@@ -122,6 +122,7 @@ atoi:
 #     a0 - string pointer
 # Returns:
 #     a0 - length
+.type strlen, @function
 strlen:
     setz t0
 1:
@@ -139,6 +140,7 @@ strlen:
 # Arguments
 #     a0 - pointer to string 1
 #     a1 - pointer to string 2
+.type strcmp, @function
 strcmp:
     setz t2                            # default result (strings not equal)
 1:                                     # do
@@ -162,6 +164,7 @@ strcmp:
 #     a1 - char to find
 # Returns
 #     a0 - position of a char (or -1 if not found)
+.type str_find_char, @function
 str_find_char:
     li t0, -1                          # set default result
     mv t1, a0
