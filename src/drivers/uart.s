@@ -4,12 +4,14 @@
 #
 # See LICENSE for license details.
 
-.section .text
+.include "config.s"
+    .include "macros.s"
 
 .global print_screen
 .global putc
 .global puts
 
+.section .text
 
 # a0 - String address
 .type puts, @function

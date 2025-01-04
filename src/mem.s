@@ -4,6 +4,7 @@
 #
 # See LICENSE for license details.
 
+.include "macros.s"
 
 .section .text
 

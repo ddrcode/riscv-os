@@ -1,3 +1,12 @@
+# String funtions of RISC-V OS
+# author: David de Rosier
+# https://github.com/ddrcode/riscv-os
+#
+# See LICENSE for license details.
+
+.include "macros.s"
+.include "consts.s"
+
 .global itoa
 .global atoi
 .global strlen

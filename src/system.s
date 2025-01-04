@@ -15,7 +15,6 @@
 .global check_stack
 .global panic
 
-.equ SYS_FN_LEN, 4
 
 .type sysinit, @function
 sysinit:

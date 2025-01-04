@@ -4,12 +4,18 @@
 #
 # See LICENSE for license details.
 
-.section .text
+.include "macros.s"
+.include "config.s"
 
 .global clear_screen
 .global print_str
 .global println
 .global show_cursor
+.global set_cursor_pos
+
+.global screen
+
+.section .text
 
 clear_screen:
     stack_alloc 4

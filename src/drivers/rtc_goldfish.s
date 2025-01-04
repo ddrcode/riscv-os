@@ -10,9 +10,11 @@
 #
 # See LICENSE for license details.
 
-.section .text
+.include "config.s"
 
 .global rtc_read_time
+
+.section .text
 
 # Returns 64-bit number containing a number of nanoseconds
 # since 01.01.1970.

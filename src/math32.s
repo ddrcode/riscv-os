@@ -4,6 +4,9 @@
 #
 # See LICENSE for license details.
 
+.include "macros.s"
+.include "consts.s"
+
 .section .text
 
 .global udiv32

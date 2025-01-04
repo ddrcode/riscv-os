@@ -17,30 +17,32 @@ TESTS = test_commands test_string test_rtc test_stack test_math32
 TEST_NAME ?= commands
 
 
-# SRC := $(wildcard src/*.s)
-# SRC_NO_MAIN := $(filter-out src/main.s, $(SRC))
-# OBJ_DIR := build/obj
-# OBJ := $(addprefix $(OBJ_DIR), $(patsubst %.s, %.o, $(notdir $(SRC))))
-# OBJ := $(patsubst %.s, %.o, $(notdir $(SRC)))
+SRC := $(wildcard src/*.s)
+SRC_NO_MAIN := $(filter-out src/main.s, $(SRC))
+OBJ_DIR := build/obj
+OBJ_FILES := $(addprefix $(OBJ_DIR)/, $(patsubst %.s, %.o, $(notdir $(SRC))))
+OBJ := $(patsubst %.s, %.o, $(notdir $(SRC)))
+
+DRIVERS_SRC := $(wildcard src/drivers/*.s)
+DRIVERS_OBJ := $(patsubst %.s, %.o, $(notdir $(DRIVERS_SRC)))
+OBJ_FILES += $(addprefix $(OBJ_DIR)/, $(patsubst %.s, %.o, $(notdir $(DRIVERS_SRC))))
 
 default: build_all
 
 setup:
 	mkdir -p build/obj
 
-# $(OBJ): %.o: src/%.s
-# 	${TOOL}-as $(AS_FLAGS) $(FLAGS) -o $(OBJ_DIR)/$@ $<
-#
-# misio: $(OBJ)
-# 	@echo "koza $(OBJ)"
+$(OBJ): %.o: src/%.s
+	${TOOL}-as $(AS_FLAGS) $(FLAGS) -o $(OBJ_DIR)/$@ $<
 
-compile: setup src/main.s src/screen.s
-	${TOOL}-as $(FLAGS) $(AS_FLAGS) $(SRC) -o $(OBJ)/riscvos.o
-	${TOOL}-as $(FLAGS) $(AS_FLAGS) src/main.s -o $(OBJ)/main.o
+$(DRIVERS_OBJ): %.o: src/drivers/%.s
+	${TOOL}-as $(AS_FLAGS) $(FLAGS) -o $(OBJ_DIR)/$@ $<
+
+compile: setup $(OBJ) $(DRIVERS_OBJ)
 
 build: compile baremetal.ld
-	${TOOL}-gcc -T baremetal.ld $(FLAGS) -nostdlib -static -Oz -o build/riscvos $(OBJ)/main.o $(OBJ)/riscvos.o
-	${TOOL}-gcc $(FLAGS) $(GCC_FLAGS) -o build/riscvos $(OBJ)/main.o $(OBJ)/riscvos.o
+	# ${TOOL}-gcc -T baremetal.ld $(FLAGS) -nostdlib -static -Oz -o build/riscvos $(OBJ)/main.o $(OBJ)/riscvos.o
+	${TOOL}-gcc $(FLAGS) $(GCC_FLAGS) -o build/riscvos.elf $(OBJ_FILES)
 
 # $(TEST_OBJS): %o: tests/%s
 # 	${TOOL}-as $(FLAGS) $(AS_FLAGS) $< -o $(OBJ)/$@
@@ -65,7 +67,7 @@ build_all: build build_tests
 
 run: build
 	@echo "Ctrl-Q C for QEMU console, then quit to exit"
-	$(MACHINE) -bios build/riscvos
+	$(MACHINE) -bios build/riscvos.elf
 	# qemu-system-riscv32 -nographic -serial pty -machine virt -bios build/riscvos
 	# qemu-system-riscv32 -nographic -serial unix:/tmp/serial.socket,server -machine virt -bios build/riscvos
 

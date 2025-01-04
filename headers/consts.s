@@ -1,4 +1,11 @@
+# System functions
+
+.equ SYS_FN_LEN, 4
+
+
 # Error Codes
+
+.equ NUM_OF_ERRORS, 6                  # number of error codes
 
 .equ ERR_UNKNOWN, 0
 .equ ERR_CMD_NOT_FOUND, 1

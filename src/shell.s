@@ -5,13 +5,16 @@
 #
 # See LICENSE for license details.
 
-.section .text
+.include "macros.s"
+.include "consts.s"
 
-.equ NUM_OF_ERRORS, 6                  # number of error codes
+.section .text
 
 .global shell_init
 .global exec_cmd
 .global set_prompt
+.global show_error
+.global show_date_time
 
 shell_init:
     stack_alloc
