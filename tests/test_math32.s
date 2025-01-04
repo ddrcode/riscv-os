@@ -8,21 +8,16 @@
 
 .section .text
 
-.global _start
+.global test_main
 
-_start:
-    la gp, __global_pointer$        # initialize global pointer, see:
-    la sp, __stack_top              # initialize stack pointer
-    mv s0, sp
-
+test_main:
+    stack_alloc
     call sysinit
     call test_bitlen32
     callfn test_udiv32, 7, 3, 2, 1
     callfn test_udiv32, 320, 9, 35, 5
-
-loop:
-    wfi
-    j loop          # End program; spin forever
+    stack_free
+    ret
 
 
 test_bitlen32:

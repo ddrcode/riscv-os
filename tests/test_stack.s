@@ -3,21 +3,16 @@
 
 .section .text
 
-.global _start
+.global test_main
 .global stackinfo
 
-_start:
-    la gp, __global_pointer$        # initialize global pointer, see:
-    la sp, __stack_top              # initialize stack pointer
-    mv s0, sp
-
+test_main:
+    stack_alloc
     call sysinit
     call stackinfo
     call test_overflow
-
-loop:
-    wfi
-    j loop          # End program; spin forever
+    stack_free
+    ret
 
 
 stackinfo:

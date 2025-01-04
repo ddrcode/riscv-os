@@ -3,21 +3,15 @@
 
 .section .text
 
-.global _start
+.global test_main
 
-_start:
-    la gp, __global_pointer$        # initialize global pointer, see:
-    la sp, __stack_top              # initialize stack pointer
-    mv s0, sp
-
-    call sysinit
+test_main:
+    stack_alloc
     call test_itoa
     call test_atoi
     call test_str_find_char
-
-loop:
-    wfi
-    j loop          # End program; spin forever
+    stack_free
+    ret
 
 
 test_itoa:

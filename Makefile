@@ -4,28 +4,34 @@ RISC_V_EXTENSIONS := em
 FLAGS := -march=rv32$(RISC_V_EXTENSIONS) -mabi=ilp32e -g
 AS_FLAGS := -I headers
 GCC_FLAGS := -T baremetal.ld -nostdlib -static -I headers
-SRC := src/system.s src/screen.s src/mem.s src/string.s src/shell.s src/bit32.s src/bit64.s src/math32.s src/math64.s src/drivers/uart.s src/drivers/rtc_goldfish.s
-OBJ := build/obj
 
 QEMU_EXTENSIONS := e=on,m=on,i=off,h=off,f=off,d=off,a=off,f=off,c=off,zawrs=off,sstc=off,zicntr=off,zihpm=off,zicboz=off,zicbom=off,svadu=off
 QEMU := qemu-system-riscv32 -machine virt -m 4 -smp 1 -cpu rv32,$(QEMU_EXTENSIONS)
 MACHINE = $(QEMU) -nographic -serial mon:stdio -echr 17
 
-# TEST_OBJS := $(patsubst %.s,%.o,$(wildcard tests/test_*))
-TEST_OBJS = test_commands.o test_string.o test_rtc.o test_stack.o test_math32.o
-TESTS = test_commands test_string test_rtc test_stack test_math32
 TEST_NAME ?= commands
 
-
 SRC := $(wildcard src/*.s)
-SRC_NO_MAIN := $(filter-out src/main.s, $(SRC))
+# SRC_NO_MAIN := $(filter-out src/main.s, $(SRC))
 OBJ_DIR := build/obj
-OBJ_FILES := $(addprefix $(OBJ_DIR)/, $(patsubst %.s, %.o, $(notdir $(SRC))))
 OBJ := $(patsubst %.s, %.o, $(notdir $(SRC)))
+OBJ_FILES := $(addprefix $(OBJ_DIR)/, $(OBJ))
 
 DRIVERS_SRC := $(wildcard src/drivers/*.s)
 DRIVERS_OBJ := $(patsubst %.s, %.o, $(notdir $(DRIVERS_SRC)))
-OBJ_FILES += $(addprefix $(OBJ_DIR)/, $(patsubst %.s, %.o, $(notdir $(DRIVERS_SRC))))
+OBJ_FILES += $(addprefix $(OBJ_DIR)/, $(DRIVERS_OBJ))
+
+TEST_ASM_SRC := $(wildcard tests/*.s)
+TEST_ASM_OBJ := $(patsubst %.s, %.o, $(notdir $(TEST_ASM_SRC)))
+TEST_ASM_OBJ_FILES := $(addprefix $(OBJ_DIR)/, $(TEST_ASM_OBJ))
+
+TEST_C_SRC := $(wildcard tests/*.c)
+TEST_C_OBJ := $(patsubst %.c, %.o, $(notdir $(TEST_C_SRC)))
+TEST_C_OBJ_FILES := $(addprefix $(OBJ_DIR)/, $(TEST_C_OBJ))
+
+TEST_FILES := $(patsubst %.o, %.elf, $(filter test_%.o, $(TEST_ASM_OBJ)))
+TEST_FILES += $(patsubst %.o, %.elf, $(filter test_%.o, $(TEST_C_OBJ)))
+TEST_SUPPORT_OBJ := $(OBJ_DIR)/assert.o $(OBJ_DIR)/helpers.o $(OBJ_DIR)/startup.o
 
 default: build_all
 
@@ -41,27 +47,20 @@ $(DRIVERS_OBJ): %.o: src/drivers/%.s
 compile: setup $(OBJ) $(DRIVERS_OBJ)
 
 build: compile baremetal.ld
-	# ${TOOL}-gcc -T baremetal.ld $(FLAGS) -nostdlib -static -Oz -o build/riscvos $(OBJ)/main.o $(OBJ)/riscvos.o
 	${TOOL}-gcc $(FLAGS) $(GCC_FLAGS) -o build/riscvos.elf $(OBJ_FILES)
 
-# $(TEST_OBJS): %o: tests/%s
-# 	${TOOL}-as $(FLAGS) $(AS_FLAGS) $< -o $(OBJ)/$@
+$(TEST_ASM_OBJ): %.o: tests/%.s
+	${TOOL}-as $(AS_FLAGS) $(FLAGS) -o $(OBJ_DIR)/$@ $<
 
-%.o: tests/%.s
-	${TOOL}-as $(FLAGS) $(AS_FLAGS) $< -o $(OBJ)/$@
+$(TEST_C_OBJ): %.o: tests/%.c
+	$(TOOL)-gcc $(FLAGS) $(GCC_FLAGS) -o $(OBJ_DIR)/$@ -c $<
 
-compile_tests: setup $(TEST_OBJS)
+compile_tests: setup $(TEST_ASM_OBJ) $(TEST_C_OBJ)
 
-$(TESTS): %.o:
-# %: build/obj/test%.o
-	@echo "1:" $< ", 2: " $@
-	${TOOL}-gcc $(FLAGS) $(GCC_FLAGS) -o build/$@ $(OBJ)/$@.o $(OBJ)/riscvos.o
+$(TEST_FILES): %.elf: $(OBJ_DIR)/%.o
+	${TOOL}-gcc $(FLAGS) $(GCC_FLAGS) -o build/$@ $< $(filter-out $(OBJ_DIR)/main.o, $(OBJ_FILES)) $(TEST_SUPPORT_OBJ)
 
-build_tests: compile compile_tests $(TESTS)
-	$(TOOL)-gcc $(FLAGS) $(GCC_FLAGS) -o $(OBJ)/assert.o -c tests/assert.c
-	$(TOOL)-gcc $(FLAGS) $(GCC_FLAGS) -o $(OBJ)/test_math64.o -c tests/test_math64.c
-	$(TOOL)-as $(FLAGS) $(AS_FLAGS) -o $(OBJ)/startup.o tests/startup.s tests/helpers.s
-	$(TOOL)-gcc $(FLAGS) $(GCC_FLAGS) -o build/test_math64 $(OBJ)/startup.o $(OBJ)/assert.o $(OBJ)/test_math64.o $(OBJ)/riscvos.o
+build_tests: compile compile_tests $(TEST_FILES)
 
 build_all: build build_tests
 
@@ -73,10 +72,7 @@ run: build
 
 test: build_tests
 	@echo "Ctrl-Q C for QEMU console, then quit to exit"
-	$(MACHINE) -bios build/test_$(TEST_NAME)
-
-c: div64.c
-	${TOOL}-gcc $(FLAGS) $(GCC_FLAG) -S div64.c
+	$(MACHINE) -bios build/test_$(TEST_NAME).elf
 
 .PHONY: clean gdb debug
 

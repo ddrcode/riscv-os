@@ -1,22 +1,16 @@
 .include "config.s"
 .include "macros.s"
 
-.global _start
+.global test_main
 
 .section .text
 
-_start:
-    la gp, __global_pointer$        # initialize global pointer, see:
-    la sp, __stack_top              # initialize stack pointer
-    mv s0, sp
-
+test_main:
+    stack_alloc
     call sysinit
     call test_time
-
-loop:
-    wfi
-    j loop          # End program; spin forever
-
+    stack_free
+    ret
 
 # 17 04067200
 test_time:
