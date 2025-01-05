@@ -179,7 +179,7 @@ date_to_str:
     push a0, 8
     push a1, 4
 
-    srli a0, a0, 16
+    srli a0, a0, 16                    # print year
     andi a0, a0, 0xff
     addi a0, a0, 1900
     li a2, 10
@@ -188,36 +188,37 @@ date_to_str:
     pop a0, 8
     pop a1, 4
 
-    li t0, '-'
+    li t0, '-'                         # print separators
     sb t0, 4(a1)
     sb t0, 7(a1)
 
-    srli a0, a0, 8
+    srli a0, a0, 8                     # print month
     andi a0, a0, 0xff
     inc a0
 
     li t2, 10
+    li a2, '0'
+
     div t0, a0, t2
     rem t1, a0, t2
-    addi t0, t0, '0'
-    addi t1, t1, '0'
+    add t0, t0, a2
+    add t1, t1, a2
 
     sb t0, 5(a1)
     sb t1, 6(a1)
 
-    pop a0, 8
+    pop a0, 8                          # print day
     andi a0, a0, 0xff
 
-    li t2, 10
     div t0, a0, t2
     rem t1, a0, t2
-    addi t0, t0, '0'
-    addi t1, t1, '0'
+    add t0, t0, a2
+    add t1, t1, a2
 
     sb t0, 8(a1)
     sb t1, 9(a1)
-    sb zero, 10(a1)
 
+    sb zero, 10(a1)                    # close string
     mv a0, a1
     stack_free
     ret
