@@ -67,9 +67,11 @@ memfill:
 
 
 # reverses bytes in memory range
-# params
-#    a0 pointer
-#    a1 number of bytes to reverse
+# Arguments:
+#    a0 - pointer
+#    a1 - number of bytes to reverse
+# Returns:
+#    a0 - pointer
 .type mem_reverse, @function
 mem_reverse:
     mv t0, a0

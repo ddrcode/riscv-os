@@ -1,6 +1,6 @@
 clang
 --gcc-toolchain=/home/dejf/.nix-profile/bin
 -Iheaders
--target riscv32
--mabi=ilp32e -g
+-target
+riscv32
 -nostdlib

@@ -12,5 +12,6 @@ void eol(void);
 
 int assert_eq(u32 val, u32 expected);
 int assert_arr(u32* val, u32* expected, i32 len);
+int assert_str(char* val, char* expected);
 
 #endif

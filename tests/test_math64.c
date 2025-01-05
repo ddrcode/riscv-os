@@ -71,7 +71,7 @@ void test_udiv64(char* test_case, u32 nlo, u32 nhi, u32 dlo, u32 dhi, u32 qlo, u
     assert_arr(val, ex, 4);
 }
 
-int test_main(int argc, char **argv) {
+int test_main(void) {
     eol();
     test_uadd64("~0, 0, 1, 0", ~0, 0, 1, 0, 0, 1);
     test_uadd64("256, 1024, 88, 156", 256, 1024, 88, 156, 344, 1180);
