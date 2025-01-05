@@ -1,11 +1,33 @@
 # riscv-os
-An attempt to create a tiny OS in RISC-V 32-bit assembly
+An attempt to create a tiny OS in RISC-V implemented in 32-bit assembly
 (the C files you find in the repo are tests only).
 
 Currently, the OS runs on [virt](https://www.qemu.org/docs/master/system/riscv/virt.html) machine under QEMU.
-It uses very minimalistic configuration of the device: 4MB of RAM and 1 core.
+It uses very minimalistic configuration of hardware: 4MB of RAM and 1 core.
 It's also minimalistic in terms of RISC-V instruction set, as it only utilizes the E and M
 extensions.
+
+## Features
+
+The RISC-V OS is in very early stage of development, and currently conceptually is closer to C64's
+[Kernal](https://en.wikipedia.org/wiki/KERNAL) rather than
+Linux or any RTOS. Most importantly it runs on cpu's machine level, giving the user full access to
+hardware and memory.
+
+### Implemented features
+
+- framebuffer (40x25 characters text screen, configurable),
+- trivial shell with four (!!!) commands: `cls`, `date`, `print`, `prompt`
+- drivers for UART and RTC
+- number of math and string functions
+
+### Planned features
+
+- keyboard input
+- protected vs user modes
+- system functions accessible via `ecall`
+- privilege levels
+- interrupts
 
 ## Building and dependencies
 
