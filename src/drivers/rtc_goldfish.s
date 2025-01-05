@@ -23,8 +23,11 @@
 
 .section .text
 
-# Returns 64-bit number containing a number of nanoseconds
-# since 01.01.1970.
+# Reads Goldfish RTC and returns a 64-bit number containing
+# a number of nanoseconds since 01.01.1970.
+# This is a row data - as provided by the RTC itself
+# Arguments:  none
+# Returns
 # a0 - low bits
 # a1 - high bits
 .type rtc_read_time, @function
@@ -35,6 +38,11 @@ rtc_read_time:
     ret
 
 
+# Converts row date/time reading from Goldfish RTC
+# into a number of seconds since 1970-01-01
+# It outputs two 32-bit numbers (a0-low, a1-high)
+# but a1 can be ignored, as it'll be 0 for dates
+# before 2106-02-07 06:28:15
 .type rtc_time_in_sec, @function
 rtc_time_in_sec:
     stack_alloc
@@ -46,6 +54,12 @@ rtc_time_in_sec:
     ret
 
 
+# Returns current date - as provided by Goldfish RTC
+# in 4-byte date structure (dow | year | month | day).
+# See get_date in time.s for details
+# Arguments: none
+# Returns:
+#     a0 - 4-byte date structure of current RTC date
 .type rtc_get_date, @function
 rtc_get_date:
     stack_alloc
@@ -55,6 +69,12 @@ rtc_get_date:
     ret
 
 
+# Returns current time - as provided by Goldfish RTC
+# in 4-byte time structure (0 | hours| minutes | seconds).
+# See get_time in time.s for details.
+# Arguments: none
+# Returns:
+#     a0 - 4-byte time structure of current RTC time
 .type rtc_get_time, @function
 rtc_get_time:
     stack_alloc

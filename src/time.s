@@ -12,14 +12,20 @@
 .global get_date
 .global time_to_str
 .global date_to_str
+.global date_time_to_str
 
 .section .text
 
-# Computes time (hrs, min, sec)
+# Converts number of seconds from 1970.01.01 into a time structure.
 # Arguments:
 #     a0 - number of seconds since 1.01.1970
 # Returns:
-#     a0 - a 4-byte structure: 0 | hours | minutes | seconds
+#     a0 - Date structure:
+#          Byte   Field
+#          3      always 0
+#          2      hours
+#          1      minutes
+#          0      seconds
 .type get_time, @function
 get_time:
     li t0, SECS_PER_DAY
@@ -48,7 +54,7 @@ get_time:
 
 # Converts number of seconds from 1970.01.01 into a date structure.
 # Because the input is 32-bit unsigned number, the maximum possible date
-# is 2106-02-07 06:28:15
+# is 2106-02-07 06:28:15. Negative dates (before 1970.01.01) are not allowed.
 #
 # The algorithm is heavily inspred by rtc_time64_to_tm from Linux rtc driver
 # see: https://elixir.bootlin.com/linux/v6.12.6/source/drivers/rtc/lib.c#L52
@@ -110,10 +116,10 @@ get_date:
     inc a2
 
     sltiu t0, a4, 306                  # is_Jan_or_Feb
-    bnez t0, 20f
+    bnez t0, 1f
         inc a0
         addi a1, a1, -12
-20:
+1:
     addi a0, a0, -1900
     slli a0, a0, 8
     or a0, a0, a1
@@ -126,12 +132,12 @@ get_date:
     ret
 
 
-# Converts time structure into string
+# Converts time structure into a string
 # Arguments:
-#     a0 - time
+#     a0 - 4-byte time structure (0 | hrs | minutes | seconds)
 #     a1 - string pointer
 # Returns
-#     a0 - string pointer
+#     a0 - string pointer (same as a1 input)
 .type time_to_str, @function
 time_to_str:
     li a2, 6                           # string offset
@@ -160,6 +166,13 @@ time_to_str:
     mv a0, a1                          # return string address
     ret
 
+
+# Converts date structure into a string
+# Arguments:
+#     a0 - 4-byte date structure (dow | year | month | day)
+#     a1 - string pointer
+# Returns
+#     a0 - string pointer (same as a1 input)
 .type date_to_str, @function
 date_to_str:
     stack_alloc
@@ -208,3 +221,35 @@ date_to_str:
     mv a0, a1
     stack_free
     ret
+
+
+# Converts 32-bit number containing number of seconds
+# since 1970-01-01 into a date-time string
+# Arguments
+#     a0 - number of seconds since 1970-01-01
+#     a1 - string pointer
+# Returns
+#     a0 - string pointer (same as a1 argument)
+.type date_time_to_str, @function
+date_time_to_str:
+    stack_alloc
+    push a0, 8
+    push a1, 4
+
+    call get_date
+    pop a1, 4
+    call date_to_str
+
+    pop a0, 8
+    call get_time
+    pop a1, 4
+
+    li t0, ' '
+    sb t0, 10(a1)
+    addi a1, a1, 11
+    call time_to_str
+
+    pop a0, 4
+    stack_free
+    ret
+
