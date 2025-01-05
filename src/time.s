@@ -46,7 +46,11 @@ get_time:
     ret
 
 
-# Heavily inspred by rtc_time64_to_tm from Linux rtc driver
+# Converts number of seconds from 1970.01.01 into a date structure.
+# Because the input is 32-bit unsigned number, the maximum possible date
+# is 2106-02-07 06:28:15
+#
+# The algorithm is heavily inspred by rtc_time64_to_tm from Linux rtc driver
 # see: https://elixir.bootlin.com/linux/v6.12.6/source/drivers/rtc/lib.c#L52
 #
 # Arguments:

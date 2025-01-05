@@ -41,7 +41,7 @@ int assert_eq(u32 val, u32 expected) {
     char str[64];
     int ok = val != expected;
     print("0x");
-    itoa(val, str, 10);
+    itoa(val, str, 16);
     print(str);
     print("=>0x");
     itoa(expected, str, 16);
