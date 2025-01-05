@@ -142,7 +142,6 @@ show_date_time:
     call rtc_get_time
     mv a1, sp
     call time_to_str
-    mv a0, sp
     call println
     setz a5
     stack_free

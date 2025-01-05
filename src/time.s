@@ -99,16 +99,8 @@ get_date:
     # a0 - year, a1 - month, a2 - day, a4 - day of year
     li t1, 100
     mul a0, a2, t1
-    add a0, a2, a3                     # year = 100*century + year_of_century
+    add a0, a0, a3                     # year = 100*century + year_of_century
 
-    bnez a3, 10f                       # branch if year_of_century > 0
-        remu t0, a2, t2                # leap_year = century % 4 == 0
-        j 11f
-10: remu t0, a3, t2                    # leap_year = year_of_century % 4 == 0
-11: seqz t0, t0
-    pushb t0, leap                     # store leap year on the stack
-
-                                       # year_of_century (a3), century (a2) not needed
     li t2, 2141
     mul t0, a4, t2
     li t1, 132377
@@ -122,7 +114,7 @@ get_date:
     inc a2
 
     sltiu t0, a4, 306                  # is_Jan_or_Feb
-    beqz t0, 20f
+    bnez t0, 20f
         inc a0
         addi a1, a1, -12
 20:
@@ -144,30 +136,33 @@ get_date:
 # Arguments:
 #     a0 - time
 #     a1 - string pointer
+# Returns
+#     a0 - string pointer
 .type time_to_str, @function
 time_to_str:
-    li a2, 6                               # string offset
+    li a2, 6                           # string offset
     li a3, 10
 1:
-        and t0, a0, 0xff                   # take the first byte of a0
-        div t1, t0, a3                     # t1 = t0 / 10
+        and t0, a0, 0xff               # take the first byte of a0
+        div t1, t0, a3                 # t1 = t0 / 10
         addi t1, t1, '0'
-        add t2, a1, a2                     # compute address
+        add t2, a1, a2                 # compute address
         sb t1, 0(t2)
 
-        rem t1, t0, a3                     # t1 = t0 % 10
+        rem t1, t0, a3                 # t1 = t0 % 10
         addi t1, t1, '0'
         sb t1, 1(t2)
 
-        srli a0, a0, 8                     # a0 = a0 >> 8
+        srli a0, a0, 8                 # a0 = a0 >> 8
         addi a2, a2, -3
 
-        bltz a2, 2f                        # exit if offset < 0
-            li t1, ':'                     # otherwise add ":" character
+        bltz a2, 2f                    # exit if offset < 0
+            li t1, ':'                 # otherwise add ":" character
             sb t1, -1(t2)
 
         j 1b
 2:
-    sb zero, 8(a1)
+    sb zero, 8(a1)                     # close the string
+    mv a0, a1                          # return string address
     ret
 

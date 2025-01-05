@@ -7,7 +7,7 @@ u32 time_to_u32(u32 hr, u32 min, u32 sec) {
 }
 
 u32 date_to_u32(u32 year, u32 month, u32 day, u32 dow) {
-    return ((dow-1) << 24) | ((year-1900) << 16) | (month << 8) | day;
+    return ((dow-1) << 24) | ((year-1900) << 16) | ((month-1) << 8) | (day);
 }
 void test_get_time(u32 secs, u32 expected) {
     char str[33];
