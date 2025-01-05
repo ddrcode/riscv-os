@@ -10,6 +10,7 @@ extensions.
 ## Features
 
 <img src="./assets/riscvos-screenshot.png" width="300"/>
+
 The RISC-V OS is in very early stage of development, and currently conceptually is closer to C64's
 [Kernal](https://en.wikipedia.org/wiki/KERNAL) rather than
 Linux or any RTOS. Most importantly it runs on cpu's machine level, giving the user full access to
@@ -20,7 +21,7 @@ hardware and memory.
 - framebuffer (40x25 characters text screen, configurable),
 - trivial shell with four (!!!) commands: `cls`, `date`, `print`, `prompt`
 - drivers for UART and RTC
-- number of math and string functions
+- various math and string functions
 
 ### Planned features
 
