@@ -9,6 +9,7 @@ extensions.
 
 ## Features
 
+<img src="./assets/riscvos-screenshot.png" width="300"/>
 The RISC-V OS is in very early stage of development, and currently conceptually is closer to C64's
 [Kernal](https://en.wikipedia.org/wiki/KERNAL) rather than
 Linux or any RTOS. Most importantly it runs on cpu's machine level, giving the user full access to
