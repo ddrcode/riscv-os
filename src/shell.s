@@ -138,13 +138,24 @@ show_error:
     ret
 
 show_date_time:
-    stack_alloc
-    call rtc_get_time
+    stack_alloc 32
+
+    call rtc_get_date
     mv a1, sp
+    call date_to_str
+
+    li t0, ' '
+    sb t0, 10(sp)
+
+    call rtc_get_time
+    addi a1, sp, 11
     call time_to_str
+
+    mv a0, sp
     call println
+
     setz a5
-    stack_free
+    stack_free 32
     ret
 
 # Set single-character prompt

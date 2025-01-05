@@ -11,6 +11,7 @@
 .global get_time
 .global get_date
 .global time_to_str
+.global date_to_str
 
 .section .text
 
@@ -48,25 +49,17 @@ get_time:
 # Heavily inspred by rtc_time64_to_tm from Linux rtc driver
 # see: https://elixir.bootlin.com/linux/v6.12.6/source/drivers/rtc/lib.c#L52
 #
-# DateTime structure
-# Addr    Size   Field
-# 0       1      year-1900
-# 1       1      month (0-11)
-# 2       1      day of month (0-30)
-# 3       1      day of week (0-6)
-# 4       1      hour
-# 5       1      minute
-# 6       1      second
-# 7       1      is leap year (0-1)
+# Arguments:
+#     a0 - number of seconds since 1970.01.01
+# Returns:
+#     a0 - Date structure:
+#          Byte   Field
+#          3      day of week (0-6)
+#          2      year-1900
+#          1      month (0-11)
+#          0      day of month (1-31)
 .type get_date, @function
 get_date:
-    .set year, 0
-    .set month, 1
-    .set day, 2
-    .set dow, 3
-    .set leap, 7
-
-    stack_alloc
     li t2, 4                           # 4 is used for number of divs and muls below
 
     li t0, SECS_PER_DAY
@@ -74,8 +67,7 @@ get_date:
 
     add t0, a1, a2                     # compute day of the week
     li t1, 7
-    remu t0, t0, t1                    # knowing that 1.01.1970 was Thursday
-    pushb t0, dow                      # and push on the stack
+    remu a5, t0, t1                    # knowing that 1.01.1970 was Thursday
 
     li t1, 719468
     add a1, a1, t1                     # udays = days + 719468
@@ -96,7 +88,7 @@ get_date:
     divu a4, a4, t2                    # day of year
 
     # from here
-    # a0 - year, a1 - month, a2 - day, a4 - day of year
+    # a0 - year, a1 - month, a2 - day, a4 - day of year, a5 - day of week
     li t1, 100
     mul a0, a2, t1
     add a0, a0, a3                     # year = 100*century + year_of_century
@@ -124,11 +116,9 @@ get_date:
     slli a0, a0, 8
     or a0, a0, a2
 
-    popb t0, dow
-    slli t0, t0, 24
+    slli t0, a5, 24
     or a0, a0, t0
 
-    stack_free
     ret
 
 
@@ -166,3 +156,51 @@ time_to_str:
     mv a0, a1                          # return string address
     ret
 
+.type date_to_str, @function
+date_to_str:
+    stack_alloc
+    push a0, 8
+    push a1, 4
+
+    srli a0, a0, 16
+    andi a0, a0, 0xff
+    addi a0, a0, 1900
+    li a2, 10
+    call itoa
+
+    pop a0, 8
+    pop a1, 4
+
+    li t0, '-'
+    sb t0, 4(a1)
+    sb t0, 7(a1)
+
+    srli a0, a0, 8
+    andi a0, a0, 0xff
+    inc a0
+
+    li t2, 10
+    div t0, a0, t2
+    rem t1, a0, t2
+    addi t0, t0, '0'
+    addi t1, t1, '0'
+
+    sb t0, 5(a1)
+    sb t1, 6(a1)
+
+    pop a0, 8
+    andi a0, a0, 0xff
+
+    li t2, 10
+    div t0, a0, t2
+    rem t1, a0, t2
+    addi t0, t0, '0'
+    addi t1, t1, '0'
+
+    sb t0, 8(a1)
+    sb t1, 9(a1)
+    sb zero, 10(a1)
+
+    mv a0, a1
+    stack_free
+    ret
