@@ -31,6 +31,7 @@ int test_main() {
     test_itoa("~0, 10", ~0, 10, "-1");
     test_itoa("-1, 10", -1, 10, "-1");
     test_itoa("0, 10", 0, 10, "0");
+    test_itoa("19975493, 35", 19975493, 35, "david");
     print_summary();
     return 0;
 }

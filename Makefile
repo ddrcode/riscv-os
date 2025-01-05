@@ -1,7 +1,7 @@
 TOOL := riscv64-none-elf
 # use im and -mabi=ilp32 if planning to not use reduced base integer extension
 RISC_V_EXTENSIONS := em
-FLAGS := -march=rv32$(RISC_V_EXTENSIONS) -mabi=ilp32e -g
+FLAGS := -march=rv32$(RISC_V_EXTENSIONS) -mabi=ilp32e
 AS_FLAGS := -I headers
 GCC_FLAGS := -T baremetal.ld -nostdlib -static -I headers
 
@@ -9,7 +9,7 @@ QEMU_EXTENSIONS := e=on,m=on,i=off,h=off,f=off,d=off,a=off,f=off,c=off,zawrs=off
 QEMU := qemu-system-riscv32 -machine virt -m 4 -smp 1 -cpu rv32,$(QEMU_EXTENSIONS)
 MACHINE = $(QEMU) -nographic -serial mon:stdio -echr 17
 
-TEST_NAME ?= commands
+TEST_NAME ?= shell
 
 SRC := $(wildcard src/*.s)
 # SRC_NO_MAIN := $(filter-out src/main.s, $(SRC))
@@ -33,9 +33,17 @@ TEST_FILES := $(patsubst %.o, %.elf, $(filter test_%.o, $(TEST_ASM_OBJ)))
 TEST_FILES += $(patsubst %.o, %.elf, $(filter test_%.o, $(TEST_C_OBJ)))
 TEST_SUPPORT_OBJ := $(OBJ_DIR)/assert.o $(OBJ_DIR)/helpers.o $(OBJ_DIR)/startup.o
 
+
+ifneq ($(filter debug, $(MAKECMDGOALS)),)
+FLAGS += -g
+endif
+
+.PHONY: setup compile build compile_test build_tests build_all run test clean gdb debug
+
 default: build_all
 
 setup:
+	@echo "Mam dwie srubki $(MAKECMDGOALS)"
 	mkdir -p build/obj
 
 $(OBJ): %.o: src/%.s
@@ -74,11 +82,9 @@ test: build_tests
 	@echo "Ctrl-Q C for QEMU console, then quit to exit"
 	$(MACHINE) -bios build/test_$(TEST_NAME).elf
 
-.PHONY: clean gdb debug
-
 debug: build_tests
 	@echo "Ctrl-Q C for QEMU console, then quit to exit"
-	$(MACHINE) -s -S -bios build/test_$(TEST_NAME)
+	$(MACHINE) -s -S -bios build/test_$(TEST_NAME).elf
 
 gdb:
 	gdb -ex 'target remote localhost:1234' ./build/test_$(TEST_NAME)
