@@ -13,7 +13,7 @@ u32 date_to_u32(u32 year, u32 month, u32 day, u32 dow) {
 
 void test_get_time(u32 secs, u32 expected) {
     char str[33];
-    itoa(secs, str, 10);
+    utoa(secs, str, 10);
     print_test_name("get_time", str);
 
     u32 time = get_time(secs);
@@ -29,7 +29,7 @@ void test_get_time(u32 secs, u32 expected) {
 
 void test_get_date(u32 secs, u32 expected) {
     char str[33];
-    itoa(secs, str, 10);
+    utoa(secs, str, 10);
     print_test_name("get_date", str);
 
     u32 date = get_date(secs);

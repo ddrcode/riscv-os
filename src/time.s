@@ -183,7 +183,7 @@ date_to_str:
     andi a0, a0, 0xff
     addi a0, a0, 1900
     li a2, 10
-    call itoa
+    call utoa
 
     pop a0, 8
     pop a1, 4

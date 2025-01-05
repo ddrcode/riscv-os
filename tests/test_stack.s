@@ -26,7 +26,7 @@ stackinfo:
         la a0, __stack_top
         la a1, out_str
         li a2, 16
-        call itoa
+        call utoa
 
         la a0, out_str
         call puts
@@ -37,7 +37,7 @@ stackinfo:
         li a0, STACK_SIZE
         la a1, out_str
         li a2, 16
-        call itoa
+        call utoa
 
         la a0, out_str
         call puts
@@ -48,7 +48,7 @@ stackinfo:
         mv a0, sp
         la a1, out_str
         li a2, 16
-        call itoa
+        call utoa
 
         la a0, out_str
         call puts

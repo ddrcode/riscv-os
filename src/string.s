@@ -9,24 +9,25 @@
 
 .global itoa
 .global atoi
+.global utoa
 .global strlen
 .global strcmp
 .global str_find_char
 
 .section .text
 
-# Converts a number (integer) into a string
-# Inspired by this implementation in C:
-# https://www.geeksforgeeks.org/implement-itoa/
-# Params:
+
+# Private function supporting itoa and utoa. It converts an unsigned
+# number into a reversed string and returns string length in a0.
+# Functions that use this tool must at least reverse the strig
+# and add a sign character (itoa).
+# Arguments:
 #     a0 - number to be converted
 #     a1 - pointer to string
 #     a2 - base
 # Returns:
 #     a0 - string length
-.type itoa, @function
-itoa:
-    stack_alloc
+_num_to_reversed_str:
     mv t0, a1
     bnez a0, 1f                        # jump if number is not zero
         li t1, '0'                     # generate "0\0" string and jump to the end
@@ -37,39 +38,92 @@ itoa:
         j 6f                           # exit
 1:
     li a4, 10                          # constant to compare base 10
-    setz t2                            # sign indicator (1 for negative, 0 otherwise)
-    bgez a0, 2f                        # skip if number >= 0
-    bne a0, a4, 2f                     # or if base in != 10
-        xori a0, a0, -1                # make number positive (a = (a^-1)+1)
-        inc a0
-        li t2, 1                       # mark sign indicator as negative
 2:
     beqz a0, 4f                        # jump if number is zero
         remu t1, a0, a2                 # t1 = number % base
         blt t1, a4, 3f                 # jump to 3: if t1 < 10
-            addi t1, t1, 87        # magic :-)  ('A'-t1+'0' = 7)
+            addi t1, t1, 'a'-10-'0'    # use character as a digit > 9
 3:
         addi t1, t1, '0'               # t1 += '0'
         sb t1, (t0)                    # store bcharacter
         inc t0                         # increment string pointer
-        divu a0, a0, a2                 # number /= base
+        divu a0, a0, a2                # number /= base
         j 2b
 4:
-    beqz t2, 5f                        # skip if sign indicator is 0
-        li t1, '-'                     # add the - sign for negative number
-        sb t1, (t0)
-        inc t0                         # and increase the pointer
 5:
     li t1, 0                           # finish string with '\0'
     sb t1, (t0)
-    sub t0, t0, a1                     # compute string length
+    sub a0, t0, a1                     # compute string length
+6:
+    ret
 
-    push t0, 8                         # preserve string length on stack
+
+# Converts a signed number  into a string
+# Inspired by this implementation in C:
+# https://www.geeksforgeeks.org/implement-itoa/
+# Params:
+#     a0 - number to be converted
+#     a1 - pointer to string
+#     a2 - base
+# Returns:
+#     a0 - string pointer
+.type itoa, @function
+itoa:
+    stack_alloc
+    push a1, 8
+    pushb zero, 4
+
+    li t1, 10                          # base-10 for comparisons
+    bgez a0, 1f                        # skip if number >= 0
+    bne a2, t1, 1f                     # or if base != 10
+        xori a0, a0, -1                # make number positive (a = (a^-1)+1)
+        inc a0
+        li t2, 1                       # mark sign indicator as negative
+        pushb t2, 4                    # and save it on the stack
+1:
+    call _num_to_reversed_str          # call generic conversion (it returns string length in a0)
+
+    pop a1, 8                          # retrieve string pointer
+    popb t2, 4                         # retrieve sign indicator
+    beqz t2, 2f                        # and finish if non-negative
+        add t0, a1, a0                 # compute end-of-string address
+        li t1, '-'                     # add the - sign for negative number
+        sb t1, (t0)
+        sb zero, 1(t0)                 # close the string
+        inc a0                         # and increase its length
+2:
+    mv t0, a0
     mv a0, a1                          # pointer to the string
     mv a1, t0                          # string length
-    call mem_reverse                   # reverse the string
-    pop a0, 8                          # return string length
-6:
+    blt a1, t0, 3f                     # don't reverse the string if is 1-char long
+        call mem_reverse               # reverse the string otherwise
+3:
+    pop a0, 8                          # return string pointer
+    stack_free
+    ret
+
+# Converts an unsigned number into a string
+# Inspired by this implementation in C:
+# https://www.geeksforgeeks.org/implement-itoa/
+# Params:
+#     a0 - number to be converted
+#     a1 - pointer to string
+#     a2 - base
+# Returns:
+#     a0 - string pointer
+.type utoa, @function
+utoa:
+    stack_alloc
+    push a1, 8                         # preserve the string pointer on the stack
+    call _num_to_reversed_str          # convert number to RTL string
+
+    li t0, 2
+    mv a1, a0                          # string length
+    pop a0, 8                          # retrieve string pointer
+
+    blt a1, t0, 1f                     # don't reverse the string if is 1-char long
+        call mem_reverse               # reverse the string otherwise
+1:
     stack_free
     ret
 

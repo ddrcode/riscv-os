@@ -12,8 +12,8 @@ void query_rtc(int times) {
         regarr(regs);
         u32 thi = regs[0];
 
-        itoa(tlo, strlo, 10);
-        itoa(thi, strhi, 10);
+        utoa(tlo, strlo, 10);
+        utoa(thi, strhi, 10);
 
         print("hi: ");
         print(strhi);
@@ -31,8 +31,8 @@ void time_in_sec() {
     regarr(regs);
     u32 thi = regs[0];
 
-    itoa(tlo, strlo, 10);
-    itoa(thi, strhi, 10);
+    utoa(tlo, strlo, 10);
+    utoa(thi, strhi, 10);
 
     print("hi: ");
     print(strhi);
@@ -44,6 +44,7 @@ void time_in_sec() {
 int test_main(void) {
     eol();
     query_rtc(10);
+    eol();
     time_in_sec();
     print_summary();
     return 0;

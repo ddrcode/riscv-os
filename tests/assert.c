@@ -25,9 +25,9 @@ inline void eol(void) {
 
 void print_summary(void) {
     char total[32], failed[32], ok[32];
-    itoa(test_count, total, 10);
-    itoa(test_results, failed, 10);
-    itoa(test_count-test_results, ok, 10);
+    utoa(test_count, total, 10);
+    utoa(test_results, failed, 10);
+    utoa(test_count-test_results, ok, 10);
     print("\nRun ");
     print(total);
     print(" tests. ");
@@ -41,12 +41,12 @@ int assert_eq(u32 val, u32 expected) {
     char str[64];
     int ok = val != expected;
     print("0x");
-    itoa(val, str, 16);
+    utoa(val, str, 16);
     print(str);
     print("=>0x");
-    itoa(expected, str, 16);
+    utoa(expected, str, 16);
     print(str);
-    print(ok==0 ? "\t[OK]" : "\n[FAILED]");
+    print(ok==0 ? "\t[OK]" : "\t[FAILED]");
     print("\n");
 
     ++test_count;
@@ -69,7 +69,7 @@ int assert_arr(u32* vals, u32* expected, i32 len) {
         print(str);
         if (i < len-1 ) print(", ");
     }
-    print(ok==0 ? "\t[OK]" : "\n[FAILED]");
+    print(ok==0 ? "\t[OK]" : "\t[FAILED]");
     print("\n");
 
     ++test_count;
@@ -77,3 +77,14 @@ int assert_arr(u32* vals, u32* expected, i32 len) {
     return ok;
 }
 
+int assert_str(char* val, char* expected) {
+    int ok = !strcmp(val, expected);
+    print(val);
+    print("=>");
+    print(expected);
+    print(ok==0 ? "\t[OK]" : "\t[FAILED]");
+    print("\n");
+    ++test_count;
+    test_results += ok;
+    return ok;
+}
