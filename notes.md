@@ -5,7 +5,8 @@ Notes, links and hints that helped me to develop the project.
 
 ## QEMU
 
-Finding addresses of memory devices: `info mtree`
+- Finding addresses of memory devices: `info mtree`
+- [`virt` source code](https://github.com/qemu/qemu/blob/master/hw/riscv/virt.c)
 
 ### Syscalls / `ecall`
 - [Who provides syscalls in qemu-riscv?](https://stackoverflow.com/questions/52723900/who-provides-syscalls-in-qemu-riscv)
@@ -44,5 +45,6 @@ Linux](https://github.com/torvalds/linux/blob/master/drivers/rtc/rtc-goldfish.c#
 
 ## C
 - [riscv-bare-metal](https://github.com/s094392/riscv-bare-metal) - C and assembly files together
+- [div64 in mathlib linux](https://github.com/torvalds/linux/blob/63676eefb7a026d04b51dcb7aaf54f358517a2ec/lib/math/div64.c)
 
 

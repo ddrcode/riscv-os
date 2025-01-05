@@ -138,11 +138,16 @@ show_error:
     ret
 
 show_date_time:
-    stack_alloc 4
-    la a0, date
+    stack_alloc 32
+
+    call rtc_time_in_sec
+    mv a1, sp
+    call date_time_to_str
+    mv a0, sp
     call println
+
     setz a5
-    stack_free 4
+    stack_free 32
     ret
 
 # Set single-character prompt
@@ -169,7 +174,6 @@ prompt: .string "> "
 
 welcome: .string "Welcome to RISC-V OS v0.1"
 commands: .string "cls", "date", "prompt", "print"
-date: .string "2024-12-20 21:17:32 (fake date)"
 
 err_unknown: .string "Unknown error"
 err_not_found: .string "Command not found"
