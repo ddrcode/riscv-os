@@ -15,8 +15,11 @@
 
 .global rtc_read_time
 .global rtc_time_in_sec
+.global rtc_get_date
+.global rtc_get_time
 
-.equ NSEC_PER_SEC,	1000000000
+.equ NSEC_PER_SEC, 1000000000
+.equ SECS_PER_DAY, 86400
 
 .section .text
 
@@ -31,6 +34,7 @@ rtc_read_time:
     lw a1, 4(t0)
     ret
 
+
 .type rtc_time_in_sec, @function
 rtc_time_in_sec:
     stack_alloc
@@ -40,3 +44,22 @@ rtc_time_in_sec:
     call udiv64
     stack_free
     ret
+
+
+.type rtc_get_date, @function
+rtc_get_date:
+    stack_alloc
+    call rtc_time_in_sec               # a0 contains secs from 1.01.1970
+    call get_date
+    stack_free
+    ret
+
+
+.type rtc_get_time, @function
+rtc_get_time:
+    stack_alloc
+    call rtc_time_in_sec               # a0 contains secs from 1.01.1970
+    call get_time
+    stack_free
+    ret
+
