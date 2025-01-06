@@ -39,22 +39,6 @@ uart_init:
     ret
 
 
-.type uart_get, @function
-uart_getc:
-    li t0, UART_BASE
-
-    lbu t1, LINE_STATUS_REG(t0)
-    andi t1, t1, LINE_STATUS_DATA_READY
-
-    bnez t1, 1f                        # jump if UART is ready to read from
-        mv a0, zero                    # otherwise, return 0
-        j 2f
-1:
-    # load character at UART address into a0
-    lbu     a0, (t0)
-2:  ret
-
-
 # a0 - String address
 .type puts, @function
 uart_puts:
@@ -80,5 +64,20 @@ uart_putc:
     li t0, UART_BASE
     sb a0, (t0)
     ret
+
+
+.type uart_get, @function
+uart_getc:
+    li t0, UART_BASE
+
+    lbu t1, LINE_STATUS_REG(t0)
+    andi t1, t1, LINE_STATUS_DATA_READY
+
+    bnez t1, 1f                        # jump if UART is ready to read from
+        mv a0, zero                    # otherwise, return 0
+        j 2f
+1:
+    lbu a0, (t0)                       # load character at UART address
+2:  ret
 
 
