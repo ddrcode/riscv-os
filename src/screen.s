@@ -13,6 +13,7 @@
 .global show_cursor
 .global set_cursor_pos
 .global print_screen
+.global scr_backspace
 
 .section .text
 
@@ -182,6 +183,14 @@ get_cursor_offset:
     stack_free 4
     ret
 
+get_cursor_address:
+    stack_alloc 4
+    call get_cursor_offset
+    la t0, screen
+    add a0, a0, t0
+    stack_free 4
+    ret
+
 
 show_cursor:
     stack_alloc 4
@@ -222,7 +231,22 @@ scroll:
     ret
 
 
+.type scr_backspace, @function
+scr_backspace:
+    stack_alloc 4
+    call get_cursor_pos
+    beqz a0, 1f                        # do nothing if cursor_x is 0
+    dec a0
+    call set_cursor_pos
+    call get_cursor_address
+    li t0, ' '
+    sb t0, (a0)
+1:  stack_free 4
+    ret
+
+
 # Prints the content of screen memory to uart
+# TODO use uart_putc function rather than direct access to NS16550A
 .type print_screen, @function
 print_screen:
     stack_alloc 4

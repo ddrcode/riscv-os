@@ -89,11 +89,7 @@ fnjumptable: .word show_error
              .word show_date_time
              .word set_prompt
              .word println
-.if OUTPUT_DEV==1
-              .word print_screen
-.else
-             .word show_error
-.endif
+             .word print_screen
 
 kernel_panic: .string "Kernel panic!"
 

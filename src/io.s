@@ -13,7 +13,12 @@ printc:
     stack_alloc
     sb a0, (sp)
     sb zero, 1(sp)
+
+.if OUTPUT_DEV & 0b10
     call uart_putc
+.endif
+
+.if OUTPUT_DEV & 1
     mv a0, sp
     lb t0, (a0)
     li t1, '\n'
@@ -21,27 +26,49 @@ printc:
         call scr_println
         j 2f
 1:  call scr_print
+.endif
+
 2:  stack_free
     ret
+
 
 .type prints, @function
 prints:
     stack_alloc
     push a0, 8
+
+.if OUTPUT_DEV & 0b10
     call uart_puts
+.endif
+
+.if OUTPUT_DEV & 1
     pop a0, 8
     call scr_print
+.endif
+
     stack_free
     ret
+
 
 .type println, @function
 println:
     stack_alloc
-    call prints
+    push a0, 8
+
+.if OUTPUT_DEV & 0b10
+    call uart_puts
     li a0, '\n'
-    call printc
+    call uart_putc
+.endif
+
+.if OUTPUT_DEV & 1
+    pop a0, 8
+    call scr_println
+.endif
+
     stack_free
     ret
+
 
 .type getc, @function
 getc:
@@ -49,6 +76,7 @@ getc:
     call uart_getc
     stack_free 4
     ret
+
 
 # Reads line from standard input
 # Arguments:
@@ -71,19 +99,47 @@ read_line:
         beq a0, t0, 3f
 
         li t0, 127                     # handle backspace
-        beq a0, t0, 2f
+        beq a0, t0, _bcksp
 
         li t0, 32
         blt a0, t0, 1b                 # ignore special characters
             sb a0, (s1)                # store character
             inc s1                     # increase the pointer
-2:          call printc                # print character
+            call printc                # print character
             j 1b
+
+_bcksp:
+    pop a1, 4
+    beq a1, s1, 1b                     # ignore for empty string
+    dec s1
+    call _printc_bcksp
+    j 1b
+
 3:
     sb zero, (s1)                      # close the string
     pop a0, 4
     sub a0, s1, a0                     # compute string length
     pop s1, 8
     stack_free
+    ret
+
+
+_printc_bcksp:
+    stack_alloc 4
+
+.if OUTPUT_DEV & 0b10
+    li a0, '\b'
+    call uart_putc
+    li a0, ' '
+    call uart_putc
+    li a0, '\b'
+    call uart_putc
+.endif
+
+.if OUTPUT_DEV & 0b10
+    call scr_backspace
+.endif
+
+    stack_free 4
     ret
 
