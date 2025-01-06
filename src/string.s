@@ -12,6 +12,7 @@
 .global utoa
 .global strlen
 .global strcmp
+.global strcpy
 .global str_find_char
 
 .section .text
@@ -243,3 +244,17 @@ str_find_char:
     mv a0, t0
     ret
 
+
+.type strcpy, @function
+strcpy:
+    stack_alloc
+    push a0, 8
+    push a1, 4
+    mv a0, a1
+    call strlen
+    mv a2, a0
+    pop a0, 8
+    pop a1, 4
+    call memcpy
+    stack_free
+    ret
