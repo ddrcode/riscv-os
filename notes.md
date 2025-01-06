@@ -15,6 +15,7 @@ Notes, links and hints that helped me to develop the project.
 ## Devices / drivers
 
 ### UART / serial / chardev
+- [RISC-V NS16550A UART driver](https://github.com/safinsingh/ns16550a)
 - [Chardev device options](https://www.qemu.org/docs/master/system/invocation.html#hxtool-6)
 - Try chardev: `qemu-system-riscv64 -nographic -M virt -cpu rv64 -m 4G -smp $(QEMU_N_HARTS) -serial pty -bios
 opensbi/output/path/fw_payload.elf -device virtio-serial-device -chardev pty,id=serial3 -device
@@ -47,4 +48,7 @@ Linux](https://github.com/torvalds/linux/blob/master/drivers/rtc/rtc-goldfish.c#
 - [riscv-bare-metal](https://github.com/s094392/riscv-bare-metal) - C and assembly files together
 - [div64 in mathlib linux](https://github.com/torvalds/linux/blob/63676eefb7a026d04b51dcb7aaf54f358517a2ec/lib/math/div64.c)
 
-
+## Assembly
+- [Compiler explorer](https://gcc.godbolt.org/) - generates clean and readable assembly from various languages for
+various architectures. Brilliant!
+- [CFI directives in assemblyfiles](https://www.imperialviolet.org/2017/01/18/cfi.html)

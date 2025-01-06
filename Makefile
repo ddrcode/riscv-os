@@ -43,7 +43,6 @@ endif
 default: build_all
 
 setup:
-	@echo "Mam dwie srubki $(MAKECMDGOALS)"
 	mkdir -p build/obj
 
 $(OBJ): %.o: src/%.s
