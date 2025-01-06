@@ -21,11 +21,11 @@ hardware and memory.
 - framebuffer (40x25 characters text screen, configurable),
 - trivial shell with four (!!!) commands: `cls`, `date`, `print`, `prompt`
 - drivers for UART and RTC
+- keyboard input (UART)
 - various math and string functions
 
 ### Planned features
 
-- keyboard input
 - protected vs user modes
 - system functions accessible via `ecall`
 - privilege levels

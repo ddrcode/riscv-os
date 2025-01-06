@@ -10,3 +10,19 @@
 # Devices
 .equ RTC_BASE, 0x101000
 .equ UART_BASE, 0x10000000
+
+# Output
+
+# Options
+# 0 - no output
+# bit 0 set - output to framebuffer (writes to memory, can be inspected by gdb)
+# bit 1 set - output to serial
+# bit 2 set - screen over serial (bit 0 mandatory, don't set bit 1)
+# bit 4 set - screen (graphics driver required, bit 0 mandatory, bit 1 or 3 optional)
+# At this moment only bit 0 and 1 are supported
+# When bit 0 only is set, then the framebuffer content can be checked with gdb
+# The option can be provided to assembler with
+# `--defsym OUTPUT_DEV=1` (see makefile)
+.ifndef OUTPUT_DEV
+    .equ OUTPUT_DEV, 1
+.endif

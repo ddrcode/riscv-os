@@ -8,12 +8,12 @@
 .include "config.s"
 
 .global clear_screen
-.global print_str
-.global println
+.global scr_print
+.global scr_println
 .global show_cursor
 .global set_cursor_pos
-
-.global screen
+.global print_screen
+.global scr_backspace
 
 .section .text
 
@@ -39,7 +39,7 @@ clear_screen:
 # Returns:
 #     a0 - x position of the cursor
 #     a1 - y position of the cursor
-print_str:
+scr_print:
     stack_alloc                     # prepare the stack
     push a0, 8
     push a1, 4
@@ -93,11 +93,11 @@ print_str:
 #     a0 - x position of the cursor
 #     a1 - y position of the cursor
 #     a5 - error code
-println:
+scr_println:
     stack_alloc
     beqz a0, 1f                        # handle null pointer
 
-    call print_str                     # Print text at cursor position
+    call scr_print                     # Print text at cursor position
     setz a0                            # Set cursor_x to 0
     inc a1                             # increment cursor_y
 
@@ -183,6 +183,14 @@ get_cursor_offset:
     stack_free 4
     ret
 
+get_cursor_address:
+    stack_alloc 4
+    call get_cursor_offset
+    la t0, screen
+    add a0, a0, t0
+    stack_free 4
+    ret
+
 
 show_cursor:
     stack_alloc 4
@@ -222,6 +230,79 @@ scroll:
     stack_free 4
     ret
 
+
+.type scr_backspace, @function
+scr_backspace:
+    stack_alloc 4
+    call get_cursor_pos
+    beqz a0, 1f                        # do nothing if cursor_x is 0
+    dec a0
+    call set_cursor_pos
+    call get_cursor_address
+    li t0, ' '
+    sb t0, (a0)
+1:  stack_free 4
+    ret
+
+
+# Prints the content of screen memory to uart
+# TODO use uart_putc function rather than direct access to NS16550A
+.type print_screen, @function
+print_screen:
+    stack_alloc 4
+    call _print_frame
+    la a0, screen                      # set a0 to beginning of screen region
+    li a1, UART_BASE
+    li t1, SCREEN_WIDTH                # t1 is a  char counter within line
+    li t2, SCREEN_HEIGHT               # t2 is a line counter
+    li a4, 32                          # space character
+    li t0, '|'
+    sb t0, (a1)
+1:
+    lb t0, (a0)                        # load a single byte to t0
+    bge t0, a4, 2f                     # if it's printable character jump to 2
+    mv t0, a4                          # otherwise replace character with space
+2:
+    sb t0, (a1)                        # send byte to uart
+    dec t1                             # decrement t1
+    inc a0                             # increment a1
+    beqz t1, 3f
+    j 1b                               # jump to 1
+3:
+    li t0, '|'
+    sb t0, (a1)
+    li t0, '\n'                        # EOL character
+    sb t0, (a1)                        # send to UART
+    li t1, SCREEN_WIDTH                # reset t1 to 40
+    dec t2                             # decrement t2
+    beqz t2, 4f                        # if t2 is zero jump to 3:
+    li t0, '|'
+    sb t0, (a1)
+    j 1b
+4:
+    setz a0
+    setz a1
+    call set_cursor_pos
+    call _print_frame
+    stack_free 4
+    ret
+
+
+_print_frame:
+    li t0, '-'
+    li t1, 42
+    la t2, UART_BASE
+1:
+    beqz t1, 2f
+        sb t0, (t2)
+        dec t1
+        j 1b
+2:
+    li t0, '\n'
+    sb t0, (t2)
+    ret
+
+#--------------------------------------
 
 .section .data
 

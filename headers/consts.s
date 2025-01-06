@@ -1,6 +1,6 @@
 # System functions
 
-.equ SYS_FN_LEN, 4
+.equ SYS_FN_LEN, 5
 
 
 # Error Codes

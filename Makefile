@@ -2,7 +2,7 @@ TOOL := riscv64-none-elf
 # use im and -mabi=ilp32 if planning to not use reduced base integer extension
 RISC_V_EXTENSIONS := em
 FLAGS := -march=rv32$(RISC_V_EXTENSIONS) -mabi=ilp32e
-AS_FLAGS := -I headers
+AS_FLAGS := -I headers --defsym OUTPUT_DEV=3
 GCC_FLAGS := -T baremetal.ld -nostdlib -static -I headers
 
 QEMU_EXTENSIONS := e=on,m=on,i=off,h=off,f=off,d=off,a=off,f=off,c=off,zawrs=off,sstc=off,zicntr=off,zihpm=off,zicboz=off,zicbom=off,svadu=off
@@ -43,7 +43,6 @@ endif
 default: build_all
 
 setup:
-	@echo "Mam dwie srubki $(MAKECMDGOALS)"
 	mkdir -p build/obj
 
 $(OBJ): %.o: src/%.s

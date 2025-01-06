@@ -11,6 +11,7 @@
 .section .text
 
 .global shell_init
+.global shell_command_loop
 .global exec_cmd
 .global set_prompt
 .global show_error
@@ -22,11 +23,25 @@ shell_init:
     la a0, welcome
     call println
     la a0, prompt
-    call print_str
+    call prints
     call show_cursor
     stack_free
     ret
 
+shell_command_loop:
+    stack_alloc 64
+1:
+        mv a0, sp
+        call read_line
+        beqz a0, 1b
+            li a0, '\n'
+            call printc
+            mv a0, sp
+            call exec_cmd
+        j 1b
+    call panic                         # the loop should never end
+    stack_free 64
+    ret
 
 # Arguments
 #    a0 - cmd string pointer
@@ -48,7 +63,7 @@ exec_cmd:
     call syscall
 
     la a0, prompt
-    call print_str
+    call prints
 
     stack_free
     ret
@@ -173,7 +188,7 @@ prompt: .string "> "
 .section .rodata
 
 welcome: .string "Welcome to RISC-V OS v0.1"
-commands: .string "cls", "date", "prompt", "print"
+commands: .string "cls", "date", "prompt", "print", "fbdump"
 
 err_unknown: .string "Unknown error"
 err_not_found: .string "Command not found"

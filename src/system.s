@@ -18,6 +18,9 @@
 
 .type sysinit, @function
 sysinit:
+    stack_alloc 4
+    call uart_init
+    stack_free 4
     ret
 
 # Calls system function
@@ -86,6 +89,7 @@ fnjumptable: .word show_error
              .word show_date_time
              .word set_prompt
              .word println
+             .word print_screen
 
 kernel_panic: .string "Kernel panic!"
 

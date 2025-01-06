@@ -1,5 +1,5 @@
 #include "assert.h"
-#include "uart.h"
+#include "io.h"
 #include "string.h"
 #include "types.h"
 
@@ -7,7 +7,7 @@ static u32 test_results = 0;
 static u32 test_count = 0;
 
 void print(char* str) {
-    puts(str);
+    prints(str);
 }
 
 void print_test_name(char* prefix, char* case_name) {
