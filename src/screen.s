@@ -8,8 +8,8 @@
 .include "config.s"
 
 .global clear_screen
-.global print_str
-.global println
+.global scr_print
+.global scr_println
 .global show_cursor
 .global set_cursor_pos
 .global print_screen
@@ -38,7 +38,7 @@ clear_screen:
 # Returns:
 #     a0 - x position of the cursor
 #     a1 - y position of the cursor
-print_str:
+scr_print:
     stack_alloc                     # prepare the stack
     push a0, 8
     push a1, 4
@@ -92,11 +92,11 @@ print_str:
 #     a0 - x position of the cursor
 #     a1 - y position of the cursor
 #     a5 - error code
-println:
+scr_println:
     stack_alloc
     beqz a0, 1f                        # handle null pointer
 
-    call print_str                     # Print text at cursor position
+    call scr_print                     # Print text at cursor position
     setz a0                            # Set cursor_x to 0
     inc a1                             # increment cursor_y
 

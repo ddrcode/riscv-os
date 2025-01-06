@@ -18,10 +18,10 @@ test_main:
 stackinfo:
     stack_alloc
     la a0, lab_stack_info
-    call puts
+    call prints
 
     la a0, lab_stack_top
-    call puts
+    call prints
 
         la a0, __stack_top
         la a1, out_str
@@ -29,10 +29,10 @@ stackinfo:
         call utoa
 
         la a0, out_str
-        call puts
+        call prints
 
     la a0, lab_stack_size
-    call puts
+    call prints
 
         li a0, STACK_SIZE
         la a1, out_str
@@ -40,10 +40,10 @@ stackinfo:
         call utoa
 
         la a0, out_str
-        call puts
+        call prints
 
     la a0, lab_stack_pointer
-    call puts
+    call prints
 
         mv a0, sp
         la a1, out_str
@@ -51,7 +51,7 @@ stackinfo:
         call utoa
 
         la a0, out_str
-        call puts
+        call prints
 
     stack_free
     ret
@@ -67,7 +67,7 @@ test_overflow:
 
 
     la a0, tname_overflow
-    call puts
+    call prints
 
     li a0, 1
     li a1, 1
@@ -85,7 +85,7 @@ assert:
     la t0, fail
 1:
     mv a0, t0
-    call puts
+    call prints
     stack_free
     ret
 

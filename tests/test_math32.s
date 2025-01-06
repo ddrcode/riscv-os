@@ -3,7 +3,7 @@
 
 .macro printchar, char
     li a0, \char
-    call putc
+    call printc
 .endm
 
 .section .text
@@ -24,7 +24,7 @@ test_bitlen32:
     stack_alloc
 
     la a0, tname_bitlen32
-    call puts
+    call prints
 
     li a0, 129
     call bitlen32
@@ -32,7 +32,7 @@ test_bitlen32:
     li a1, 8
     call assert
 
-    callfn putc, '\n'
+    callfn printc, '\n'
     stack_free
     ret
 
@@ -45,9 +45,9 @@ test_udiv32:
     push a0, 12
 
     la a0, tname_udiv32
-    call puts
-    callfn putc, '\t'
-    callfn putc, '\t'
+    call prints
+    callfn printc, '\t'
+    callfn printc, '\t'
 
     pop a0, 12
     pop a1, 16
@@ -61,7 +61,7 @@ test_udiv32:
     pop a1, 24
     call assert
 
-    call puts
+    call prints
     printchar '\n'
 
     stack_free 32
@@ -82,7 +82,7 @@ assert:
     la t0, fail
 1:
     mv a0, t0
-    call puts
+    call prints
     stack_free
     ret
 
@@ -100,7 +100,7 @@ print_comaprison:
     call itoa
 
     la a0, out_str
-    call puts
+    call prints
 
     printchar '='
 
@@ -110,7 +110,7 @@ print_comaprison:
     call itoa
 
     la a0, out_str
-    call puts
+    call prints
 
     printchar ')'
 

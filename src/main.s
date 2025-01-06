@@ -22,7 +22,8 @@ _start:
 
     call sysinit
     call shell_init
-    call print_screen
+    call shell_command_loop
+    # call print_screen
 
     stack_free
 
