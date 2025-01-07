@@ -1,15 +1,34 @@
+#----------------------------------------
+# Command line parameters
+
+TEST_NAME ?= shell
+OUTPUT_DEV ?= 3
+MACHINE ?= virt
+
+# The "terminal" test requires a specific output type.
+ifeq ($(TEST_NAME), terminal)
+OUTPUT_DEV = 5
+endif
+
+#----------------------------------------
+# Build / compilation / execution flags
+
 TOOL := riscv64-none-elf
 # use im and -mabi=ilp32 if planning to not use reduced base integer extension
 RISC_V_EXTENSIONS := em
 FLAGS := -march=rv32$(RISC_V_EXTENSIONS) -mabi=ilp32e
-AS_FLAGS := -I headers --defsym OUTPUT_DEV=5
-GCC_FLAGS := -T baremetal.ld -nostdlib -static -I headers
+AS_FLAGS := -I headers --defsym OUTPUT_DEV=$(OUTPUT_DEV)
+GCC_FLAGS := -T $(MACHINE).ld -nostdlib -static -I headers
 
 QEMU_EXTENSIONS := e=on,m=on,i=off,h=off,f=off,d=off,a=off,f=off,c=off,zawrs=off,sstc=off,zicntr=off,zihpm=off,zicboz=off,zicbom=off,svadu=off
-QEMU := qemu-system-riscv32 -machine virt -m 4 -smp 1 -cpu rv32,$(QEMU_EXTENSIONS)
-MACHINE = $(QEMU) -nographic -serial mon:stdio -echr 17
+QEMU := qemu-system-riscv32 -machine $(MACHINE) -m 4 -smp 1 -cpu rv32,$(QEMU_EXTENSIONS) -nographic -serial mon:stdio -echr 17
 
-TEST_NAME ?= shell
+ifneq ($(filter debug, $(MAKECMDGOALS)),)
+FLAGS += -g
+endif
+
+#----------------------------------------
+# Project files
 
 SRC := $(wildcard src/*.s)
 # SRC_NO_MAIN := $(filter-out src/main.s, $(SRC))
@@ -33,10 +52,7 @@ TEST_FILES := $(patsubst %.o, %.elf, $(filter test_%.o, $(TEST_ASM_OBJ)))
 TEST_FILES += $(patsubst %.o, %.elf, $(filter test_%.o, $(TEST_C_OBJ)))
 TEST_SUPPORT_OBJ := $(OBJ_DIR)/assert.o $(OBJ_DIR)/helpers.o $(OBJ_DIR)/startup.o
 
-
-ifneq ($(filter debug, $(MAKECMDGOALS)),)
-FLAGS += -g
-endif
+#----------------------------------------
 
 .PHONY: setup compile build compile_test build_tests build_all run test clean gdb debug
 
@@ -53,7 +69,7 @@ $(DRIVERS_OBJ): %.o: src/drivers/%.s
 
 compile: setup $(OBJ) $(DRIVERS_OBJ)
 
-build: compile baremetal.ld
+build: compile $(MACHINE).ld
 	${TOOL}-gcc $(FLAGS) $(GCC_FLAGS) -o build/riscvos.elf $(OBJ_FILES)
 
 $(TEST_ASM_OBJ): %.o: tests/%.s
@@ -73,17 +89,17 @@ build_all: build build_tests
 
 run: build
 	@echo "Ctrl-Q C for QEMU console, then quit to exit"
-	$(MACHINE) -bios build/riscvos.elf
+	$(QEMU) -bios build/riscvos.elf
 	# qemu-system-riscv32 -nographic -serial pty -machine virt -bios build/riscvos
 	# qemu-system-riscv32 -nographic -serial unix:/tmp/serial.socket,server -machine virt -bios build/riscvos
 
 test: build_tests
 	@echo "Ctrl-Q C for QEMU console, then quit to exit"
-	$(MACHINE) -bios build/test_$(TEST_NAME).elf
+	$(QEMU) -bios build/test_$(TEST_NAME).elf
 
 debug: build_tests
 	@echo "Ctrl-Q C for QEMU console, then quit to exit"
-	$(MACHINE) -s -S -bios build/test_$(TEST_NAME).elf
+	$(QEMU) -s -S -bios build/test_$(TEST_NAME).elf
 
 gdb:
 	gdb -ex 'target remote localhost:1234' ./build/test_$(TEST_NAME)
