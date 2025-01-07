@@ -2,7 +2,7 @@
 # Command line parameters
 
 TEST_NAME ?= shell
-OUTPUT_DEV ?= 3
+OUTPUT_DEV ?= 5
 MACHINE ?= virt
 
 # The "terminal" test requires a specific output type.
