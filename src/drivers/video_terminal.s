@@ -22,7 +22,7 @@
 video_init:
     stack_alloc
     call video_cls
-    # call _fill_canvas
+    call _fill_canvas
 
     stack_free
     ret
@@ -30,25 +30,57 @@ video_init:
 video_cls:
     stack_alloc
     print_code SC_CLS
-    # print_code SC_HOME
+    print_code SC_HOME
     stack_free
     ret
 
 
 _fill_canvas:
     stack_alloc 128
-    push s1, 56
+    push s1, 120
 
-    li s1, SCREEN_HEIGHT
+    li s1, SCREEN_OVER_SERIAL_HBORDER
+    slli s1, s1, 1
+    addi s1, s1, SCREEN_WIDTH
+    addi s1, s1, 16
+
+    mv a0, sp
+    mv a1, s1
+    li a2, ' '
+    call memfill
+
+    mv a0, sp
+    la a1, SC_REVERSED_START
+    call strcpy
+    li t0, ' '
+    sb t0, 8(sp)
+
+    mv a0, sp
+    add a0, a0, s1
+    addi a0, a0, -8
+    la a1, SC_REVERSED_END
+    call strcpy
+
+    add t0, s1, sp
+    sb zero, (t0)
+
+    # addi a0, zero, 1
+    # mv a1, a0
+    # mv a2, zero
+    # call _print_char
+
+    li s1, SCREEN_OVER_SERIAL_VBORDER
+    slli s1, s1, 1
+    addi s1, s1, SCREEN_HEIGHT
 1:
+    mv a0, sp
+    call uart_puts
     li a0, '\n'
     call uart_putc
-    la a0, SC_REVERSED
-    call uart_puts
     dec s1
     bnez s1, 1b
 
-    pop s1, 56
+    pop s1, 120
     stack_free 128
     ret
 
@@ -118,6 +150,13 @@ video_repaint:
 # TODO Fix that uglyness :-)
 _print_char:
     stack_alloc 64
+
+    li t0, SCREEN_OVER_SERIAL_HBORDER
+    add a0, a0, t0
+
+    li t0, SCREEN_OVER_SERIAL_VBORDER
+    add a1, a1, t0
+
     push a0, 56
     push a1, 52
     push a2, 48
@@ -195,9 +234,9 @@ _print_char:
 
 SC_CLS:      .asciz  "\033[2J"
 SC_HOME:     .asciz  "\033[H"
-SC_REVERSED: .asciz  " "
-#SC_REVERSED: .asciz  "\x1b[93;41m                 w                                                  \x1b[0m"
-SC_NORMAL:   .asciz  "\x1b[0m"
+# see https://en.wikipedia.org/wiki/ANSI_escape_code#In_shell_scripting
+SC_REVERSED_START: .asciz  "\x1b[0;100mw"
+SC_REVERSED_END: .asciz  "\x1b[0m"
 SC_CURSOR_AND_CHAR:   .asciz  "\33[000;000H\0"
 
 #---------------------------------------

@@ -26,3 +26,10 @@
 .ifndef OUTPUT_DEV
     .equ OUTPUT_DEV, 1
 .endif
+
+
+.equ SCREEN_OVER_SERIAL_HBORDER, 4
+.equ SCREEN_OVER_SERIAL_VBORDER, 1
+
+.equ BORDER_COLOR, 1
+
