@@ -17,6 +17,7 @@
 .global show_error
 .global show_date_time
 
+.type shell_init, @function
 shell_init:
     stack_alloc
     call clear_screen
@@ -28,6 +29,7 @@ shell_init:
     stack_free
     ret
 
+.type shell_command_loop, @function
 shell_command_loop:
     stack_alloc 64
 1:

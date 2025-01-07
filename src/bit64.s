@@ -57,7 +57,7 @@ lshift64:
 #     a2 - bit no
 .type getbit64, @function
 getbit64:
-    stack_alloc 4
+    stack_alloc
     slti t0, a2, 32
     bnez t0, 1f
         mv a0, a1
@@ -67,7 +67,7 @@ getbit64:
     mv a1, a2
 2:
     call getbit
-    stack_free 4
+    stack_free
     ret
 
 # Arguments:

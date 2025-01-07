@@ -4,5 +4,6 @@
 #include "types.h"
 
 int video_init(void);
+int video_repaint(void);
 
 #endif

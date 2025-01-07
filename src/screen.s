@@ -11,9 +11,12 @@
 .global scr_print
 .global scr_println
 .global show_cursor
+.global get_cursor_pos
 .global set_cursor_pos
 .global print_screen
 .global scr_backspace
+
+.global screen
 
 .section .text
 
@@ -249,6 +252,7 @@ scr_backspace:
 # TODO use uart_putc function rather than direct access to NS16550A
 .type print_screen, @function
 print_screen:
+.if OUTPUT_DEV & 2 && !(OUTPUT_DEV & 0b100)
     stack_alloc 4
     call _print_frame
     la a0, screen                      # set a0 to beginning of screen region
@@ -300,6 +304,7 @@ _print_frame:
 2:
     li t0, '\n'
     sb t0, (t2)
+.endif
     ret
 
 #--------------------------------------
@@ -307,5 +312,5 @@ _print_frame:
 .section .data
 
 cursor: .half 0
-screen: .fill SCREEN_WIDTH*SCREEN_HEIGHT, 1, 32
+screen: .fill SCREEN_WIDTH*SCREEN_HEIGHT, 1, 1
 

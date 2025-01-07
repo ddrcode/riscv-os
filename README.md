@@ -1,5 +1,5 @@
 # riscv-os
-An attempt to create a tiny OS in RISC-V implemented in 32-bit assembly
+An attempt to create a tiny OS for 32-bit RISC-V implemented entirely in assembly
 (the C files you find in the repo are tests only).
 
 Currently, the OS runs on [virt](https://www.qemu.org/docs/master/system/riscv/virt.html) machine under QEMU.
