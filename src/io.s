@@ -30,7 +30,7 @@ printc:
 .endif
 
 .if OUTPUT_DEV & 0b100
-    # call video_repaint
+    call video_repaint
 .endif
 
     stack_free
@@ -75,7 +75,7 @@ println:
 .endif
 
 .if OUTPUT_DEV & 0b100
-    # call video_repaint
+    call video_repaint
 .endif
     stack_free
     ret

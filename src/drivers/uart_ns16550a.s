@@ -54,7 +54,7 @@ uart_putc:
 
 1:  lbu t1, LINE_STATUS_REG(t0)        # Loop until the line is idle and THR empty
         andi t1, t1, UART_LSR_RI
-        beqz t0, 1b
+        beqz t1, 1b
 
     andi t1, a0, 0xff                  # Ensure the parameter is a byte
     sb t1, (t0)                        # Send byte to UART
@@ -64,19 +64,23 @@ uart_putc:
 # a0 - String address
 .type puts, @function
 uart_puts:
-    beqz a0, 2f
-    li a1, UART_BASE
+    stack_alloc
+    push s0, 8
+    beqz a0, 2f                        # Null address - error
+    mv s0, a0
 1:                                     # While string byte is not null
-    lbu t0, (a0)                       # Get byte at current string pos
-    beq zero, t0, 3f                   # Is null?
-    sb t0, (a1)                        # No, write byte to port
-    inc a0                             # Inc string pos
-    j 1b                               # Loop
+    lbu a0, (s0)                       # Get byte at current string pos
+    beqz a0, 3f                        # Is null?
+        call uart_putc                 # No, write byte to port
+        inc s0                         # Inc string pos
+        j 1b                           # Loop
 2:                                     # String byte is null
     li a0, 2                           # Set error code
     j 4f
 3:  setz a0                            # Set exit code
-4:  ret
+4:  pop s0, 8
+    stack_free
+    ret
 
 
 .type uart_get, @function

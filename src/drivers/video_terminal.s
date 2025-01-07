@@ -180,6 +180,7 @@ _print_char:
 
     pop t0, 48
     sb t0, 10(sp)
+    sb zero, 11(sp)
 
     mv a0, sp
     call uart_puts
@@ -197,8 +198,7 @@ SC_HOME:     .asciz  "\033[H"
 SC_REVERSED: .asciz  " "
 #SC_REVERSED: .asciz  "\x1b[93;41m                 w                                                  \x1b[0m"
 SC_NORMAL:   .asciz  "\x1b[0m"
-SC_CURSOR_AND_CHAR:   .asciz  "\33[000;000H "
-SC_CURSOR:   .asciz  "\33[000;000H"
+SC_CURSOR_AND_CHAR:   .asciz  "\33[000;000H\0"
 
 #---------------------------------------
 
