@@ -20,7 +20,14 @@
 .equ FIFO_CONTROL_REG,          0x2
 .equ IRQ_ENABLE_REG,            0x1
 
-.equ LINE_STATUS_DATA_READY,    0x1
+.equ UART_LSR_DA,               0x01   # Data Available
+.equ UART_LSR_OE,               0x02   # Overrun Error
+.equ UART_LSR_PE,               0x04   # Parity Error
+.equ UART_LSR_FE,               0x08   # Framing Error
+.equ UART_LSR_BI,               0x10   # Break indicator
+.equ UART_LSR_RE,               0x20   # THR is empty
+.equ UART_LSR_RI,               0x40   # THR is empty and line is idle
+.equ UART_LSR_EF,               0x80   # Erroneous data in FIFO
 
 .section .text
 
@@ -45,7 +52,7 @@ uart_puts:
     beqz a0, 2f
     li a1, UART_BASE
 1:                                     # While string byte is not null
-    lb t0, (a0)                        # Get byte at current string pos
+    lbu t0, (a0)                        # Get byte at current string pos
     beq zero, t0, 3f                   # Is null?
     sb t0, (a1)                        # No, write byte to port
     inc a0                             # Inc string pos
@@ -62,7 +69,13 @@ uart_puts:
 .type putc, @function
 uart_putc:
     li t0, UART_BASE
-    sb a0, (t0)
+
+1:  lbu t1, LINE_STATUS_REG(t0)        # Loop until the line is idle and THR empty
+        andi t1, t1, UART_LSR_RI
+        beqz t0, 1b
+
+    andi t1, a0, 0xff                  # Ensure the parameter is a byte
+    sb t1, (t0)                        # Send byte to UART
     ret
 
 
@@ -71,7 +84,7 @@ uart_getc:
     li t0, UART_BASE
 
     lbu t1, LINE_STATUS_REG(t0)
-    andi t1, t1, LINE_STATUS_DATA_READY
+    andi t1, t1, UART_LSR_DA
 
     bnez t1, 1f                        # jump if UART is ready to read from
         mv a0, zero                    # otherwise, return 0
