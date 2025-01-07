@@ -1,5 +1,5 @@
 # riscv-os
-An attempt to create a tiny OS in RISC-V implemented in 32-bit assembly
+An attempt to create a tiny OS for 32-bit RISC-V implemented entirely in assembly
 (the C files you find in the repo are tests only).
 
 Currently, the OS runs on [virt](https://www.qemu.org/docs/master/system/riscv/virt.html) machine under QEMU.
@@ -9,7 +9,7 @@ extensions.
 
 ## Features
 
-<img src="./assets/riscvos-screenshot.png" width="300"/>
+<img src="./screenshots/riscvos-screenshot.png" width="300"/>
 
 The RISC-V OS is in very early stage of development, and currently conceptually is closer to C64's
 [Kernal](https://en.wikipedia.org/wiki/KERNAL) rather than
@@ -19,16 +19,15 @@ hardware and memory.
 ### Implemented features
 
 - framebuffer (40x25 characters text screen, configurable),
-- trivial shell with four (!!!) commands: `cls`, `date`, `print`, `prompt`
+- trivial shell with five (!!!) commands: `cls`, `date`, `print`, `prompt`, `fbdump`
 - drivers for UART and RTC
 - keyboard input (UART)
 - various math and string functions
 
 ### Planned features
 
-- protected vs user modes
+- machine and user modes
 - system functions accessible via `ecall`
-- privilege levels
 - interrupts
 
 ## Building and dependencies
@@ -43,6 +42,20 @@ Most important Makefile options:
 - `make debug TEST_NAME=shell` - loads test to QEMU and waits for connection from GDB
 - `make gdb TEST_NAME=shell` - connects GDB with QEMU
 Other available tests (among others): `math32`, `math64`, `string`, `rtc`
+
+### Output options
+
+The system can be compiled with extra `OUTPUT_DEV` option, that defines how it
+produces the output, i.e:
+
+```make run OUTPUT_DEV=5```
+
+Where the options are:
+- `1` - outputs to framebuffer only (can be inspected with GDB)
+- `2` - outputs to serial console
+- `3` - both: framebuffer and the console. In this mode the framebuffer content can be
+        dumped to the serial output with `fbdump` command
+- `5` - it emulates text screen of the system with terminal's action codes
 
 ## Credits
 The initial setup and linker file were inspired by

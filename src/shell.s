@@ -17,6 +17,7 @@
 .global show_error
 .global show_date_time
 
+.type shell_init, @function
 shell_init:
     stack_alloc
     call clear_screen
@@ -28,6 +29,7 @@ shell_init:
     stack_free
     ret
 
+.type shell_command_loop, @function
 shell_command_loop:
     stack_alloc 64
 1:
@@ -171,7 +173,7 @@ show_date_time:
 set_prompt:
     beqz a0, 1f
     la t0, prompt
-    lb t1, (a0)
+    lbu t1, (a0)
     sb t1, (t0)
     setz a5
     j 2f

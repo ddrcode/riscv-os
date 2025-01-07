@@ -20,15 +20,20 @@ printc:
 
 .if OUTPUT_DEV & 1
     mv a0, sp
-    lb t0, (a0)
+    lbu t0, (a0)
     li t1, '\n'
     bne t0, t1, 1f
         call scr_println
         j 2f
 1:  call scr_print
+2:
 .endif
 
-2:  stack_free
+.if OUTPUT_DEV & 0b100
+    call video_repaint
+.endif
+
+    stack_free
     ret
 
 
@@ -46,6 +51,9 @@ prints:
     call scr_print
 .endif
 
+.if OUTPUT_DEV & 0b100
+    call video_repaint
+.endif
     stack_free
     ret
 
@@ -66,6 +74,9 @@ println:
     call scr_println
 .endif
 
+.if OUTPUT_DEV & 0b100
+    call video_repaint
+.endif
     stack_free
     ret
 
@@ -140,6 +151,9 @@ _printc_bcksp:
     call scr_backspace
 .endif
 
+.if OUTPUT_DEV & 0b100
+    call video_repaint
+.endif
     stack_free 4
     ret
 

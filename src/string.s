@@ -12,6 +12,7 @@
 .global utoa
 .global strlen
 .global strcmp
+.global strcpy
 .global str_find_char
 
 .section .text
@@ -160,7 +161,7 @@ atoi:
 
 1:
     add     t1, a0, t0                 # compute digit address
-    lb      a4, (t1)                   # load byte (character)
+    lbu     a4, (t1)                   # load byte (character)
     sub     a4, a4, a5                 # a4 -= '0'
     mul     a4, a4, t2                 # a4 *= t2 (position multiplier)
     add     a3, a3, a4                 # a3 += a4
@@ -189,7 +190,7 @@ atoi:
 strlen:
     setz t0
 1:
-    lb t1, (a0)
+    lbu t1, (a0)
     beqz t1, 2f
         inc a0
         inc t0
@@ -207,8 +208,8 @@ strlen:
 strcmp:
     setz t2                            # default result (strings not equal)
 1:                                     # do
-        lb t0, (a0)
-        lb t1, (a1)
+        lbu t0, (a0)
+        lbu t1, (a1)
         bne t0, t1, 3f                 # break when characters don't match
         beqz t0, 2f                    # break when end of the string
         inc a0
@@ -232,7 +233,7 @@ str_find_char:
     li t0, -1                          # set default result
     mv t1, a0
 1:
-    lb t2, (t1)
+    lbu t2, (t1)
     beqz t2, 3f
     beq a1, t2, 2f
     inc t1
@@ -243,3 +244,17 @@ str_find_char:
     mv a0, t0
     ret
 
+
+.type strcpy, @function
+strcpy:
+    stack_alloc
+    push a0, 8
+    push a1, 4
+    mv a0, a1
+    call strlen
+    mv a2, a0
+    pop a0, 8
+    pop a1, 4
+    call memcpy
+    stack_free
+    ret

@@ -11,9 +11,12 @@
 .global scr_print
 .global scr_println
 .global show_cursor
+.global get_cursor_pos
 .global set_cursor_pos
 .global print_screen
 .global scr_backspace
+
+.global screen
 
 .section .text
 
@@ -72,7 +75,7 @@ scr_print:
 1:
     pop a0, 8                       # retrieve pointer to string
 2:
-    lb t0, (a0)                     # Load a single byte of a string
+    lbu t0, (a0)                    # Load a single byte of a string
     beqz t0, 3f                     # Exit loop if \0
         sb t0, (a1)                     # Write character to screen memory
         inc a0                          # Increment string pointer
@@ -221,7 +224,7 @@ scroll:
 
     # adjust cursor position (one line up)
     la t0, cursor
-    lb t1, 1(t0)
+    lbu t1, 1(t0)
     beqz t1, 1f
     dec t1
     sb t1, 1(t0)
@@ -249,6 +252,7 @@ scr_backspace:
 # TODO use uart_putc function rather than direct access to NS16550A
 .type print_screen, @function
 print_screen:
+.if OUTPUT_DEV & 2 && !(OUTPUT_DEV & 0b100)
     stack_alloc 4
     call _print_frame
     la a0, screen                      # set a0 to beginning of screen region
@@ -259,7 +263,7 @@ print_screen:
     li t0, '|'
     sb t0, (a1)
 1:
-    lb t0, (a0)                        # load a single byte to t0
+    lbu t0, (a0)                        # load a single byte to t0
     bge t0, a4, 2f                     # if it's printable character jump to 2
     mv t0, a4                          # otherwise replace character with space
 2:
@@ -300,6 +304,7 @@ _print_frame:
 2:
     li t0, '\n'
     sb t0, (t2)
+.endif
     ret
 
 #--------------------------------------
@@ -307,5 +312,5 @@ _print_frame:
 .section .data
 
 cursor: .half 0
-screen: .fill SCREEN_WIDTH*SCREEN_HEIGHT, 1, 32
+screen: .space SCREEN_WIDTH*SCREEN_HEIGHT
 

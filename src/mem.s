@@ -37,7 +37,7 @@ memcpy:
     j 1b
 2:                                  # copy bytes (for len < 4)
     beqz a2, 3f                     # if zero - finish
-    lb t1, (a1)
+    lbu t1, (a1)
     sb t1, (a0)
     inc a0
     inc a1
@@ -79,8 +79,8 @@ mem_reverse:
     dec t1                              # end=start+len-1
 1:
     bge t0, t1, 2f                      # Break if start>=end
-    lb t2, (t0)                         # Swap bytes...
-    lb a4, (t1)
+    lbu t2, (t0)                         # Swap bytes...
+    lbu a4, (t1)
     sb a4, (t0)
     sb t2, (t1)
     dec t1                              # decrement end pointer

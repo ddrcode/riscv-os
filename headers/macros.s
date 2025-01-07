@@ -21,7 +21,7 @@
 .endm
 
 .macro popb, reg, pos
-    lb \reg, \pos(sp)
+    lbu \reg, \pos(sp)
 .endm
 
 .macro inc, reg
