@@ -173,7 +173,7 @@ show_date_time:
 set_prompt:
     beqz a0, 1f
     la t0, prompt
-    lb t1, (a0)
+    lbu t1, (a0)
     sb t1, (t0)
     setz a5
     j 2f

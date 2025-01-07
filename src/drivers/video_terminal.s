@@ -83,8 +83,8 @@ video_repaint:
 3:
     dec a0
     dec a1
-    lb t0, (a0)
-    lb t1, (a1)
+    lbu t0, (a0)
+    lbu t1, (a1)
     beq t0, t1, 2b
 
     sb t0, (a1)

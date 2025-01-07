@@ -20,7 +20,7 @@ printc:
 
 .if OUTPUT_DEV & 1
     mv a0, sp
-    lb t0, (a0)
+    lbu t0, (a0)
     li t1, '\n'
     bne t0, t1, 1f
         call scr_println
@@ -52,7 +52,7 @@ prints:
 .endif
 
 .if OUTPUT_DEV & 0b100
-    call video_repaint
+    # call video_repaint
 .endif
     stack_free
     ret
