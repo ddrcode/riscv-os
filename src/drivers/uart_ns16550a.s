@@ -46,24 +46,6 @@ uart_init:
     ret
 
 
-# a0 - String address
-.type puts, @function
-uart_puts:
-    beqz a0, 2f
-    li a1, UART_BASE
-1:                                     # While string byte is not null
-    lbu t0, (a0)                        # Get byte at current string pos
-    beq zero, t0, 3f                   # Is null?
-    sb t0, (a1)                        # No, write byte to port
-    inc a0                             # Inc string pos
-    j 1b                               # Loop
-2:                                     # String byte is null
-    li a0, 2                           # Set error code
-    j 4f
-3:  setz a0                            # Set exit code
-4:  ret
-
-
 # prints a single character to the screen
 # a0 - char code
 .type putc, @function
@@ -77,6 +59,24 @@ uart_putc:
     andi t1, a0, 0xff                  # Ensure the parameter is a byte
     sb t1, (t0)                        # Send byte to UART
     ret
+
+
+# a0 - String address
+.type puts, @function
+uart_puts:
+    beqz a0, 2f
+    li a1, UART_BASE
+1:                                     # While string byte is not null
+    lbu t0, (a0)                       # Get byte at current string pos
+    beq zero, t0, 3f                   # Is null?
+    sb t0, (a1)                        # No, write byte to port
+    inc a0                             # Inc string pos
+    j 1b                               # Loop
+2:                                     # String byte is null
+    li a0, 2                           # Set error code
+    j 4f
+3:  setz a0                            # Set exit code
+4:  ret
 
 
 .type uart_get, @function
