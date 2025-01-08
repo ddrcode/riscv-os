@@ -8,6 +8,8 @@ MACHINE ?= virt
 # The "terminal" test requires a specific output type.
 ifeq ($(TEST_NAME), terminal)
 OUTPUT_DEV = 5
+else
+OUTPUT_DEV = 3
 endif
 
 #----------------------------------------
@@ -15,7 +17,7 @@ endif
 
 TOOL := riscv64-none-elf
 # use im and -mabi=ilp32 if planning to not use reduced base integer extension
-RISC_V_EXTENSIONS := em
+RISC_V_EXTENSIONS := emzicsr
 FLAGS := -march=rv32$(RISC_V_EXTENSIONS) -mabi=ilp32e
 AS_FLAGS := -I headers --defsym OUTPUT_DEV=$(OUTPUT_DEV)
 GCC_FLAGS := -T $(MACHINE).ld -nostdlib -static -I headers
@@ -24,7 +26,7 @@ QEMU_EXTENSIONS := e=on,m=on,i=off,h=off,f=off,d=off,a=off,f=off,c=off,zawrs=off
 QEMU := qemu-system-riscv32 -machine $(MACHINE) -m 4 -smp 1 -cpu rv32,$(QEMU_EXTENSIONS) -nographic -serial mon:stdio -echr 17
 
 ifneq ($(filter debug, $(MAKECMDGOALS)),)
-FLAGS += -g
+FLAGS += -g -o0
 endif
 
 #----------------------------------------
@@ -100,9 +102,11 @@ test: build_tests
 debug: build_tests
 	@echo "Ctrl-Q C for QEMU console, then quit to exit"
 	$(QEMU) -s -S -bios build/test_$(TEST_NAME).elf
+	# $(QEMU) -s -S -bios build/riscvos.elf
 
 gdb:
-	gdb -ex 'target remote localhost:1234' ./build/test_$(TEST_NAME)
+	gdb -ex 'target remote localhost:1234' ./build/test_$(TEST_NAME).elf
+	# gdb -ex 'target remote localhost:1234' ./build/riscvos.elf
 
 clean:
 	rm -rf build/*

@@ -13,17 +13,24 @@
 .global _start
 
 _start:
-    la gp, __global_pointer$        # initialize global pointer, see:
-                                    # https://www.five-embeddev.com//quickref/global_pointer.html
-    la sp, __stack_top              # initialize stack pointer
+    csrr t0, mhartid
+    bnez t0, loop                      # initialize only if in hart 0
+
+    la gp, __global_pointer$           # initialize global pointer, see:
+                                       # https://www.five-embeddev.com//quickref/global_pointer.html
+    la sp, __stack_top                 # initialize stack pointer
     mv s0, sp
 
     stack_alloc
 
     call sysinit
+    call irq_init
     call shell_init
+
+    la a5, 1
+    ecall
+
     call shell_command_loop
-    # call print_screen
 
     stack_free
 
