@@ -22,13 +22,13 @@ hardware and memory.
 - trivial shell with five (!!!) commands: `cls`, `date`, `print`, `prompt`, `fbdump`
 - drivers for UART and RTC
 - keyboard input (UART)
+- system functions callable via `ecall`
+- interrupt/exception handlers (currently all in machine mode)
 - various math and string functions
 
 ### Planned features
 
 - machine and user modes
-- system functions accessible via `ecall`
-- interrupts
 
 ## Building and dependencies
 

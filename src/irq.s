@@ -72,11 +72,9 @@ irq_handler:
     stack_alloc 64
     push_all 64                        # preserve all registers on the stack
 
-    csrr t0, mstatus                   # disable interrupts
-    li t1, 0x8
-    not t1, t1
-    and t0, t0, t1
-    csrw mstatus, t0
+    csrrci zero, mstatus, 0x8             # disable interrupts
+    li t0, 0b10000001000
+    csrrc s0, mie, t0
 
     csrr s1, mcause                    # read the interrupt cause
 
@@ -113,10 +111,9 @@ irq_handler:
     beqz t1, 3f                        # exit if handler addr = 0
     jalr t1                            # execute function
 
-3:  # wrap up
-    csrr t0, mstatus                   # enable interrupts
-    ori t0, t0, 0x8
-    csrw mstatus, t0
+3:
+    csrrs zero, mie, s0
+    csrrsi zero, mstatus, 0x8             # enable interrupts
 
     pop_all 64
     stack_free 64
@@ -127,20 +124,68 @@ irq_handler:
 
 .type handle_exception, @function
 handle_exception:
-    stack_alloc
+    stack_alloc 32
     la a0, exception_message
     call prints
-    call panic
-    stack_free
+
+    csrr a0, mcause
+    mv a1, sp
+    li a2, 10
+    call utoa
+    mv a0, sp
+    call prints
+
+    li a0, ' '
+    call printc
+
+    # csrr a0, mepc     # Faulting address
+    csrr a0, mtval    # Additional fault information
+    mv a1, sp
+    li a2, 16
+    call utoa
+    mv a0, sp
+    call println
+
+    # call panic
+    stack_free 32
     ret
 
 
 .type handle_irq, @function
 handle_irq:
-    stack_alloc
+    stack_alloc 32
     la a0, irq_message
     call prints
-    stack_free
+
+    csrr a0, mcause
+    li t0, MCAUSE_CODE_MASK
+    and a0, a0, t0
+    mv a1, sp
+    li a2, 10
+    call utoa
+    mv a0, sp
+    call println
+    stack_free 32
+    ret
+
+
+.type handle_brk, @function
+handle_brk:
+.if debug==1
+    stack_alloc 32
+    mv t0, a0
+    mv t1, a1
+    mv t2, a2
+
+    mv a1, sp
+    li a2, 16
+    call utoa
+
+    mv a0, sp
+    call prints
+
+    stack_free 32
+.endif
     ret
 
 #----------------------------------------
@@ -163,7 +208,7 @@ exceptions_vector:
     .word    handle_exception          #  0: Instruction address misaligned
     .word    handle_exception          #  1: Instruction access fault
     .word    handle_exception          #  2: Illegal instruction
-    .word    0                         #  3: Breakpoint
+    .word    handle_brk                #  3: Breakpoint
     .word    handle_exception          #  4: Load address misaligned
     .word    handle_exception          #  5: Load access fault
     .word    handle_exception          #  6: Store/AMO address misaligned
@@ -180,15 +225,15 @@ exceptions_vector:
 
 irq_vector:
     .word    0                         #  0: Reserved
-    .word    handle_irq                #  1: Supervisor software interrupt
+    .word    0                         #  1: Supervisor software interrupt
     .word    0                         #  2: Reserved
     .word    handle_irq                #  3: Machine software interrupt
     .word    0                         #  4: Reserved
-    .word    handle_irq                #  5: Supervisor timer interrupt
+    .word    0                         #  5: Supervisor timer interrupt
     .word    0                         #  6: Rserved
-    .word    handle_irq                #  7: Machine timer interrupt
+    .word    0                         #  7: Machine timer interrupt
     .word    0                         #  8: Reserved
-    .word    handle_irq                # 19: Supervisor external interrupt
+    .word    0                         # 19: Supervisor external interrupt
     .word    0                         # 10: Reserved
     .word    handle_irq                # 11: Machine external interrupt
     .word    0                         # 12: Reserved
@@ -202,5 +247,5 @@ irq_vector:
 .section .rodata
 .align 4
 
-irq_message: .string "IRQ detected"
-exception_message: .string "A system level exception occured"
+irq_message: .string "IRQ detected: "
+exception_message: .string "A system level exception occured. Error code: "

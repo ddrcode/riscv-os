@@ -156,6 +156,7 @@ show_error:
     stack_free 4
     ret
 
+.align 4
 show_date_time:
     stack_alloc 32
 
