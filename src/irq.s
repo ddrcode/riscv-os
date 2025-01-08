@@ -1,4 +1,4 @@
-.include "macros.s"
+    .include "macros.s"
 
 .macro push_all, stack_size
     push a0, \stack_size - 8
