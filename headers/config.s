@@ -1,3 +1,6 @@
+# Generic
+.equ debug, 1
+
 # Memory
 .equ MEM_MIN_ADDR, 0x80000000
 .equ MEM_MAX_ADDR, 0x803fffff

@@ -61,8 +61,10 @@ exec_cmd:
 1:
     call parse_cmd
 
-    pop a1, 4                          # restore args addr from the stack
-    call syscall
+    mv a5, a0                          # set the function id
+    pop a0, 4                          # restore args addr from the stack
+    ecall                              # call the system function
+    # call syscall
 
     la a0, prompt
     call prints
@@ -154,6 +156,7 @@ show_error:
     stack_free 4
     ret
 
+.align 4
 show_date_time:
     stack_alloc 32
 
