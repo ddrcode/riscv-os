@@ -26,7 +26,6 @@ _start:
     call sysinit
     call irq_init
     call shell_init
-
     call shell_command_loop
 
     stack_free
