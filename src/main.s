@@ -27,9 +27,6 @@ _start:
     call irq_init
     call shell_init
 
-    la a5, 1
-    ecall
-
     call shell_command_loop
 
     stack_free
