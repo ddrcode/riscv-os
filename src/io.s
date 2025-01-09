@@ -29,10 +29,6 @@ printc:
 2:
 .endif
 
-.if OUTPUT_DEV & 0b100
-    call video_repaint
-.endif
-
     stack_free
     ret
 
@@ -51,9 +47,6 @@ prints:
     call scr_print
 .endif
 
-.if OUTPUT_DEV & 0b100
-    call video_repaint
-.endif
     stack_free
     ret
 
@@ -74,9 +67,6 @@ println:
     call scr_println
 .endif
 
-.if OUTPUT_DEV & 0b100
-    call video_repaint
-.endif
     stack_free
     ret
 
@@ -152,9 +142,6 @@ _printc_bcksp:
     call scr_backspace
 .endif
 
-.if OUTPUT_DEV & 0b100
-    call video_repaint
-.endif
     stack_free 4
     ret
 
