@@ -46,6 +46,8 @@
 .type irq_init, @function
 .align 4
 irq_init:
+    stack_alloc
+
     la t0, isr_stack_end               # define interrupt service routine (ISR) stack
     csrw mscratch, t0
 
@@ -54,6 +56,8 @@ irq_init:
 
     la t0, irq_handler                 # configure IRQ handler function
     csrw mtvec, t0
+
+    call init_timer                    # enable system timer
 
     csrr t0, mie                       # enable hardware interrupts
     li t1, 0x800                       # by setting bit 11
@@ -64,6 +68,7 @@ irq_init:
     ori t0, t0, 0x8                    # by setting the MIE field (bit 3)
     csrw mstatus, t0
 
+    stack_free
     ret
 
 
@@ -120,13 +125,69 @@ irq_handler:
 
 3:
     csrrs zero, mie, s0
-    csrrsi zero, mstatus, 0x8             # enable interrupts
+    csrrsi zero, mstatus, 0x8          # enable interrupts
 
     pop_all 64
     stack_free 64
     csrrw sp, mscratch, sp             # exchange sp with mscratch
 
     mret                               # return from m-level handler
+
+
+# Sets mtimecmp registry to define the time of the next timer IRQ
+# it reads the value of mtime (current number of cycles) and increases it
+# by the value provided in a0 (32-bit, lower half of a 64-bit number),
+# then sets the mtimecmp
+# For reference check
+# https://five-embeddev.com/riscv-priv-isa-manual/latest-adoc/machine.html#_machine_timer_registers_mtime_and_mtimecmp
+# a0 - number of cycles until the next IRQ
+set_mtimecmp:
+    stack_alloc
+    mv a2, a0
+
+    li t0, MTIME
+    lw a0, (t0)
+    lw a1, 4(t0)
+    mv a3, zero
+    call uadd64
+
+    li t0, MTIMECMP
+    li t1, ~0                          # As the 64-bit addition is not atomic, it must be
+    sw t1, (t0)                        # done in a fasion that it's never smaller than the
+    sw a1, 4(t0)                       # previous value of mtime. Hence the lower half is first
+    sw a0, (t0)                        # set with max value for uint32
+
+    stack_free
+    ret
+
+
+init_timer:
+    stack_alloc
+    li a0, SYSTEM_TIMER_INTERVAL
+    call set_mtimecmp
+
+    csrr t0, mie                       # MTIE is bit 7 in mie
+    li t1, 0x80                        # Set MTIE flag (Machine Time Interrupt Enable)
+    or t0, t0, t1
+    csrw mie, t0
+
+    stack_free
+    ret
+
+
+handle_timer:
+    stack_alloc
+    li a0, SYSTEM_TIMER_INTERVAL
+    call set_mtimecmp                  # set the next tick
+
+.if OUTPUT_DEV & 0b100
+    call video_repaint                 # Refresh the screen
+.endif
+
+    # call check_stack                 # check wether the stack is healthy
+
+    stack_free
+    ret
 
 
 .type handle_exception, @function
@@ -262,7 +323,7 @@ irq_vector:
     .word    0                         #  4: Reserved
     .word    0                         #  5: Supervisor timer interrupt
     .word    0                         #  6: Rserved
-    .word    0                         #  7: Machine timer interrupt
+    .word    handle_timer              #  7: Machine timer interrupt
     .word    0                         #  8: Reserved
     .word    0                         # 19: Supervisor external interrupt
     .word    0                         # 10: Reserved

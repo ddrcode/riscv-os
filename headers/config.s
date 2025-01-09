@@ -4,7 +4,7 @@
 # Memory
 .equ MEM_MIN_ADDR, 0x80000000
 .equ MEM_MAX_ADDR, 0x803fffff
-.equ STACK_SIZE, 4096
+.equ STACK_SIZE, 163840
 
 # Screen
 .equ SCREEN_WIDTH, 40
@@ -14,6 +14,8 @@
 .equ RTC_BASE, 0x101000
 .equ UART_BASE, 0x10000000
 .equ PLIC_BASE, 0xc000000
+.equ MTIME, 0x0200BFF8
+.equ MTIMECMP, 0x02004000
 
 
 # Output
@@ -38,3 +40,7 @@
 
 .equ BORDER_COLOR, 1
 
+
+# System
+
+.equ SYSTEM_TIMER_INTERVAL, 1666666
