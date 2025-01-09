@@ -46,7 +46,7 @@ OBJ_DIR := build/obj
 OBJ := $(patsubst %.s, %.o, $(notdir $(SRC)))
 OBJ_FILES := $(addprefix $(OBJ_DIR)/, $(OBJ))
 
-DRIVERS_SRC := $(wildcard src/drivers/*.s)
+DRIVERS_SRC := $(DRIVERS)
 DRIVERS_OBJ := $(patsubst %.s, %.o, $(notdir $(DRIVERS_SRC)))
 OBJ_FILES += $(addprefix $(OBJ_DIR)/, $(DRIVERS_OBJ))
 
