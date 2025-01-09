@@ -101,6 +101,7 @@ read_line:
     push a0, 4
     mv s1, a0                          # s1 - pointer to the end of the string
 1:
+        wfi                            # wait for IRQ
         call getc
         beqz a0, 1b                    # continue if no key identified
 

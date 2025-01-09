@@ -46,3 +46,19 @@
     call \name
 .endm
 
+
+.macro fn, name
+    .type \name, @function
+    .align 2
+    \name:
+    .cfi_startproc
+.endm
+
+.macro endfn
+    .cfi_endproc
+.endm
+
+.macro global_fn, name
+    .global \name
+    fn \name
+.endm

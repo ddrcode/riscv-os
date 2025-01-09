@@ -100,34 +100,49 @@ uart_puts:
     ret
 
 
+# TODO - read directly from UART if irq not enabled
 .type uart_get, @function
 uart_getc:
-    li t0, UART_BASE
-
-    lbu t1, LSR(t0)
-    andi t1, t1, UART_LSR_DA
-
-    bnez t1, 1f                        # jump if UART is ready to read from
-        mv a0, zero                    # otherwise, return 0
-        j 2f
-1:
-    lbu a0, (t0)                       # load character at UART address
+# Direct version - check the UART for char
+#     li t0, UART_BASE
+#
+#     lbu t1, LSR(t0)
+#     andi t1, t1, UART_LSR_DA
+#
+#     bnez t1, 1f                      # jump if UART is ready to read from
+#         mv a0, zero                  # otherwise, return 0
+#         j 2f
+# 1:
+#     lbu a0, (t0)                     # load character at UART address
+# IRQ - based version
+    la t0, uart_buffer
+    lbu a0, (t0)
+    sb zero, (t0)
 2:  ret
 
 
 .type uart_handle_irq, @function
 uart_handle_irq:
     stack_alloc
-# Read UART IIR to check interrupt type
-    li t0, UART_BASE
-    lbu t1, IIR(t0)        # Read IIR (offset 0x02)
-    andi t1, t1, 0x0f    # Mask interrupt ID
 
-    beqz t1, 1f    # 0x4 = Received Data Available
-    lbu a0, 0(t0)  # Read received byte to clear the interrupt
-    # call uart_putc
+    li t0, UART_BASE
+    lbu t1, IIR(t0)                    # Read UART IIR to check interrupt type
+    andi t1, t1, 0x0f                  # Mask interrupt ID
+
+    li t2, 4                           # 0x4 = Received Data Available
+    bne t1, t2, 1f
+        lbu a0, 0(t0)                  # Read received byte to clear the interrupt
+        la t0, uart_buffer             # and store in the buffer
+        sb a0, (t0)
 
     # beq t1, 0x2, tx_ready # 0x2 = Transmitter Empty
 1:
     stack_free
     ret
+
+
+#----------------------------------------
+
+.section .data
+
+uart_buffer: .byte 0

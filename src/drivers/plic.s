@@ -5,6 +5,11 @@
 #
 # See LICENSE for license details.
 
+# TODO This solution allows for max IRQ id = 31, while PLIC allows for more
+#      (different address computation is required for higher IDs,
+#       which is addr += 4*(id/32), and bit flag is 1 << (id % 32)
+#       see this ticket https://github.com/ddrcode/riscv-os/issues/21
+
 .include "macros.s"
 .include "config.s"
 
@@ -22,13 +27,14 @@
 .section .text
 
 
-.type plic_init, @function
-plic_init:
+# Initializes PLIC by setting the treshold level to default 0
+fn plic_init
     stack_alloc
     li a0, 0
     call plic_set_treshold
     stack_free
     ret
+endfn
 
 
 # Set PLIC treshold that defines the minimum priority
@@ -40,13 +46,13 @@ plic_init:
 # The algorithm is: PLIC_BASE+TRESHOLD_REGISTER+(0x1000 * heart)
 # Arguments:
 #    a0 - treshold
-.type plic_set_treshold, @function
-plic_set_treshold:
+fn plic_set_treshold
     li t0, PLIC_BASE
     li t2, TRESHOLD_REGISTER
     add t2, t0, t2
     sw a0, (t2) # Set threshold for hart 0
     ret
+endfn
 
 
 # Enables IRQ
@@ -54,8 +60,7 @@ plic_set_treshold:
 # Arguments
 #     a0 - IRQ id
 #     a1 - priority
-.type plic_enable_irq, @function
-plic_enable_irq:
+fn plic_enable_irq
     li t0, PLIC_BASE
     li t1, 4
     mul t1, t1, a0
@@ -66,31 +71,53 @@ plic_enable_irq:
     sll t1, t1, a0
     li t2, ENABLE_REGISTER
     add t2, t0, t2
+    lw t0, (t2)
+    or t1, t0, t1
     sw t1, (t2)                        # Enable in PLIC enable register
 
     ret
+endfn
 
 
-# Returns IRQ id
+# Disables IRQ
+# Arguments
+#     a0 - IRQ id
+fn plic_disable_irq
+    li t0, PLIC_BASE
+    li t1, 1
+    sll a0, t1, a0
+    not a0, a0
+
+    li t2, ENABLE_REGISTER
+    add t2, t2, t0
+    lw t1, (t2)
+    and a0, a0, t1
+    sw a0, (t2)
+endfn
+
+
+# Returns active IRQ id
 # Arguments: none
 # Returns: IRQ id in a0
-.type plic_get_source_id, @function
-plic_get_source_id:
+fn plic_get_source_id
     li t0, PLIC_BASE
     li t1, CLAIM_REGISTER
     add t1, t1, t0
     lw a0, (t1)
     ret
+endfn
 
 
 # Marks IRQ processing as complete
 # Arguments:
 #     a0: IRQ id
 # Returns: IRQ id
-.type plic_complete, @function
-plic_complete:
+# .type plic_complete, @function
+# plic_complete:
+fn plic_complete
     li t0, PLIC_BASE
     li t1, CLAIM_REGISTER
     add t1, t1, t0
     sw a0, (t1)
     ret
+endfn

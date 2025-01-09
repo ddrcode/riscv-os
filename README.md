@@ -20,15 +20,15 @@ hardware and memory.
 
 - framebuffer (40x25 characters text screen, configurable),
 - trivial shell with five (!!!) commands: `cls`, `date`, `print`, `prompt`, `fbdump`
-- drivers for UART and RTC
-- keyboard input (UART)
+- drivers for UART, RTC and PLIC
+- keyboard input (UART, interrupts)
 - system functions callable via `ecall`
-- interrupt/exception handlers (currently all in machine mode)
+- interrupt/exception handlers
 - various math and string functions
 
 ### Planned features
 
-- machine and user modes
+- supervisor and user modes (currently everything executes in machine mode)
 
 ## Building and dependencies
 
