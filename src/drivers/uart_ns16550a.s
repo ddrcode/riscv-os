@@ -14,11 +14,13 @@
 .global uart_putc
 .global uart_puts
 .global uart_getc
+.global uart_handle_irq
 
-.equ LINE_STATUS_REG,           0x5
-.equ LINE_CONTROL_REG,          0x3
-.equ FIFO_CONTROL_REG,          0x2
-.equ IRQ_ENABLE_REG,            0x1
+.equ IER,                       0x1    # Interrupt enable register
+.equ IIR,                       0x2    # Interrupt identification register
+.equ LCR,                       0x3    # Line Control Register
+.equ MCR,                       0x4    # Modem Control Register
+.equ LSR,                       0x5    # Line staus register
 
 .equ UART_LSR_DA,               0x01   # Data Available
 .equ UART_LSR_OE,               0x02   # Overrun Error
@@ -36,12 +38,27 @@ uart_init:
     li t0, UART_BASE
 
     li t1, 0x3                         # 0x3 -> 8 bit word length
-    sb t1, LINE_CONTROL_REG(t0)
+    sb t1, LCR(t0)
 
     li t1, 0x1                         # 0x1 -> enable FIFOs
-    sb t1, LINE_CONTROL_REG(t0)
+    sb t1, LCR(t0)
 
-    sb t1, IRQ_ENABLE_REG(t0)     # 0x1 -> enable reciever interrupts
+    sb t1, IER(t0)                     # 0x1 -> enable reciever interrupts
+
+    li t1, 0b1000
+    sb t1, MCR(t0)                     # Enable OUT2
+
+    # configure PLIC  (TODO is it the right place?)
+    li t0, PLIC_BASE
+    li t1, 1                           # Set the priority to lowest
+    sw t1, 0x28(t0)                    # Write to priority for source 10
+    li t1, 0b10000000000  # Enable source 10 (bit 10)
+    li t2, 0x2000
+    add t2, t0, t2
+    sw t1, (t2)     # Enable in PLIC enable register
+    li t2, 0x200000
+    add t2, t0, t2
+    sw zero, (t2) # Set threshold for hart 0
 
     ret
 
@@ -52,7 +69,7 @@ uart_init:
 uart_putc:
     li t0, UART_BASE
 
-1:  lbu t1, LINE_STATUS_REG(t0)        # Loop until the line is idle and THR empty
+1:  lbu t1, LSR(t0)                    # Loop until the line is idle and THR empty
         andi t1, t1, UART_LSR_RI
         beqz t1, 1b
 
@@ -87,7 +104,7 @@ uart_puts:
 uart_getc:
     li t0, UART_BASE
 
-    lbu t1, LINE_STATUS_REG(t0)
+    lbu t1, LSR(t0)
     andi t1, t1, UART_LSR_DA
 
     bnez t1, 1f                        # jump if UART is ready to read from
@@ -98,3 +115,19 @@ uart_getc:
 2:  ret
 
 
+.type uart_handle_irq, @function
+uart_handle_irq:
+    stack_alloc
+# Read UART IIR to check interrupt type
+    li t0, UART_BASE
+    lbu t1, IIR(t0)        # Read IIR (offset 0x02)
+    andi t1, t1, 0x0f    # Mask interrupt ID
+
+    beqz t1, 1f    # 0x4 = Received Data Available
+    lbu a0, 0(t0)  # Read received byte to clear the interrupt
+    # call uart_putc
+
+    # beq t1, 0x2, tx_ready # 0x2 = Transmitter Empty
+1:
+    stack_free
+    ret

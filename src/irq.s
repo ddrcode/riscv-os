@@ -1,4 +1,11 @@
-    .include "macros.s"
+# Interrupt handlers
+# author: David de Rosier
+# https://github.com/ddrcode/riscv-os
+#
+# See LICENSE for license details.
+
+.include "macros.s"
+.include "config.s"
 
 .macro push_all, stack_size
     push a0, \stack_size - 8
@@ -151,24 +158,48 @@ handle_exception:
     ret
 
 
-.type handle_irq, @function
-handle_irq:
-    stack_alloc 32
-    la a0, irq_message
-    call prints
+.type handle_ext_irq, @function
+handle_ext_irq:
+    stack_alloc
+    call plic_get_source_id            # load ext IRQ number
+    beqz a0, 3f                        # exit if 0
+    push a0, 8                         # save it on the stack otherwise
 
-    csrr a0, mcause
-    li t0, MCAUSE_CODE_MASK
-    and a0, a0, t0
-    mv a1, sp
-    li a2, 10
-    call utoa
-    mv a0, sp
+    la t0, external_irq_vector         # compute jump table address
+    li t1, 4
+    mul t1, t1, a0
+    add t0, t1, t0
+
+    lw t1, (t0)                        # load handler address
+    beqz t1, 2f                        # jump if zero
+
+    jalr t1                            # execute handler
+    j 3f
+2:
+.if debug==1
+    la a0, unhandled_ext_irq
     call println
-    stack_free 32
+.endif
+3:
+    pop a0, 8                          # retrieve IRQ id
+    call plic_complete                 # and mark processing as complete
+4:
+    stack_free
     ret
 
 
+.type handle_soft_irq, @function
+handle_soft_irq:
+.if debug==1
+    stack_alloc
+    la a0, irq_message
+    call println
+    stack_free
+.endif
+    ret
+
+
+# FIXME Doesn't work on virt
 .type handle_brk, @function
 handle_brk:
 .if debug==1
@@ -227,7 +258,7 @@ irq_vector:
     .word    0                         #  0: Reserved
     .word    0                         #  1: Supervisor software interrupt
     .word    0                         #  2: Reserved
-    .word    handle_irq                #  3: Machine software interrupt
+    .word    handle_soft_irq           #  3: Machine software interrupt
     .word    0                         #  4: Reserved
     .word    0                         #  5: Supervisor timer interrupt
     .word    0                         #  6: Rserved
@@ -235,11 +266,32 @@ irq_vector:
     .word    0                         #  8: Reserved
     .word    0                         # 19: Supervisor external interrupt
     .word    0                         # 10: Reserved
-    .word    handle_irq                # 11: Machine external interrupt
+    .word    handle_ext_irq            # 11: Machine external interrupt
     .word    0                         # 12: Reserved
     .word    0                         # 13: Reserved
     .word    0                         # 14: Reserved
     .word    0                         # 15: Reserved
+
+
+# This is platform / machine - specific
+# TODO initialize differently
+external_irq_vector:
+    .word    0                         # IRQ  0
+    .word    0                         # IRQ  1
+    .word    0                         # IRQ  2
+    .word    0                         # IRQ  3
+    .word    0                         # IRQ  4
+    .word    0                         # IRQ  5
+    .word    0                         # IRQ  6
+    .word    0                         # IRQ  7
+    .word    0                         # IRQ  8
+    .word    0                         # IRQ 19
+    .word    uart_handle_irq           # IRQ 10
+    .word    0                         # IRQ 11
+    .word    0                         # IRQ 12
+    .word    0                         # IRQ 13
+    .word    0                         # IRQ 14
+    .word    0                         # IRQ 15
 
 
 #----------------------------------------
@@ -247,5 +299,6 @@ irq_vector:
 .section .rodata
 .align 4
 
-irq_message: .string "IRQ detected: "
+irq_message: .string "Software IRQ detected: "
 exception_message: .string "A system level exception occured. Error code: "
+unhandled_ext_irq: .string "Unhandled external IRQ"

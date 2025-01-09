@@ -13,6 +13,8 @@
 # Devices
 .equ RTC_BASE, 0x101000
 .equ UART_BASE, 0x10000000
+.equ PLIC_BASE, 0xc000000
+
 
 # Output
 
