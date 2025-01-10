@@ -89,9 +89,17 @@ read_line:
     stack_alloc
     push s1, 8
     push a0, 4
+    push s0, 0
+
     mv s1, a0                          # s1 - pointer to the end of the string
+
+    call uart_get_status
+    and s0, a0, 1                      # s0 - 1 if IRQ for uart is enabled, 0 otherwise
+
 1:
-        wfi                            # wait for IRQ
+        beqz s0, 2f                    # call wfi if irqs are anbled
+            wfi                        # wait for IRQ
+2:
         call getc
         beqz a0, 1b                    # continue if no key identified
 
@@ -142,6 +150,8 @@ _printc_bcksp:
     call scr_backspace
 .endif
 
+    pop s1, 8
+    pop s0, 0
     stack_free 4
     ret
 

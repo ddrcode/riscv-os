@@ -14,6 +14,7 @@
 .global uart_putc
 .global uart_puts
 .global uart_getc
+.global uart_get_status
 .global uart_handle_irq
 
 .equ IER,                       0x1    # Interrupt enable register
@@ -33,33 +34,30 @@
 
 .section .text
 
+# Initialies the UART
+# Arguments:
+#     a0 - 1 to enable IRQs, 0 otherwise
 .type uart_init, @function
 uart_init:
+    stack_alloc
     li t0, UART_BASE
 
     li t1, 0x3                         # 0x3 -> 8 bit word length
     sb t1, LCR(t0)
 
-    li t1, 0x1                         # 0x1 -> enable FIFOs
+    li t1, 1                           # 0x1 -> enable FIFOs
     sb t1, LCR(t0)
 
-    sb t1, IER(t0)                     # 0x1 -> enable reciever interrupts
+    sb a0, IER(t0)                     # 0x1 -> enable reciever interrupts
 
     li t1, 0b1000
     sb t1, MCR(t0)                     # Enable OUT2
 
-    # configure PLIC  (TODO is it the right place?)
-    li t0, PLIC_BASE
-    li t1, 1                           # Set the priority to lowest
-    sw t1, 0x28(t0)                    # Write to priority for source 10
-    li t1, 0b10000000000  # Enable source 10 (bit 10)
-    li t2, 0x2000
-    add t2, t0, t2
-    sw t1, (t2)     # Enable in PLIC enable register
-    li t2, 0x200000
-    add t2, t0, t2
-    sw zero, (t2) # Set threshold for hart 0
+    li a0, UART_IRQ                    # configure PLIC IRQ
+    li a1, 1
+    call plic_enable_irq
 
+    stack_free
     ret
 
 
@@ -100,25 +98,30 @@ uart_puts:
     ret
 
 
-# TODO - read directly from UART if irq not enabled
 .type uart_get, @function
 uart_getc:
-# Direct version - check the UART for char
-#     li t0, UART_BASE
-#
-#     lbu t1, LSR(t0)
-#     andi t1, t1, UART_LSR_DA
-#
-#     bnez t1, 1f                      # jump if UART is ready to read from
-#         mv a0, zero                  # otherwise, return 0
-#         j 2f
-# 1:
-#     lbu a0, (t0)                     # load character at UART address
-# IRQ - based version
+    li t0, UART_BASE
+
+    lbu t1, IER(t0)                    # check whether interupts are on
+    bnez t1, 2f                        # jump if so
+
+    # Read byte from UART
+    lbu t1, LSR(t0)
+    andi t1, t1, UART_LSR_DA
+
+    bnez t1, 1f                        # jump if UART is ready to read from
+        mv a0, zero                    # otherwise, return 0
+        j 3f
+1:
+    lbu a0, (t0)                       # load character at UART address
+    j 3f
+
+2:  # read from buffer rather than from UART itself (value set by irq)
     la t0, uart_buffer
     lbu a0, (t0)
     sb zero, (t0)
-2:  ret
+
+3:  ret
 
 
 .type uart_handle_irq, @function
@@ -138,6 +141,17 @@ uart_handle_irq:
     # beq t1, 0x2, tx_ready # 0x2 = Transmitter Empty
 1:
     stack_free
+    ret
+
+
+uart_get_status:
+    mv a0, zero
+    li t0, UART_BASE
+
+    lbu t1, IER(t0)                    # check whether interupts are on
+    snez t1, t1                        # set t1 to 1 if so
+    or a0, a0, t1
+
     ret
 
 

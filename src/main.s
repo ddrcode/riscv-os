@@ -23,8 +23,8 @@ _start:
 
     stack_alloc
 
+    call platform_start
     call sysinit
-    call irq_init
     call shell_init
     call shell_command_loop
 
