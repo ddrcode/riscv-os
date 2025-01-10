@@ -14,6 +14,7 @@
 .global uart_putc
 .global uart_puts
 .global uart_getc
+.global uart_get_status
 .global uart_handle_irq
 
 .equ IER,                       0x1    # Interrupt enable register
@@ -33,6 +34,9 @@
 
 .section .text
 
+# Initialies the UART
+# Arguments:
+#     a0 - 1 to enable IRQs, 0 otherwise
 .type uart_init, @function
 uart_init:
     stack_alloc
@@ -44,8 +48,7 @@ uart_init:
     li t1, 1                           # 0x1 -> enable FIFOs
     sb t1, LCR(t0)
 
-    li t1, 1
-    sb t1, IER(t0)                     # 0x1 -> enable reciever interrupts
+    sb a0, IER(t0)                     # 0x1 -> enable reciever interrupts
 
     li t1, 0b1000
     sb t1, MCR(t0)                     # Enable OUT2
@@ -138,6 +141,17 @@ uart_handle_irq:
     # beq t1, 0x2, tx_ready # 0x2 = Transmitter Empty
 1:
     stack_free
+    ret
+
+
+uart_get_status:
+    mv a0, zero
+    li t0, UART_BASE
+
+    lbu t1, IER(t0)                    # check whether interupts are on
+    snez t1, t1                        # set t1 to 1 if so
+    or a0, a0, t1
+
     ret
 
 

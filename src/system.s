@@ -19,8 +19,6 @@
 .type sysinit, @function
 sysinit:
     stack_alloc 4
-    call plic_init
-    call uart_init
 .if OUTPUT_DEV & 0b100
     call video_init
 .endif

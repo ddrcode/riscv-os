@@ -5,6 +5,7 @@
 .global uart_putc
 .global uart_puts
 .global uart_getc
+.global uart_get_status
 .global uart_handle_irq
 
 .equ UART_REG_TXFIFO,	0
@@ -23,15 +24,15 @@
 
 .section .text
 
-
+# Arguments:
+#     a0 - enable IRQ? (1 - yes, 0 - no)
 fn uart_init
     stack_alloc
     li t0, UART_BASE
 
     li t1, UART_REG_IE                 # enable interrupts for receive
-    add t1, t0, t1
-    li t2, 1
-    sw t2, (t1)
+    add t1, t0, t1                     # based on a0 value
+    sw a0, (t1)
 
     li t1, UART_REG_TXCTRL             # enable tx
     add t1, t0, t1
@@ -43,8 +44,8 @@ fn uart_init
     li t2, UART_RXCTRL_RXEN
     sw t2, (t1)
 
-    li a0, UART_IRQ
-    li a1, 1
+    li a0, UART_IRQ                    # sets up PLIC with UART's IRQ, but
+    li a1, 1                           # it doesn't enable the IRQ
     call plic_enable_irq
 
     stack_free
@@ -162,6 +163,17 @@ tx_interrupt:
 done:
     ret                      # Return to the main IRQ handler
 endfn
+
+
+uart_get_status:
+    mv a0, zero
+    li t0, UART_BASE
+
+    lw t1, UART_REG_IE(t0)             # check if irq is enabled
+    snez t1, t1                        # set t1 to 1 if so
+    or a0, a0, t1
+
+    ret
 
 .section .data
 

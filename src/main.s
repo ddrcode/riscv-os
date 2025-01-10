@@ -23,10 +23,8 @@ _start:
 
     stack_alloc
 
+    call platform_start
     call sysinit
-.ifdef ENABLE_IRQ
-    call irq_init
-.endif
     call shell_init
     call shell_command_loop
 

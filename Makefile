@@ -45,6 +45,7 @@ SRC := $(wildcard src/*.s)
 OBJ_DIR := build/obj
 OBJ := $(patsubst %.s, %.o, $(notdir $(SRC)))
 OBJ_FILES := $(addprefix $(OBJ_DIR)/, $(OBJ))
+OBJ_FILES += $(OBJ_DIR)/$(MACHINE).o
 
 DRIVERS_SRC := $(DRIVERS)
 DRIVERS_OBJ := $(patsubst %.s, %.o, $(notdir $(DRIVERS_SRC)))
@@ -78,9 +79,10 @@ $(DRIVERS_OBJ): %.o: src/drivers/%.s
 	${TOOL}-as $(AS_FLAGS) $(FLAGS) -o $(OBJ_DIR)/$@ $<
 
 compile: setup $(OBJ) $(DRIVERS_OBJ)
+	${TOOL}-as $(AS_FLAGS) $(FLAGS) -o $(OBJ_DIR)/$(MACHINE).o src/platforms/$(MACHINE).s
 
 build: compile platforms/$(MACHINE).ld
-	${TOOL}-gcc $(FLAGS) $(GCC_FLAGS) -o build/riscvos.elf $(OBJ_FILES)
+	${TOOL}-gcc $(FLAGS) $(GCC_FLAGS) -o build/$(MACHINE).elf $(OBJ_FILES)
 
 $(TEST_ASM_OBJ): %.o: tests/%.s
 	${TOOL}-as $(AS_FLAGS) $(FLAGS) -o $(OBJ_DIR)/$@ $<
@@ -99,9 +101,7 @@ build_all: build build_tests
 
 run: build
 	@echo "Ctrl-Q C for QEMU console, then quit to exit"
-	$(QEMU) -bios build/riscvos.elf
-	# qemu-system-riscv32 -nographic -serial pty -machine virt -bios build/riscvos
-	# qemu-system-riscv32 -nographic -serial unix:/tmp/serial.socket,server -machine virt -bios build/riscvos
+	$(QEMU) -bios build/$(MACHINE).elf
 
 test: build_tests
 	@echo "Ctrl-Q C for QEMU console, then quit to exit"
@@ -110,7 +110,6 @@ test: build_tests
 debug: build_tests
 	@echo "Ctrl-Q C for QEMU console, then quit to exit"
 	$(QEMU) -s -S -bios build/test_$(TEST_NAME).elf
-	# $(QEMU) -s -S -bios build/riscvos.elf
 
 debug-main: build
 	@echo "Ctrl-Q C for QEMU console, then quit to exit"
@@ -118,7 +117,6 @@ debug-main: build
 
 gdb:
 	gdb -ex 'target remote localhost:1234' ./build/test_$(TEST_NAME).elf
-	# gdb -ex 'target remote localhost:1234' ./build/riscvos.elf
 
 gdb-main:
 	gdb -ex 'target remote localhost:1234' ./build/riscvos.elf

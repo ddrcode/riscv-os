@@ -7,6 +7,7 @@
 
 .include "macros.s"
 .include "consts.s"
+.include "config.s"
 
 .section .text
 
@@ -159,13 +160,15 @@ show_error:
 .align 4
 show_date_time:
     stack_alloc 32
-.ifdef HAS_RTC
+.ifdef RTC_BASE
     call rtc_time_in_sec
     mv a1, sp
     call date_time_to_str
     mv a0, sp
-    call println
+.else
+    la a0, err_no_rtc
 .endif
+    call println
 
     setz a5
     stack_free 32
@@ -210,3 +213,6 @@ errors: .word err_unknown
         .word err_invalid_argument
         .word err_stack_overflow
 
+.ifndef RTC_BASE
+err_no_rtc: .string "No RTC on this platform"
+.endif

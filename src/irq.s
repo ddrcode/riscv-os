@@ -336,25 +336,6 @@ irq_vector:
     .word    0                         # 15: Reserved
 
 
-# This is platform / machine - specific
-# TODO initialize differently
-external_irq_vector:
-    .word    0                         # IRQ  0
-    .word    0                         # IRQ  1
-    .word    0                         # IRQ  2
-    .word    0                         # IRQ  3
-    .word    uart_handle_irq           # IRQ  4
-    .word    0                         # IRQ  5
-    .word    0                         # IRQ  6
-    .word    0                         # IRQ  7
-    .word    0                         # IRQ  8
-    .word    0                         # IRQ 19
-    .word    uart_handle_irq           # IRQ 10
-    .word    0                         # IRQ 11
-    .word    0                         # IRQ 12
-    .word    0                         # IRQ 13
-    .word    0                         # IRQ 14
-    .word    0                         # IRQ 15
 
 
 #----------------------------------------

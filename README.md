@@ -2,7 +2,9 @@
 An attempt to create a tiny OS for 32-bit RISC-V implemented entirely in assembly
 (the C files you find in the repo are tests only).
 
-Currently, the OS runs on [virt](https://www.qemu.org/docs/master/system/riscv/virt.html) machine under QEMU.
+Currently, the OS runs on [virt](https://www.qemu.org/docs/master/system/riscv/virt.html)
+and [SiFive](https://www.qemu.org/docs/master/system/riscv/sifive_u.html)
+machines under QEMU.
 It uses very minimalistic configuration of hardware: 4MB of RAM and 1 core.
 It's also minimalistic in terms of RISC-V instruction set, as it only utilizes the E and M
 extensions.
@@ -42,6 +44,10 @@ Most important Makefile options:
 - `make debug TEST_NAME=shell` - loads test to QEMU and waits for connection from GDB
 - `make gdb TEST_NAME=shell` - connects GDB with QEMU
 Other available tests (among others): `math32`, `math64`, `string`, `rtc`
+
+Optionally each command can be provided with `MACHINE` attribute, i.e.
+`make run start MACHINE=sifive_u`. Currently, the available machines are
+`virt` (default) and `sifive_u`.
 
 ### Output options
 
