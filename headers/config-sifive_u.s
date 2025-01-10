@@ -1,5 +1,3 @@
-# Generic
-.equ debug, 1
 
 # Memory
 .equ MEM_MIN_ADDR, 0x80000000
@@ -11,9 +9,11 @@
 .equ SCREEN_HEIGHT, 25
 
 # Devices
-.equ RTC_BASE, 0x101000
 .equ UART_BASE, 0x10010000
+.equ UART_IRQ, 4
+
 .equ PLIC_BASE, 0xc000000
+
 .equ MTIME, 0x0200BFF8
 .equ MTIMECMP, 0x02004000
 

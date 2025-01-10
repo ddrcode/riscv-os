@@ -192,6 +192,7 @@ handle_timer:
 
 .type handle_exception, @function
 handle_exception:
+.if debug==1
     stack_alloc 32
     la a0, exception_message
     call prints
@@ -216,6 +217,7 @@ handle_exception:
 
     # call panic
     stack_free 32
+.endif
     ret
 
 
@@ -341,7 +343,7 @@ external_irq_vector:
     .word    0                         # IRQ  1
     .word    0                         # IRQ  2
     .word    0                         # IRQ  3
-    .word    0                         # IRQ  4
+    .word    uart_handle_irq           # IRQ  4
     .word    0                         # IRQ  5
     .word    0                         # IRQ  6
     .word    0                         # IRQ  7
