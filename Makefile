@@ -37,24 +37,21 @@ endif
 #----------------------------------------
 # Project files
 
+VPATH = src src/drivers src/platforms tests
+
 SRC := $(wildcard src/*.s)
+SRC += $(DRIVERS)
+SRC += src/platforms/$(MACHINE).s
 
 OBJ_DIR := build/obj
 OBJ := $(patsubst %.s, %.o, $(notdir $(SRC)))
 OBJ_FILES := $(addprefix $(OBJ_DIR)/, $(OBJ))
-OBJ_FILES += $(OBJ_DIR)/$(MACHINE).o
-
-DRIVERS_SRC := $(DRIVERS)
-DRIVERS_OBJ := $(patsubst %.s, %.o, $(notdir $(DRIVERS_SRC)))
-OBJ_FILES += $(addprefix $(OBJ_DIR)/, $(DRIVERS_OBJ))
 
 TEST_ASM_SRC := $(wildcard tests/*.s)
 TEST_ASM_OBJ := $(patsubst %.s, %.o, $(notdir $(TEST_ASM_SRC)))
-TEST_ASM_OBJ_FILES := $(addprefix $(OBJ_DIR)/, $(TEST_ASM_OBJ))
 
 TEST_C_SRC := $(wildcard tests/*.c)
 TEST_C_OBJ := $(patsubst %.c, %.o, $(notdir $(TEST_C_SRC)))
-TEST_C_OBJ_FILES := $(addprefix $(OBJ_DIR)/, $(TEST_C_OBJ))
 
 TEST_FILES := $(patsubst %.o, %.elf, $(filter test_%.o, $(TEST_ASM_OBJ)))
 TEST_FILES += $(patsubst %.o, %.elf, $(filter test_%.o, $(TEST_C_OBJ)))
@@ -62,30 +59,26 @@ TEST_SUPPORT_OBJ := $(OBJ_DIR)/assert.o $(OBJ_DIR)/helpers.o $(OBJ_DIR)/startup.
 
 #----------------------------------------
 
-.PHONY: setup compile build compile_test build_tests build_all run test clean gdb debug
+.PHONY: setup compile build compile_test build_test build_tests build_all run test clean gdb debug
 
 default: build_all
 
 setup:
 	mkdir -p build/obj
 
-$(OBJ): %.o: src/%.s
+$(OBJ_DIR)/$(OBJ): %.o: %.s
 	${TOOL}-as $(AS_FLAGS) $(FLAGS) -o $(OBJ_DIR)/$@ $<
 
-$(DRIVERS_OBJ): %.o: src/drivers/%.s
-	${TOOL}-as $(AS_FLAGS) $(FLAGS) -o $(OBJ_DIR)/$@ $<
-
-compile: setup $(OBJ) $(DRIVERS_OBJ)
-	${TOOL}-as $(AS_FLAGS) $(FLAGS) -o $(OBJ_DIR)/$(MACHINE).o src/platforms/$(MACHINE).s
+compile: setup $(OBJ)
 
 build: compile platforms/$(MACHINE).ld
 	$(TOOL)-ld $(LD_FLAGS) -o build/$(MACHINE).elf $(OBJ_FILES)
 	$(TOOL)-strip --strip-all build/$(MACHINE).elf
 
-$(TEST_ASM_OBJ): %.o: tests/%.s
+$(TEST_ASM_OBJ): %.o: %.s
 	${TOOL}-as $(AS_FLAGS) $(FLAGS) -o $(OBJ_DIR)/$@ $<
 
-$(TEST_C_OBJ): %.o: tests/%.c
+$(TEST_C_OBJ): %.o: %.c
 	$(TOOL)-gcc $(FLAGS) $(GCC_FLAGS) -o $(OBJ_DIR)/$@ -c $<
 
 compile_tests: setup $(TEST_ASM_OBJ) $(TEST_C_OBJ)
