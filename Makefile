@@ -20,12 +20,16 @@ endif
 # Build / compilation / execution flags
 
 TOOL := riscv64-none-elf
+AS := $(TOOL)-as
+CC := $(TOOL)-cc
+LD := $(TOOL)-ld
+
 # use im and -mabi=ilp32 if planning to not use reduced base integer extension
 RISC_V_EXTENSIONS := emzicsr
 FLAGS := -march=rv32$(RISC_V_EXTENSIONS) -mabi=ilp32e
-AS_FLAGS := -I headers --defsym OUTPUT_DEV=$(OUTPUT_DEV) --defsym m_$(MACHINE)=1
-GCC_FLAGS := -nostdlib -static -I headers -Os
-LD_FLAGS := -Arv32$(RISC_V_EXTENSIONS) -melf32lriscv -T platforms/$(MACHINE).ld --gc-sections -Os -static
+ASFLAGS := -I headers --defsym OUTPUT_DEV=$(OUTPUT_DEV) --defsym m_$(MACHINE)=1
+CFLAGS := -nostdlib -static -I headers -Os
+LDFLAGS := -Arv32$(RISC_V_EXTENSIONS) -melf32lriscv -T platforms/$(MACHINE).ld --gc-sections -Os -static
 
 QEMU_EXTENSIONS := e=on,m=on,i=off,h=off,f=off,d=off,a=off,f=off,c=off,zawrs=off,sstc=off,zicntr=off,zihpm=off,zicboz=off,zicbom=off,svadu=off
 QEMU := qemu-system-riscv32 -machine $(MACHINE) $(QEMU_MACHINE_CONFIG) -cpu rv32,$(QEMU_EXTENSIONS) -nographic -serial mon:stdio -echr 17
@@ -43,9 +47,9 @@ SRC := $(wildcard src/*.s)
 SRC += $(DRIVERS)
 SRC += src/platforms/$(MACHINE).s
 
-OBJ_DIR := build/obj
+OBJDIR := build/obj
 OBJ := $(patsubst %.s, %.o, $(notdir $(SRC)))
-OBJ_FILES := $(addprefix $(OBJ_DIR)/, $(OBJ))
+OBJ_FILES := $(addprefix $(OBJDIR)/, $(OBJ))
 
 TEST_ASM_SRC := $(wildcard tests/*.s)
 TEST_ASM_OBJ := $(patsubst %.s, %.o, $(notdir $(TEST_ASM_SRC)))
@@ -55,36 +59,36 @@ TEST_C_OBJ := $(patsubst %.c, %.o, $(notdir $(TEST_C_SRC)))
 
 TEST_FILES := $(patsubst %.o, %.elf, $(filter test_%.o, $(TEST_ASM_OBJ)))
 TEST_FILES += $(patsubst %.o, %.elf, $(filter test_%.o, $(TEST_C_OBJ)))
-TEST_SUPPORT_OBJ := $(OBJ_DIR)/assert.o $(OBJ_DIR)/helpers.o $(OBJ_DIR)/startup.o
+TEST_SUPPORT_OBJ := $(OBJDIR)/assert.o $(OBJDIR)/helpers.o $(OBJDIR)/startup.o
 
 #----------------------------------------
 
-.PHONY: setup compile build compile_test build_test build_tests build_all run test clean gdb debug
+.PHONY: compile build compile_test build_test build_tests build_all run test clean gdb debug
 
 default: build_all
 
-setup:
-	mkdir -p build/obj
+$(OBJDIR):
+	mkdir -p $(OBJDIR)
 
-$(OBJ_DIR)/$(OBJ): %.o: %.s
-	${TOOL}-as $(AS_FLAGS) $(FLAGS) -o $(OBJ_DIR)/$@ $<
+$(OBJDIR)/$(OBJ): %.o: %.s | $(OBJDIR)
+	$(AS) $(ASFLAGS) $(FLAGS) -o $(OBJDIR)/$@ $<
 
-compile: setup $(OBJ)
+compile: $(OBJ)
 
 build: compile platforms/$(MACHINE).ld
-	$(TOOL)-ld $(LD_FLAGS) -o build/$(MACHINE).elf $(OBJ_FILES)
+	$(LD) $(LDFLAGS) -o build/$(MACHINE).elf $(OBJ_FILES)
 	$(TOOL)-strip --strip-all build/$(MACHINE).elf
 
-$(TEST_ASM_OBJ): %.o: %.s
-	${TOOL}-as $(AS_FLAGS) $(FLAGS) -o $(OBJ_DIR)/$@ $<
+$(OBJDIR)/$(TEST_ASM_OBJ): %.o: %.s | $(OBJDIR)
+	$(AS) $(ASFLAGS) $(FLAGS) -o $(OBJDIR)/$@ $<
 
 $(TEST_C_OBJ): %.o: %.c
-	$(TOOL)-gcc $(FLAGS) $(GCC_FLAGS) -o $(OBJ_DIR)/$@ -c $<
+	$(CC) $(FLAGS) $(CFLAGS) -o $(OBJDIR)/$@ -c $<
 
 compile_tests: setup $(TEST_ASM_OBJ) $(TEST_C_OBJ)
 
-$(TEST_FILES): %.elf: $(OBJ_DIR)/%.o
-	${TOOL}-ld $(LD_FLAGS) -o build/$@ $< $(filter-out $(OBJ_DIR)/main.o, $(OBJ_FILES)) $(TEST_SUPPORT_OBJ)
+$(TEST_FILES): %.elf: $(OBJDIR)/%.o
+	$(LD) $(LDFLAGS) -o build/$@ $< $(filter-out $(OBJ_DIR)/main.o, $(OBJ_FILES)) $(TEST_SUPPORT_OBJ)
 
 build_test: compile compile_tests test_$(TEST_NAME).elf
 
