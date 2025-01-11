@@ -24,7 +24,8 @@ TOOL := riscv64-none-elf
 RISC_V_EXTENSIONS := emzicsr
 FLAGS := -march=rv32$(RISC_V_EXTENSIONS) -mabi=ilp32e
 AS_FLAGS := -I headers --defsym OUTPUT_DEV=$(OUTPUT_DEV) --defsym m_$(MACHINE)=1
-GCC_FLAGS := -T platforms/$(MACHINE).ld -nostdlib -static -I headers
+GCC_FLAGS := -nostdlib -static -I headers -Os
+LD_FLAGS := -Arv32$(RISC_V_EXTENSIONS) -melf32lriscv -T platforms/$(MACHINE).ld --gc-sections -Os
 
 QEMU_EXTENSIONS := e=on,m=on,i=off,h=off,f=off,d=off,a=off,f=off,c=off,zawrs=off,sstc=off,zicntr=off,zihpm=off,zicboz=off,zicbom=off,svadu=off
 QEMU := qemu-system-riscv32 -machine $(MACHINE) $(QEMU_MACHINE_CONFIG) -cpu rv32,$(QEMU_EXTENSIONS) -nographic -serial mon:stdio -echr 17
@@ -82,7 +83,9 @@ compile: setup $(OBJ) $(DRIVERS_OBJ)
 	${TOOL}-as $(AS_FLAGS) $(FLAGS) -o $(OBJ_DIR)/$(MACHINE).o src/platforms/$(MACHINE).s
 
 build: compile platforms/$(MACHINE).ld
-	${TOOL}-gcc $(FLAGS) $(GCC_FLAGS) -o build/$(MACHINE).elf $(OBJ_FILES)
+	# ${TOOL}-gcc $(FLAGS) $(GCC_FLAGS) -o build/$(MACHINE).elf $(OBJ_FILES)
+	$(TOOL)-ld $(LD_FLAGS) -o build/$(MACHINE).elf $(OBJ_FILES)
+	$(TOOL)-strip --strip-all build/$(MACHINE).elf
 
 $(TEST_ASM_OBJ): %.o: tests/%.s
 	${TOOL}-as $(AS_FLAGS) $(FLAGS) -o $(OBJ_DIR)/$@ $<
@@ -93,7 +96,7 @@ $(TEST_C_OBJ): %.o: tests/%.c
 compile_tests: setup $(TEST_ASM_OBJ) $(TEST_C_OBJ)
 
 $(TEST_FILES): %.elf: $(OBJ_DIR)/%.o
-	${TOOL}-gcc $(FLAGS) $(GCC_FLAGS) -o build/$@ $< $(filter-out $(OBJ_DIR)/main.o, $(OBJ_FILES)) $(TEST_SUPPORT_OBJ)
+	${TOOL}-ld $(LD_FLAGS) -o build/$@ $< $(filter-out $(OBJ_DIR)/main.o, $(OBJ_FILES)) $(TEST_SUPPORT_OBJ)
 
 build_tests: compile compile_tests $(TEST_FILES)
 
