@@ -26,16 +26,19 @@ LD := $(TOOL)-ld
 
 # use im and -mabi=ilp32 if planning to not use reduced base integer extension
 RISC_V_EXTENSIONS := emzicsr
-FLAGS := -march=rv32$(RISC_V_EXTENSIONS) -mabi=ilp32e
-ASFLAGS := -I headers --defsym OUTPUT_DEV=$(OUTPUT_DEV) --defsym m_$(MACHINE)=1
-CFLAGS := -nostdlib -static -I headers -Os
+ARCH := rv32$(RISC_V_EXTENSIONS)
+ABI := ilp32e
+ASFLAGS := -march=$(ARCH) -mabi=$(ABI) -I headers --defsym OUTPUT_DEV=$(OUTPUT_DEV) --defsym m_$(MACHINE)=1
+CFLAGS := -march=$(ARCH) -mabi=$(ABI)  -nostdlib -static -I headers -Os
 LDFLAGS := -Arv32$(RISC_V_EXTENSIONS) -melf32lriscv -T platforms/$(MACHINE).ld --gc-sections -Os -static
 
 QEMU_EXTENSIONS := e=on,m=on,i=off,h=off,f=off,d=off,a=off,f=off,c=off,zawrs=off,sstc=off,zicntr=off,zihpm=off,zicboz=off,zicbom=off,svadu=off
 QEMU := qemu-system-riscv32 -machine $(MACHINE) $(QEMU_MACHINE_CONFIG) -cpu rv32,$(QEMU_EXTENSIONS) -nographic -serial mon:stdio -echr 17
 
 ifneq ($(filter debug gdb debug-main gdb-main, $(MAKECMDGOALS)),)
-FLAGS += -g -o0
+ASFLAGS += -g -o0
+CFLAGS += -g -o0
+LDFLAGS += -g -o0
 endif
 
 #----------------------------------------
@@ -63,15 +66,15 @@ TEST_SUPPORT_OBJ := $(OBJDIR)/assert.o $(OBJDIR)/helpers.o $(OBJDIR)/startup.o
 
 #----------------------------------------
 
-.PHONY: compile build compile_test build_test build_tests build_all run test clean gdb debug
+.PHONY: compile build compile-test build-test build-tests build-all run test clean gdb debug
 
-default: build_all
+default: build-all
 
 $(OBJDIR):
 	mkdir -p $(OBJDIR)
 
 $(OBJDIR)/$(OBJ): %.o: %.s | $(OBJDIR)
-	$(AS) $(ASFLAGS) $(FLAGS) -o $(OBJDIR)/$@ $<
+	$(AS) $(ASFLAGS) -o $(OBJDIR)/$@ $<
 
 compile: $(OBJ)
 
@@ -80,31 +83,31 @@ build: compile platforms/$(MACHINE).ld
 	$(TOOL)-strip --strip-all build/$(MACHINE).elf
 
 $(OBJDIR)/$(TEST_ASM_OBJ): %.o: %.s | $(OBJDIR)
-	$(AS) $(ASFLAGS) $(FLAGS) -o $(OBJDIR)/$@ $<
+	$(AS) $(ASFLAGS) -o $(OBJDIR)/$@ $<
 
-$(TEST_C_OBJ): %.o: %.c
-	$(CC) $(FLAGS) $(CFLAGS) -o $(OBJDIR)/$@ -c $<
+$(OBJDIR)/$(TEST_C_OBJ): %.o: %.c | $(OBJDIR)
+	$(CC) $(CFLAGS) -o $(OBJDIR)/$@ -c $<
 
-compile_tests: setup $(TEST_ASM_OBJ) $(TEST_C_OBJ)
+compile-tests: $(TEST_ASM_OBJ) $(TEST_C_OBJ)
 
 $(TEST_FILES): %.elf: $(OBJDIR)/%.o
-	$(LD) $(LDFLAGS) -o build/$@ $< $(filter-out $(OBJ_DIR)/main.o, $(OBJ_FILES)) $(TEST_SUPPORT_OBJ)
+	$(LD) $(LDFLAGS) -o build/$@ $< $(filter-out $(OBJDIR)/main.o, $(OBJ_FILES)) $(TEST_SUPPORT_OBJ)
 
-build_test: compile compile_tests test_$(TEST_NAME).elf
+build-test: compile compile-tests test_$(TEST_NAME).elf
 
-build_tests: compile compile_tests $(TEST_FILES)
+build-tests: compile compile-tests $(TEST_FILES)
 
-build_all: build build_tests
+build-all: build build-tests
 
 run: build
 	@echo "Ctrl-Q C for QEMU console, then quit to exit"
 	$(QEMU) -bios build/$(MACHINE).elf
 
-test: build_test
+test: build-test
 	@echo "Ctrl-Q C for QEMU console, then quit to exit"
 	$(QEMU) -bios build/test_$(TEST_NAME).elf
 
-debug: build_test
+debug: build-test
 	@echo "Ctrl-Q C for QEMU console, then quit to exit"
 	$(QEMU) -s -S -bios build/test_$(TEST_NAME).elf
 
@@ -112,7 +115,7 @@ debug-main: build
 	@echo "Ctrl-Q C for QEMU console, then quit to exit"
 	$(QEMU) -s -S -bios build/riscvos.elf
 
-gdb: build_test
+gdb: build-test
 	gdb -ex 'target remote localhost:1234' ./build/test_$(TEST_NAME).elf
 
 gdb-main:
