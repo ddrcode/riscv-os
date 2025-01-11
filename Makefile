@@ -25,16 +25,12 @@ RISC_V_EXTENSIONS := emzicsr
 FLAGS := -march=rv32$(RISC_V_EXTENSIONS) -mabi=ilp32e
 AS_FLAGS := -I headers --defsym OUTPUT_DEV=$(OUTPUT_DEV) --defsym m_$(MACHINE)=1
 GCC_FLAGS := -nostdlib -static -I headers -Os
-LD_FLAGS := -Arv32$(RISC_V_EXTENSIONS) -melf32lriscv -T platforms/$(MACHINE).ld --gc-sections -Os
+LD_FLAGS := -Arv32$(RISC_V_EXTENSIONS) -melf32lriscv -T platforms/$(MACHINE).ld --gc-sections -Os -static
 
 QEMU_EXTENSIONS := e=on,m=on,i=off,h=off,f=off,d=off,a=off,f=off,c=off,zawrs=off,sstc=off,zicntr=off,zihpm=off,zicboz=off,zicbom=off,svadu=off
 QEMU := qemu-system-riscv32 -machine $(MACHINE) $(QEMU_MACHINE_CONFIG) -cpu rv32,$(QEMU_EXTENSIONS) -nographic -serial mon:stdio -echr 17
 
-ifneq ($(filter debug, $(MAKECMDGOALS)),)
-FLAGS += -g -o0
-endif
-
-ifneq ($(filter debug-main, $(MAKECMDGOALS)),)
+ifneq ($(filter debug gdb debug-main gdb-main, $(MAKECMDGOALS)),)
 FLAGS += -g -o0
 endif
 
@@ -42,7 +38,7 @@ endif
 # Project files
 
 SRC := $(wildcard src/*.s)
-# SRC_NO_MAIN := $(filter-out src/main.s, $(SRC))
+
 OBJ_DIR := build/obj
 OBJ := $(patsubst %.s, %.o, $(notdir $(SRC)))
 OBJ_FILES := $(addprefix $(OBJ_DIR)/, $(OBJ))
@@ -83,7 +79,6 @@ compile: setup $(OBJ) $(DRIVERS_OBJ)
 	${TOOL}-as $(AS_FLAGS) $(FLAGS) -o $(OBJ_DIR)/$(MACHINE).o src/platforms/$(MACHINE).s
 
 build: compile platforms/$(MACHINE).ld
-	# ${TOOL}-gcc $(FLAGS) $(GCC_FLAGS) -o build/$(MACHINE).elf $(OBJ_FILES)
 	$(TOOL)-ld $(LD_FLAGS) -o build/$(MACHINE).elf $(OBJ_FILES)
 	$(TOOL)-strip --strip-all build/$(MACHINE).elf
 
@@ -98,6 +93,8 @@ compile_tests: setup $(TEST_ASM_OBJ) $(TEST_C_OBJ)
 $(TEST_FILES): %.elf: $(OBJ_DIR)/%.o
 	${TOOL}-ld $(LD_FLAGS) -o build/$@ $< $(filter-out $(OBJ_DIR)/main.o, $(OBJ_FILES)) $(TEST_SUPPORT_OBJ)
 
+build_test: compile compile_tests test_$(TEST_NAME).elf
+
 build_tests: compile compile_tests $(TEST_FILES)
 
 build_all: build build_tests
@@ -106,11 +103,11 @@ run: build
 	@echo "Ctrl-Q C for QEMU console, then quit to exit"
 	$(QEMU) -bios build/$(MACHINE).elf
 
-test: build_tests
+test: build_test
 	@echo "Ctrl-Q C for QEMU console, then quit to exit"
 	$(QEMU) -bios build/test_$(TEST_NAME).elf
 
-debug: build_tests
+debug: build_test
 	@echo "Ctrl-Q C for QEMU console, then quit to exit"
 	$(QEMU) -s -S -bios build/test_$(TEST_NAME).elf
 
@@ -118,11 +115,11 @@ debug-main: build
 	@echo "Ctrl-Q C for QEMU console, then quit to exit"
 	$(QEMU) -s -S -bios build/riscvos.elf
 
-gdb:
+gdb: build_test
 	gdb -ex 'target remote localhost:1234' ./build/test_$(TEST_NAME).elf
 
 gdb-main:
-	gdb -ex 'target remote localhost:1234' ./build/riscvos.elf
+	gdb -ex 'target remote localhost:1234' ./build/$(MACHINE).elf
 
 clean:
 	rm -rf build/*
