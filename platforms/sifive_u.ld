@@ -22,6 +22,7 @@ SECTIONS
     . = 0x80000000;
     .text : ALIGN(32) {
         *(.text.start);
+        *(.text.platform);
         *(.text .text.*)
     } > RAM
     /* . = ALIGN (CONSTANT (COMMONPAGESIZE)); */
