@@ -29,8 +29,8 @@ RISC_V_EXTENSIONS := emzicsr
 ARCH := rv32$(RISC_V_EXTENSIONS)
 ABI := ilp32e
 ASFLAGS := -march=$(ARCH) -mabi=$(ABI) -I headers --defsym OUTPUT_DEV=$(OUTPUT_DEV) --defsym m_$(MACHINE)=1
-CFLAGS := -march=$(ARCH) -mabi=$(ABI)  -nostdlib -static -I headers -Os
-LDFLAGS := -Arv32$(RISC_V_EXTENSIONS) -melf32lriscv -T platforms/$(MACHINE).ld --gc-sections -Os -static
+CFLAGS := -march=$(ARCH) -mabi=$(ABI)  -nostdlib -static -I headers
+LDFLAGS := -Arv32$(RISC_V_EXTENSIONS) -melf32lriscv -T platforms/$(MACHINE).ld -static
 
 QEMU_EXTENSIONS := e=on,m=on,i=off,h=off,f=off,d=off,a=off,f=off,c=off,zawrs=off,sstc=off,zicntr=off,zihpm=off,zicboz=off,zicbom=off,svadu=off
 QEMU := qemu-system-riscv32 -machine $(MACHINE) $(QEMU_MACHINE_CONFIG) -cpu rv32,$(QEMU_EXTENSIONS) -nographic -serial mon:stdio -echr 17
@@ -39,6 +39,9 @@ ifneq ($(filter debug gdb debug-main gdb-main, $(MAKECMDGOALS)),)
 ASFLAGS += -g -o0
 CFLAGS += -g -o0
 LDFLAGS += -g -o0
+else
+CFLAGS += -Os
+LDFLAGS += --gc-sections -Os
 endif
 
 #----------------------------------------
@@ -47,7 +50,9 @@ endif
 VPATH = src src/drivers src/platforms tests
 
 SRC := $(wildcard src/*.s)
-SRC += $(DRIVERS)
+ifneq ($(DRIVERS),)
+# SRC += $(DRIVERS)
+endif
 SRC += src/platforms/$(MACHINE).s
 
 OBJDIR := build/obj

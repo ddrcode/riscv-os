@@ -7,6 +7,8 @@
 .include "macros.s"
 .include "config.s"
 
+.ifdef ENABLE_IRQ
+
 .macro push_all, stack_size
     push a0, \stack_size - 8
     push a1, \stack_size - 12
@@ -346,3 +348,5 @@ irq_vector:
 irq_message: .string "Software IRQ detected: "
 exception_message: .string "A system level exception occured. Error code: "
 unhandled_ext_irq: .string "Unhandled external IRQ"
+
+.endif

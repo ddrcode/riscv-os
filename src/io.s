@@ -74,7 +74,9 @@ println:
 .type getc, @function
 getc:
     stack_alloc 4
+.if OUTPUT_DEV & 0b10
     call uart_getc
+.endif
     stack_free 4
     ret
 
@@ -92,7 +94,7 @@ read_line:
     push s0, 0
 
     mv s1, a0                          # s1 - pointer to the end of the string
-
+.ifdef UART_BASE
     call uart_get_status
     and s0, a0, 1                      # s0 - 1 if IRQ for uart is enabled, 0 otherwise
 
@@ -125,6 +127,7 @@ _bcksp:
     call _printc_bcksp
     j 1b
 
+.endif
 3:
     sb zero, (s1)                      # close the string
     pop a0, 4

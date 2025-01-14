@@ -1,0 +1,1 @@
+QEMU_MACHINE_CONFIG := -m 4 -smp 1

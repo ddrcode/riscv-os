@@ -31,7 +31,9 @@ _start:
     stack_free
 
 loop:
+.ifdef ENABLE_IRQ
     wfi
+.endif
     j loop
 
 
