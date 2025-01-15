@@ -4,7 +4,7 @@ MEMORY
 {
    /* qemu-system-risc64 virt machine */
    ROM (rx)    : ORIGIN = 0x01100000, LENGTH = 32K
-   RAM (rwx)   : ORIGIN = 0x00000000, LENGTH = 64K
+   RAM (rwx)   : ORIGIN = 0x80000000, LENGTH = 64K
 }
 
 /* see https://sourceware.org/binutils/docs/ld/PHDRS.html */
