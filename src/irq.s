@@ -1,4 +1,4 @@
-    # Interrupt handlers
+# Interrupt handlers
 # author: David de Rosier
 # https://github.com/ddrcode/riscv-os
 #
@@ -170,7 +170,8 @@ fn handle_ext_irq
     push a0, 8                         # save it on the stack otherwise
 
     la t0, external_irq_vector         # compute jump table address
-    slli t1, a0, 2                     # t1 = a0 * 4
+    li t1, 4
+    mul t1, t1, a0
     add t0, t1, t0
 
     lw t1, (t0)                        # load handler address
@@ -255,12 +256,11 @@ fn handle_exception_vector
     # handle exceptions
     li t1, 15
     bgt s1, t1, 1f                     # exit if irq id is > 15
-
-    la t1, exceptions_vector           # compute vector address
-    slli t0, s1, 2                     # address offset: t0 = s1*4
-    add t0, t0, t1                     # final addressL t0 += t1 (base address)
-
-    lw t1, (t0)                        # load handler's address
+    li t1, 4                           # compute vector address
+    mul t0, s1, t1
+    la t1, exceptions_vector
+    add t0, t0, t1
+    lw t1, (t0)
     beqz t1, 1f                        # exit if handler addr = 0
     jalr t1                            # execute function
 1:
@@ -279,7 +279,7 @@ endfn
 
 
 fn handle_exception
-.if DEBUG==1
+.if debug==1
     stack_alloc 32
     la a0, exception_message
     call prints
@@ -309,18 +309,17 @@ fn handle_exception
 endfn
 
 
-fn handle_illegal
+fn handle_math
     stack_alloc
-    csrr a0, mtval
+
     stack_free
-    ret
 endfn
 
 
 
 # FIXME Doesn't work on virt
 fn handle_brk
-.if DEBUG==1
+.if debug==1
     stack_alloc 32
     mv t0, a0
     mv t1, a1
@@ -360,7 +359,7 @@ isr_stack_end:
 exceptions_vector:
     .word    handle_exception          #  0: Instruction address misaligned
     .word    handle_exception          #  1: Instruction access fault
-    .word    handle_illegal            #  2: Illegal instruction
+    .word    handle_exception          #  2: Illegal instruction
     .word    handle_brk                #  3: Breakpoint
     .word    handle_exception          #  4: Load address misaligned
     .word    handle_exception          #  5: Load access fault
