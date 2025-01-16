@@ -51,10 +51,10 @@ irq_init:
     la t0, isr_stack_end               # define interrupt service routine (ISR) stack
     csrw mscratch, t0
 
-    # la t0, irq_vector_table                 # register IRQ handler
-    # ori t0, t0, 1                    # TODO configure with vectorized mode
+    la t0, irq_vector_table            # register IRQ handler
+    ori t0, t0, 1                      # TODO configure with vectorized mode
 
-    la t0, irq_handler                 # configure IRQ handler function
+    #la t0, irq_handler                 # configure IRQ handler function
     csrw mtvec, t0
 
     call init_timer                    # enable system timer
@@ -110,19 +110,9 @@ irq_handler:
     csrw mepc, t0
     j 3f
 
-2:  # handle IRQs
-    li t0, MCAUSE_CODE_MASK
-    and t0, s1, t0
-    li t1, 15
-    bgt t0, t1, 3f                     # exit if irq id is > 15
-    li t1, 4                           # compute vector address
-    mul t0, t0, t1
-    la t1, irq_vector
-    add t0, t0, t1
-    lw t1, (t0)
-    beqz t1, 3f                        # exit if handler addr = 0
-    jalr t1                            # execute function
-
+2:
+    la a0, IRQ_IN_EXCEPTION_HANDLER
+    call println
 3:
     csrrs zero, mie, s0
     csrrsi zero, mstatus, 0x8          # enable interrupts
@@ -187,7 +177,7 @@ handle_timer:
     # call check_stack                 # check wether the stack is healthy
 
     stack_free
-    ret
+    mret
 
 
 .type handle_exception, @function
@@ -255,7 +245,7 @@ handle_ext_irq:
     call plic_complete                 # and mark processing as complete
 4:
     stack_free
-    ret
+    mret
 
 
 .type handle_soft_irq, @function
@@ -266,7 +256,7 @@ handle_soft_irq:
     call println
     stack_free
 .endif
-    ret
+    mret
 
 
 # FIXME Doesn't work on virt
@@ -288,6 +278,28 @@ handle_brk:
     stack_free 32
 .endif
     ret
+
+unhandled_irq:
+    mret
+
+irq_vector_table:
+    j irq_handler             #  0: Reserved
+    j unhandled_irq           #  1: Supervisor software interrupt
+    j unhandled_irq           #  2: Reserved
+    j handle_soft_irq         #  3: Machine software interrupt
+    j unhandled_irq           #  4: Reserved
+    j unhandled_irq           #  5: Supervisor timer interrupt
+    j unhandled_irq           #  6: Rserved
+    j handle_timer            #  7: Machine timer interrupt
+    j unhandled_irq           #  8: Reserved
+    j unhandled_irq           # 19: Supervisor external interrupt
+    j unhandled_irq           # 10: Reserved
+    j handle_ext_irq          # 11: Machine external interrupt
+    j unhandled_irq           # 12: Reserved
+    j unhandled_irq           # 13: Reserved
+    j unhandled_irq           # 14: Reserved
+    j unhandled_irq           # 15: Reserved
+
 
 #----------------------------------------
 
@@ -324,25 +336,6 @@ exceptions_vector:
     .word    handle_exception          # 15: Store/AMO page fault
 
 
-irq_vector:
-    .word    0                         #  0: Reserved
-    .word    0                         #  1: Supervisor software interrupt
-    .word    0                         #  2: Reserved
-    .word    handle_soft_irq           #  3: Machine software interrupt
-    .word    0                         #  4: Reserved
-    .word    0                         #  5: Supervisor timer interrupt
-    .word    0                         #  6: Rserved
-    .word    handle_timer              #  7: Machine timer interrupt
-    .word    0                         #  8: Reserved
-    .word    0                         # 19: Supervisor external interrupt
-    .word    0                         # 10: Reserved
-    .word    handle_ext_irq            # 11: Machine external interrupt
-    .word    0                         # 12: Reserved
-    .word    0                         # 13: Reserved
-    .word    0                         # 14: Reserved
-    .word    0                         # 15: Reserved
-
-
 
 
 #----------------------------------------
@@ -353,3 +346,5 @@ irq_vector:
 irq_message: .string "Software IRQ detected: "
 exception_message: .string "A system level exception occured. Error code: "
 unhandled_ext_irq: .string "Unhandled external IRQ"
+IRQ_IN_EXCEPTION_HANDLER: .string "Exception handler executed for IRQ"
+
