@@ -32,15 +32,15 @@ ASFLAGS := -march=$(ARCH) -mabi=$(ABI) -I headers --defsym OUTPUT_DEV=$(OUTPUT_D
 CFLAGS := -march=$(ARCH) -mabi=$(ABI)  -nostdlib -static -I headers -T platforms/$(MACHINE).ld
 LDFLAGS := -Arv32$(RISC_V_EXTENSIONS) -melf32lriscv -T platforms/$(MACHINE).ld -static -nostdlib
 
-QEMU_EXTENSIONS := e=on,m=off,i=off,h=off,f=off,d=off,a=off,f=off,c=off,zawrs=off,sstc=off,zicntr=off,zihpm=off,zicboz=off,zicbom=off,svadu=off,zicsr=on,zfa=off
+QEMU_EXTENSIONS := e=on,m=on,i=off,h=off,f=off,d=off,a=off,f=off,c=off,zawrs=off,sstc=off,zicntr=off,zihpm=off,zicboz=off,zicbom=off,svadu=off,zicsr=on,zfa=off
 QEMU := qemu-system-riscv32 -machine $(MACHINE) $(QEMU_MACHINE_CONFIG) -cpu rv32,$(QEMU_EXTENSIONS) -nographic -serial mon:stdio -echr 17
 
 ifneq ($(filter release, $(MAKECMDGOALS)),)
 CFLAGS += -Os
 LDFLAGS += --gc-sections
 else
-ASFLAGS += -g -D
-CFLAGS += -g -O0 -D
+ASFLAGS += -g
+CFLAGS += -g -O0
 LDFLAGS += -g --no-gc-sections
 endif
 
