@@ -221,13 +221,6 @@ handle_exception:
     ret
 
 
-fn handle_math
-    stack_alloc
-
-    stack_free
-endfn
-
-
 .type handle_ext_irq, @function
 handle_ext_irq:
     stack_alloc
