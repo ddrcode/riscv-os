@@ -43,9 +43,7 @@
 .global irq_handler
 
 
-.type irq_init, @function
-.align 4
-irq_init:
+fn irq_init
     stack_alloc
 
     la t0, isr_stack_end               # define interrupt service routine (ISR) stack
@@ -70,13 +68,14 @@ irq_init:
 
     stack_free
     ret
+endfn
 
 
 # Handles exceptions and interrupts
 # If bit [31] of mcause is 1 then it's IRQ
 .type irq_handler, @function
 .align 4
-irq_handler:
+fn irq_handler
     .set MCAUSE_INT_MASK, 0x80000000   # [31]=1 interrupt, else exception
     .set MCAUSE_CODE_MASK, 0x7FFFFFFF
 
@@ -84,7 +83,7 @@ irq_handler:
     stack_alloc 64
     push_all 64                        # preserve all registers on the stack
 
-    csrrci zero, mstatus, 0x8             # disable interrupts
+    csrrci zero, mstatus, 0x8          # disable interrupts
     li t0, 0b10000001000
     csrrc s0, mie, t0
 
@@ -122,6 +121,7 @@ irq_handler:
     csrrw sp, mscratch, sp             # exchange sp with mscratch
 
     mret                               # return from m-level handler
+endfn
 
 
 # Sets mtimecmp registry to define the time of the next timer IRQ
@@ -131,7 +131,7 @@ irq_handler:
 # For reference check
 # https://five-embeddev.com/riscv-priv-isa-manual/latest-adoc/machine.html#_machine_timer_registers_mtime_and_mtimecmp
 # a0 - number of cycles until the next IRQ
-set_mtimecmp:
+fn set_mtimecmp
     stack_alloc
     mv a2, a0
 
@@ -149,9 +149,10 @@ set_mtimecmp:
 
     stack_free
     ret
+endfn
 
 
-init_timer:
+fn init_timer
     stack_alloc
     li a0, SYSTEM_TIMER_INTERVAL
     call set_mtimecmp
@@ -163,9 +164,10 @@ init_timer:
 
     stack_free
     ret
+endfn
 
 
-handle_timer:
+fn handle_timer
     stack_alloc
     li a0, SYSTEM_TIMER_INTERVAL
     call set_mtimecmp                  # set the next tick
@@ -178,10 +180,10 @@ handle_timer:
 
     stack_free
     mret
+endfn
 
 
-.type handle_exception, @function
-handle_exception:
+fn handle_exception
 .if debug==1
     stack_alloc 32
     la a0, exception_message
@@ -197,8 +199,8 @@ handle_exception:
     li a0, ' '
     call printc
 
-    # csrr a0, mepc     # Faulting address
-    csrr a0, mtval    # Additional fault information
+    # csrr a0, mepc                    # Faulting address
+    csrr a0, mtval                     # Additional fault information
     mv a1, sp
     li a2, 16
     call utoa
@@ -209,6 +211,7 @@ handle_exception:
     stack_free 32
 .endif
     ret
+endfn
 
 
 fn handle_math
@@ -218,8 +221,7 @@ fn handle_math
 endfn
 
 
-.type handle_ext_irq, @function
-handle_ext_irq:
+fn handle_ext_irq
     stack_alloc
     call plic_get_source_id            # load ext IRQ number
     beqz a0, 3f                        # exit if 0
@@ -246,10 +248,10 @@ handle_ext_irq:
 4:
     stack_free
     mret
+endfn
 
 
-.type handle_soft_irq, @function
-handle_soft_irq:
+fn handle_soft_irq
 .if debug==1
     stack_alloc
     la a0, irq_message
@@ -257,11 +259,11 @@ handle_soft_irq:
     stack_free
 .endif
     mret
+endfn
 
 
 # FIXME Doesn't work on virt
-.type handle_brk, @function
-handle_brk:
+fn handle_brk
 .if debug==1
     stack_alloc 32
     mv t0, a0
@@ -278,9 +280,15 @@ handle_brk:
     stack_free 32
 .endif
     ret
+endfn
 
-unhandled_irq:
+
+fn unhandled_irq
+.if debug==1
+.endif
     mret
+endfn
+
 
 irq_vector_table:
     j irq_handler             #  0: Reserved
@@ -343,8 +351,10 @@ exceptions_vector:
 .section .rodata
 .align 4
 
+.if debug==1
 irq_message: .string "Software IRQ detected: "
 exception_message: .string "A system level exception occured. Error code: "
 unhandled_ext_irq: .string "Unhandled external IRQ"
 IRQ_IN_EXCEPTION_HANDLER: .string "Exception handler executed for IRQ"
+.endif
 
