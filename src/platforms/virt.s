@@ -15,12 +15,11 @@
 
 fn platform_start
     stack_alloc
+    call irq_init
     call plic_init
 
     li a0, 1
     call uart_init
-
-    call irq_init
     stack_free
 endfn
 

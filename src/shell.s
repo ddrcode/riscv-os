@@ -65,7 +65,6 @@ exec_cmd:
     mv a5, a0                          # set the function id
     pop a0, 4                          # restore args addr from the stack
     ecall                              # call the system function
-    # call syscall
 
     la a0, prompt
     call prints

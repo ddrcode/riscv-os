@@ -1,8 +1,16 @@
 # Generic
-.equ debug, 1
+.equ DEBUG, 1
 
 .weak ENABLE_IRQ
 .weak ENABLE_PLIC
+
+
+# Global / default settings
+.set ISR_STACK_SIZE, 4096
+
+
+# All the above settings can be overwritten in the individaul
+# per-machine configs
 
 .ifdef m_virt
     .equ ENABLE_IRQ, 1

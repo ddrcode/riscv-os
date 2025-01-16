@@ -37,56 +37,215 @@
     pop s1, \stack_size - 52
 .endm
 
+.macro irq_stack_alloc, stack_size=64
+    csrrw sp, mscratch, sp             # exchange sp with mscratch
+    stack_alloc \stack_size            # allocate space on IRQ stack
+    push_all \stack_size               # push all registers on the stack
+.endm
+
+.macro irq_stack_free, stack_size=64
+    pop_all \stack_size                # push all registers on the stack
+    stack_free \stack_size             # allocate space on IRQ stack
+    csrrw sp, mscratch, sp             # exchange sp with mscratch
+.endm
+
+.macro debug, msg
+.if DEBUG==1
+    la a0, \msg
+    call println
+.endif
+.endm
+
 .section .text
 
+
+
 .global irq_init
-.global irq_handler
 
 
-.type irq_init, @function
-.align 4
-irq_init:
+
+#----------------------------------------
+# IRQ system initialization
+
+fn irq_init
     stack_alloc
 
     la t0, isr_stack_end               # define interrupt service routine (ISR) stack
     csrw mscratch, t0
 
-    # la t0, irq_vector_table                 # register IRQ handler
-    # ori t0, t0, 1                    # TODO configure with vectorized mode
-
-    la t0, irq_handler                 # configure IRQ handler function
-    csrw mtvec, t0
+    la t0, irq_vector_table            # Load IRQ vector address (must be aligned to 4)
+    ori t0, t0, 1                      # Enable with vectorized mode (bit 1 set to 1)
+    csrw mtvec, t0                     # Set the vector
 
     call init_timer                    # enable system timer
 
-    csrr t0, mie                       # enable hardware interrupts
-    li t1, 0x800                       # by setting bit 11
-    or t0, t0, t1
-    csrw mie, t0
-
-    csrr t0, mstatus                   # enable global interrupts
-    ori t0, t0, 0x8                    # by setting the MIE field (bit 3)
-    csrw mstatus, t0
+    li t0, 0x800
+    csrs mie, t0                       # enable hardware interrupts by setting bit 11
+    csrs mstatus, 0x8                  # enable global interrupts by setting the MIE field (bit 3)
 
     stack_free
     ret
+endfn
+
+
+fn init_timer
+    stack_alloc
+    li a0, SYSTEM_TIMER_INTERVAL
+    call _set_mtimecmp
+
+    li t0, 0x80                        # Set MTIE flag (Machine Time Interrupt Enable) - bit 7
+    csrs mie, t0
+
+    stack_free
+    ret
+endfn
+
+
+# Sets mtimecmp registry to define the time of the next timer IRQ
+# it reads the value of mtime (current number of cycles) and increases it
+# by the value provided in a0 (32-bit, lower half of a 64-bit number),
+# then sets the mtimecmp
+# For reference check
+# https://five-embeddev.com/riscv-priv-isa-manual/latest-adoc/machine.html#_machine_timer_registers_mtime_and_mtimecmp
+# a0 - number of cycles until the next IRQ
+fn _set_mtimecmp
+    stack_alloc
+    mv a2, a0
+
+    li t0, MTIME
+    lw a0, (t0)
+    lw a1, 4(t0)
+    mv a3, zero
+    call uadd64
+
+    li t0, MTIMECMP
+    li t1, ~0                          # As the 64-bit addition is not atomic, it must be
+    sw t1, (t0)                        # done in a fasion that it's never smaller than the
+    sw a1, 4(t0)                       # previous value of mtime. Hence the lower half is first
+    sw a0, (t0)                        # set with max value for uint32
+
+    stack_free
+    ret
+endfn
+
+
+#----------------------------------------
+# Interrupts handling
+#
+# Direct handlers for individual types of IRQ.
+# All should be directly called from IRQ vector
+# hence each should handle mscratch and preserving
+# registers separately. Each should return with mret
+
+
+# Handles system timer interrupts
+# For not only machine level (IRQ 7),
+# but it could be handling supervisor-level too (IRQ 5)
+fn handle_timer
+    irq_stack_alloc
+
+    li a0, SYSTEM_TIMER_INTERVAL
+    call _set_mtimecmp                  # set the next tick
+
+.if OUTPUT_DEV & 0b100
+    call video_repaint                 # Refresh the screen (TODO handle with event)
+.endif
+
+    # call check_stack                 # check wether the stack is healthy
+    irq_stack_free
+    mret
+endfn
+
+
+# Handles all externak IRQs, like UART.
+# It means in practice it handles PLIC-IRQS
+# Hence it uses it's own vector table. As each PLIC config
+# is different for each device, the vector is defined in
+# src/platforms/$(MACHINE).s file
+fn handle_ext_irq
+    irq_stack_alloc
+
+    call plic_get_source_id            # load ext IRQ number
+    beqz a0, 3f                        # exit if 0
+    push a0, 8                         # save it on the stack otherwise
+
+    la t0, external_irq_vector         # compute jump table address
+    li t1, 4
+    mul t1, t1, a0
+    add t0, t1, t0
+
+    lw t1, (t0)                        # load handler address
+    beqz t1, 2f                        # jump if zero
+
+    jalr t1                            # execute handler
+    j 3f
+2:
+    debug unhandled_ext_irq
+3:
+    pop a0, 8                          # retrieve IRQ id
+    call plic_complete                 # and mark processing as complete
+4:
+    irq_stack_free
+    mret
+endfn
+
+
+# Handles software interrupts. Currently usef for debugging only
+fn handle_soft_irq
+    irq_stack_alloc
+    debug software_irq_msg
+    irq_stack_free
+    mret
+endfn
+
+
+# Handler for all 'reserved' IRQs. Should never be called
+fn unhandled_irq
+    irq_stack_alloc
+    debug unhandled_irq_msg
+    irq_stack_free
+    mret
+endfn
+
+
+
+.align 4
+irq_vector_table:
+    j handle_exception_vector #  0: Reserved
+    j unhandled_irq           #  1: Supervisor software interrupt
+    j unhandled_irq           #  2: Reserved
+    j handle_soft_irq         #  3: Machine software interrupt
+    j unhandled_irq           #  4: Reserved
+    j unhandled_irq           #  5: Supervisor timer interrupt
+    j unhandled_irq           #  6: Rserved
+    j handle_timer            #  7: Machine timer interrupt
+    j unhandled_irq           #  8: Reserved
+    j unhandled_irq           # 19: Supervisor external interrupt
+    j unhandled_irq           # 10: Reserved
+    j handle_ext_irq          # 11: Machine external interrupt
+    j unhandled_irq           # 12: Reserved
+    j unhandled_irq           # 13: Reserved
+    j unhandled_irq           # 14: Reserved
+    j unhandled_irq           # 15: Reserved
+
+
+#----------------------------------------
+# Exceptions handling
+#
+# Unlike IRQs, exceptions are synchronous and
+# they don't have CPU-handled vector, hence
+# the vector is implemented programmatically.
+# Also in most of cases the exception hndler should increment
+# the PC to the next instruction to avoid an infinite loop.
 
 
 # Handles exceptions and interrupts
 # If bit [31] of mcause is 1 then it's IRQ
-.type irq_handler, @function
 .align 4
-irq_handler:
+fn handle_exception_vector
     .set MCAUSE_INT_MASK, 0x80000000   # [31]=1 interrupt, else exception
-    .set MCAUSE_CODE_MASK, 0x7FFFFFFF
 
-    csrrw sp, mscratch, sp             # exchange sp with mscratch
-    stack_alloc 64
-    push_all 64                        # preserve all registers on the stack
-
-    csrrci zero, mstatus, 0x8             # disable interrupts
-    li t0, 0b10000001000
-    csrrc s0, mie, t0
+    irq_stack_alloc
 
     csrr s1, mcause                    # read the interrupt cause
 
@@ -110,88 +269,16 @@ irq_handler:
     csrw mepc, t0
     j 3f
 
-2:  # handle IRQs
-    li t0, MCAUSE_CODE_MASK
-    and t0, s1, t0
-    li t1, 15
-    bgt t0, t1, 3f                     # exit if irq id is > 15
-    li t1, 4                           # compute vector address
-    mul t0, t0, t1
-    la t1, irq_vector
-    add t0, t0, t1
-    lw t1, (t0)
-    beqz t1, 3f                        # exit if handler addr = 0
-    jalr t1                            # execute function
-
+2:  # handle interrupts, although interrupts are handled by vector
+    # so if this code is ever executed by an IRQ, means something is wrong
+    debug irq_in_exception_handler
 3:
-    csrrs zero, mie, s0
-    csrrsi zero, mstatus, 0x8          # enable interrupts
-
-    pop_all 64
-    stack_free 64
-    csrrw sp, mscratch, sp             # exchange sp with mscratch
-
+    irq_stack_free
     mret                               # return from m-level handler
+endfn
 
 
-# Sets mtimecmp registry to define the time of the next timer IRQ
-# it reads the value of mtime (current number of cycles) and increases it
-# by the value provided in a0 (32-bit, lower half of a 64-bit number),
-# then sets the mtimecmp
-# For reference check
-# https://five-embeddev.com/riscv-priv-isa-manual/latest-adoc/machine.html#_machine_timer_registers_mtime_and_mtimecmp
-# a0 - number of cycles until the next IRQ
-set_mtimecmp:
-    stack_alloc
-    mv a2, a0
-
-    li t0, MTIME
-    lw a0, (t0)
-    lw a1, 4(t0)
-    mv a3, zero
-    call uadd64
-
-    li t0, MTIMECMP
-    li t1, ~0                          # As the 64-bit addition is not atomic, it must be
-    sw t1, (t0)                        # done in a fasion that it's never smaller than the
-    sw a1, 4(t0)                       # previous value of mtime. Hence the lower half is first
-    sw a0, (t0)                        # set with max value for uint32
-
-    stack_free
-    ret
-
-
-init_timer:
-    stack_alloc
-    li a0, SYSTEM_TIMER_INTERVAL
-    call set_mtimecmp
-
-    csrr t0, mie                       # MTIE is bit 7 in mie
-    li t1, 0x80                        # Set MTIE flag (Machine Time Interrupt Enable)
-    or t0, t0, t1
-    csrw mie, t0
-
-    stack_free
-    ret
-
-
-handle_timer:
-    stack_alloc
-    li a0, SYSTEM_TIMER_INTERVAL
-    call set_mtimecmp                  # set the next tick
-
-.if OUTPUT_DEV & 0b100
-    call video_repaint                 # Refresh the screen
-.endif
-
-    # call check_stack                 # check wether the stack is healthy
-
-    stack_free
-    ret
-
-
-.type handle_exception, @function
-handle_exception:
+fn handle_exception
 .if debug==1
     stack_alloc 32
     la a0, exception_message
@@ -207,8 +294,8 @@ handle_exception:
     li a0, ' '
     call printc
 
-    # csrr a0, mepc     # Faulting address
-    csrr a0, mtval    # Additional fault information
+    # csrr a0, mepc                    # Faulting address
+    csrr a0, mtval                     # Additional fault information
     mv a1, sp
     li a2, 16
     call utoa
@@ -219,52 +306,19 @@ handle_exception:
     stack_free 32
 .endif
     ret
+endfn
 
 
-.type handle_ext_irq, @function
-handle_ext_irq:
+fn handle_math
     stack_alloc
-    call plic_get_source_id            # load ext IRQ number
-    beqz a0, 3f                        # exit if 0
-    push a0, 8                         # save it on the stack otherwise
 
-    la t0, external_irq_vector         # compute jump table address
-    li t1, 4
-    mul t1, t1, a0
-    add t0, t1, t0
-
-    lw t1, (t0)                        # load handler address
-    beqz t1, 2f                        # jump if zero
-
-    jalr t1                            # execute handler
-    j 3f
-2:
-.if debug==1
-    la a0, unhandled_ext_irq
-    call println
-.endif
-3:
-    pop a0, 8                          # retrieve IRQ id
-    call plic_complete                 # and mark processing as complete
-4:
     stack_free
-    ret
+endfn
 
-
-.type handle_soft_irq, @function
-handle_soft_irq:
-.if debug==1
-    stack_alloc
-    la a0, irq_message
-    call println
-    stack_free
-.endif
-    ret
 
 
 # FIXME Doesn't work on virt
-.type handle_brk, @function
-handle_brk:
+fn handle_brk
 .if debug==1
     stack_alloc 32
     mv t0, a0
@@ -281,15 +335,19 @@ handle_brk:
     stack_free 32
 .endif
     ret
+endfn
+
+
+
 
 #----------------------------------------
 
 .section .bss
 
 .align 4
-
 isr_stack:
-.skip 1024
+.skip ISR_STACK_SIZE
+.align 4
 isr_stack_end:
 
 
@@ -308,32 +366,13 @@ exceptions_vector:
     .word    handle_exception          #  6: Store/AMO address misaligned
     .word    handle_exception          #  7: Store/AMO access fault
     .word    syscall                   #  8: Environment call from U-mode
-    .word    syscall                   # 19: Environment call from S-mode
+    .word    syscall                   #  9: Environment call from S-mode
     .word    0                         # 10: Reserved
     .word    syscall                   # 11: Environment call from M-mode
     .word    handle_exception          # 12: Instruction page fault
     .word    handle_exception          # 13: Load page fault
     .word    0                         # 14: Reserved
     .word    handle_exception          # 15: Store/AMO page fault
-
-
-irq_vector:
-    .word    0                         #  0: Reserved
-    .word    0                         #  1: Supervisor software interrupt
-    .word    0                         #  2: Reserved
-    .word    handle_soft_irq           #  3: Machine software interrupt
-    .word    0                         #  4: Reserved
-    .word    0                         #  5: Supervisor timer interrupt
-    .word    0                         #  6: Rserved
-    .word    handle_timer              #  7: Machine timer interrupt
-    .word    0                         #  8: Reserved
-    .word    0                         # 19: Supervisor external interrupt
-    .word    0                         # 10: Reserved
-    .word    handle_ext_irq            # 11: Machine external interrupt
-    .word    0                         # 12: Reserved
-    .word    0                         # 13: Reserved
-    .word    0                         # 14: Reserved
-    .word    0                         # 15: Reserved
 
 
 
@@ -343,6 +382,11 @@ irq_vector:
 .section .rodata
 .align 4
 
-irq_message: .string "Software IRQ detected: "
-exception_message: .string "A system level exception occured. Error code: "
-unhandled_ext_irq: .string "Unhandled external IRQ"
+.if DEBUG==1
+    software_irq_msg: .string "Software IRQ detected: "
+    exception_message: .string "A system level exception occured. Error code: "
+    unhandled_irq_msg: .string "Unhandled IRQ"
+    unhandled_ext_irq: .string "Unhandled external IRQ"
+    irq_in_exception_handler: .string "Exception handler executed for IRQ"
+.endif
+
