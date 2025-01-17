@@ -69,6 +69,14 @@ udiv32:
     stack_free
     ret
 
+
+fn urem32
+    stack_alloc
+    call udiv32
+    mv a0, a1
+    stack_free
+endfn
+
 # Computes 32-bit integer power of x^y
 # Arguments:
 #     a0 - x

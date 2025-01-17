@@ -1,4 +1,4 @@
-# Interrupt handlers
+    # Interrupt handlers
 # author: David de Rosier
 # https://github.com/ddrcode/riscv-os
 #
@@ -8,42 +8,56 @@
 .include "config.s"
 
 .macro push_all, stack_size
-    push a0, \stack_size - 8
-    push a1, \stack_size - 12
-    push a2, \stack_size - 16
-    push a3, \stack_size - 20
-    push a4, \stack_size - 24
-    push a5, \stack_size - 28
-    push t0, \stack_size - 32
-    push t1, \stack_size - 36
-    push t2, \stack_size - 40
-    push ra, \stack_size - 44
-    push s0, \stack_size - 48
-    push s1, \stack_size - 52
+.if \stack_size < 72
+    .abort
+.endif
+    push x15, \stack_size - 8
+    push x14, \stack_size - 12
+    push x13, \stack_size - 16
+    push x12, \stack_size - 20
+    push x11, \stack_size - 24
+    push x10, \stack_size - 28
+    push x9, \stack_size - 32
+    push x8, \stack_size - 36
+    push x7, \stack_size - 40
+    push x6, \stack_size - 44
+    push x5, \stack_size - 48
+    push x4, \stack_size - 52
+    push x3, \stack_size - 56
+    push x2, \stack_size - 60
+    push x1, \stack_size - 64
+    push x0, \stack_size - 68          # why x0? See handle_illegal
 .endm
 
 .macro pop_all, stack_size
-    pop a0, \stack_size - 8
-    pop a1, \stack_size - 12
-    pop a2, \stack_size - 16
-    pop a3, \stack_size - 20
-    pop a4, \stack_size - 24
-    pop a5, \stack_size - 28
-    pop t0, \stack_size - 32
-    pop t1, \stack_size - 36
-    pop t2, \stack_size - 40
-    pop ra, \stack_size - 44
-    pop s0, \stack_size - 48
-    pop s1, \stack_size - 52
+.if \stack_size < 72
+    .abort
+.endif
+    pop x15, \stack_size - 8
+    pop x14, \stack_size - 12
+    pop x13, \stack_size - 16
+    pop x12, \stack_size - 20
+    pop x11, \stack_size - 24
+    pop x10, \stack_size - 28
+    pop x9, \stack_size - 32
+    pop x8, \stack_size - 36
+    pop x7, \stack_size - 40
+    pop x6, \stack_size - 44
+    pop x5, \stack_size - 48
+    pop x4, \stack_size - 52
+    pop x3, \stack_size - 56
+    pop x2, \stack_size - 60
+    pop x1, \stack_size - 64
+    pop x0, \stack_size - 68          # why x0? See handle_illegal
 .endm
 
-.macro irq_stack_alloc, stack_size=64
+.macro irq_stack_alloc, stack_size=80
     csrrw sp, mscratch, sp             # exchange sp with mscratch
     stack_alloc \stack_size            # allocate space on IRQ stack
     push_all \stack_size               # push all registers on the stack
 .endm
 
-.macro irq_stack_free, stack_size=64
+.macro irq_stack_free, stack_size=80
     pop_all \stack_size                # push all registers on the stack
     stack_free \stack_size             # allocate space on IRQ stack
     csrrw sp, mscratch, sp             # exchange sp with mscratch
@@ -170,8 +184,7 @@ fn handle_ext_irq
     push a0, 8                         # save it on the stack otherwise
 
     la t0, external_irq_vector         # compute jump table address
-    li t1, 4
-    mul t1, t1, a0
+    slli t1, a0, 2                     # t1 = a0 * 4
     add t0, t1, t0
 
     lw t1, (t0)                        # load handler address
@@ -256,12 +269,15 @@ fn handle_exception_vector
     # handle exceptions
     li t1, 15
     bgt s1, t1, 1f                     # exit if irq id is > 15
-    li t1, 4                           # compute vector address
-    mul t0, s1, t1
-    la t1, exceptions_vector
-    add t0, t0, t1
-    lw t1, (t0)
+
+    la t1, exceptions_vector           # compute vector address
+    slli t0, s1, 2                     # address offset: t0 = s1*4
+    add t0, t0, t1                     # final addressL t0 += t1 (base address)
+
+    lw t1, (t0)                        # load handler's address
     beqz t1, 1f                        # exit if handler addr = 0
+
+    addi a0, sp, -68
     jalr t1                            # execute function
 1:
     csrr t0, mepc                      # in case of exception move PC to the next instruction
@@ -279,7 +295,7 @@ endfn
 
 
 fn handle_exception
-.if debug==1
+.if DEBUG==1
     stack_alloc 32
     la a0, exception_message
     call prints
@@ -309,17 +325,75 @@ fn handle_exception
 endfn
 
 
-fn handle_math
+# Handles illegal instruction.
+# If instruction recognized as a one from M-extension (math)
+# it tries to emulate it programatically
+# Arguments:
+#     a0 - pointer to x0 (assuming x1 is x0 + 4, etc)
+fn handle_illegal
+    .set math_mask, (0b1111111<<25) | 0b1111111
+    .set math_instr, (1<<25) | 0b110011 # func7=1, opcode=0b0110011
+    .set func_mask, 0b1111
     stack_alloc
+    push s0, 12
+    push s1, 8
 
+    csrr s0, mtval
+    mv s1, a0
+
+    beqz s0, 4f                        # In case mtval doesn't contain instruction
+
+    li t2, math_mask                   # test if it is an m-instruction
+    and t1, s0, t2
+    li t2, math_instr
+    bne t1, t2, 4f                     # not m-extension instruction
+
+    srli t1, s0, 12                    # extract function code
+    andi t1, t1, func_mask
+
+    bnez t1, 4f                        # branch if not code 0 - mul operation
+                                       # the only one currently supported
+    li t2, 15
+
+    srli t0, s0, 15                    # extract argument 1 (bits 15-19)
+    andi t0, t0, 0b11111               # registry number
+    bgt t0, t2, 4f                     # can't handle for reg id > 15
+    slli t0, t0, 2                     # multiply registry no by 4
+    add t0, s1, t0                     # compute registry val address
+    lw a0, (t0)                        # get registry value
+
+    srli t0, s0, 20                    # extract argument 2 (bits 20-24)
+    andi t0, t0, 0b11111               # registry number
+    bgt t0, t2, 4f                     # can't handle for reg id > 15
+    slli t0, t0, 2
+    add t0, s1, t0
+    lw a1, (t0)
+
+    call smul32
+
+    li t2, 15
+    srli t0, s0, 7                     # extract result registry (bits 7-11)
+    andi t0, t0, 0b11111               # registry number
+    bgt t0, t2, 4f                     # can't handle for reg id > 15
+    slli t0, t0, 2
+    add t0, s1, t0
+    sw a0, (t0)                        # store the result in the registry
+    j 5f
+4:
+    # call handle_exception
+
+5:
+    pop s0, 12
+    pop s1, 8
     stack_free
+    ret
 endfn
 
 
 
 # FIXME Doesn't work on virt
 fn handle_brk
-.if debug==1
+.if DEBUG==1
     stack_alloc 32
     mv t0, a0
     mv t1, a1
@@ -359,7 +433,7 @@ isr_stack_end:
 exceptions_vector:
     .word    handle_exception          #  0: Instruction address misaligned
     .word    handle_exception          #  1: Instruction access fault
-    .word    handle_exception          #  2: Illegal instruction
+    .word    handle_illegal            #  2: Illegal instruction
     .word    handle_brk                #  3: Breakpoint
     .word    handle_exception          #  4: Load address misaligned
     .word    handle_exception          #  5: Load access fault
