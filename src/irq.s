@@ -277,7 +277,7 @@ fn handle_exception_vector
     lw t1, (t0)                        # load handler's address
     beqz t1, 1f                        # exit if handler addr = 0
 
-    addi a0, sp, -68
+    addi a0, sp, 12
     jalr t1                            # execute function
 1:
     csrr t0, mepc                      # in case of exception move PC to the next instruction
@@ -326,32 +326,33 @@ endfn
 
 
 # Handles illegal instruction.
-# If instruction recognized as a one from M-extension (math)
+# If instruction is recognized as one from M-extension (math)
 # it tries to emulate it programatically
 # Arguments:
-#     a0 - pointer to x0 (assuming x1 is x0 + 4, etc)
+#     a0 - pointer to x0 on the stack (assuming x1 is x0 + 4, etc)
 fn handle_illegal
     .set math_mask, (0b1111111<<25) | 0b1111111
     .set math_instr, (1<<25) | 0b110011 # func7=1, opcode=0b0110011
     .set func_mask, 0b1111
     stack_alloc
-    push s0, 12
-    push s1, 8
+    push s0, 8
+    push s1, 4
 
-    csrr s0, mtval
-    mv s1, a0
+    csrr s0, mtval                     # On most platforms the mtvl should contain the illegal instruction
+    mv s1, a0                          # Store registers dump address in s1
 
-    beqz s0, 4f                        # In case mtval doesn't contain instruction
+    beqz s0, 4f                        # In case mtval doesn't contain an instruction
 
     li t2, math_mask                   # test if it is an m-instruction
     and t1, s0, t2
     li t2, math_instr
-    bne t1, t2, 4f                     # not m-extension instruction
+    bne t1, t2, 4f                     # jump if not m-extension instruction
 
-    srli t1, s0, 12                    # extract function code
+    srli t1, s0, 12                    # extract function code from the instruction
     andi t1, t1, func_mask
 
-    bnez t1, 4f                        # branch if not code 0 - mul operation
+    li t2, 0b101
+    bne t1, t2, 3f                     # branch if not code 101b - divu operation
                                        # the only one currently supported
     li t2, 15
 
@@ -369,7 +370,7 @@ fn handle_illegal
     add t0, s1, t0
     lw a1, (t0)
 
-    call smul32
+    call udiv32                        # call fallback function
 
     li t2, 15
     srli t0, s0, 7                     # extract result registry (bits 7-11)
@@ -379,12 +380,23 @@ fn handle_illegal
     add t0, s1, t0
     sw a0, (t0)                        # store the result in the registry
     j 5f
+3:
+    # for unhandled m-operations just return 0 as a result :-)
+    li t2, 15
+    srli t0, s0, 7                     # extract result registry (bits 7-11)
+    andi t0, t0, 0b11111               # registry number
+    bgt t0, t2, 4f                     # can't handle for reg id > 15
+    slli t0, t0, 2
+    add t0, s1, t0
+    sw zero, (t0)                      # store the result in the registry
+    j 5f
+
 4:
-    # call handle_exception
+    call handle_exception
 
 5:
-    pop s0, 12
-    pop s1, 8
+    pop s0, 8
+    pop s1, 4
     stack_free
     ret
 endfn

@@ -13,9 +13,11 @@ void print(char* str) {
 void print_test_name(char* prefix, char* case_name) {
     print("Testing ");
     print(prefix);
-    print("(");
-    print(case_name);
-    print("): ");
+    if (case_name) {
+        print("(");
+        print(case_name);
+        print("): ");
+    }
 }
 
 inline void eol(void) {

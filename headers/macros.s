@@ -1,9 +1,17 @@
+.include "config.s"
+
 .macro stack_alloc, size=16
+.if \size < MIN_STACK_ALLOC_CHUNK
+    .abort
+.endif
     addi sp, sp, -\size
     sw ra, \size-4(sp)
 .endm
 
 .macro stack_free, size=16
+.if \size < MIN_STACK_ALLOC_CHUNK
+    .abort
+.endif
     lw ra, \size-4(sp)
     addi sp, sp, \size
 .endm

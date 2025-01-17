@@ -6,6 +6,7 @@
 
 
 # Global / default settings
+.set MIN_STACK_ALLOC_CHUNK, 4
 .set ISR_STACK_SIZE, 4096
 
 
