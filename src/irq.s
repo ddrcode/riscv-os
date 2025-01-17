@@ -333,7 +333,7 @@ endfn
 fn handle_illegal
     .set math_mask, (0b1111111<<25) | 0b1111111
     .set math_instr, (1<<25) | 0b110011 # func7=1, opcode=0b0110011
-    .set func_mask, 0b1111
+    .set func_mask, 0b111
     stack_alloc
     push s0, 8
     push s1, 4
@@ -341,7 +341,7 @@ fn handle_illegal
     csrr s0, mtval                     # On most platforms the mtvl should contain the illegal instruction
     mv s1, a0                          # Store registers dump address in s1
 
-    beqz s0, 4f                        # In case mtval doesn't contain an instruction
+    beqz s0, 4f                        # Finish In case mtval doesn't contain an instruction
 
     li t2, math_mask                   # test if it is an m-instruction
     and t1, s0, t2
@@ -351,10 +351,13 @@ fn handle_illegal
     srli t1, s0, 12                    # extract function code from the instruction
     andi t1, t1, func_mask
 
-    li t2, 0b101
-    bne t1, t2, 3f                     # branch if not code 101b - divu operation
-                                       # the only one currently supported
-    li t2, 15
+    slli t1, t1, 2                     # compute address of a fallback function
+    la t0, m_extension_fallbacks_vector
+    add t0, t0, t1
+    lw t1, (t0)
+    beqz t1, 4f                        # jump if fallback function not provided
+
+    li t2, 15                          # maximum registry id (E extension)
 
     srli t0, s0, 15                    # extract argument 1 (bits 15-19)
     andi t0, t0, 0b11111               # registry number
@@ -370,7 +373,7 @@ fn handle_illegal
     add t0, s1, t0
     lw a1, (t0)
 
-    call udiv32                        # call fallback function
+    jalr t1                            # call fallback function
 
     li t2, 15
     srli t0, s0, 7                     # extract result registry (bits 7-11)
@@ -461,6 +464,15 @@ exceptions_vector:
     .word    handle_exception          # 15: Store/AMO page fault
 
 
+m_extension_fallbacks_vector:
+    .word    0                         #  0: MUL
+    .word    0                         #  1: MULH
+    .word    0                         #  2: MULHSU
+    .word    0                         #  3: MULHU
+    .word    0                         #  4: DIV
+    .word    udiv32                    #  5: DIVU
+    .word    0                         #  6: REM
+    .word    urem32                    #  7: REMU
 
 
 #----------------------------------------
@@ -475,4 +487,5 @@ exceptions_vector:
     unhandled_ext_irq: .string "Unhandled external IRQ"
     irq_in_exception_handler: .string "Exception handler executed for IRQ"
 .endif
+
 
