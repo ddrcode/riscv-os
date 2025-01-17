@@ -170,8 +170,7 @@ fn handle_ext_irq
     push a0, 8                         # save it on the stack otherwise
 
     la t0, external_irq_vector         # compute jump table address
-    li t1, 4
-    mul t1, t1, a0
+    slli t1, a0, 2                     # t1 = a0 * 4
     add t0, t1, t0
 
     lw t1, (t0)                        # load handler address
@@ -256,11 +255,12 @@ fn handle_exception_vector
     # handle exceptions
     li t1, 15
     bgt s1, t1, 1f                     # exit if irq id is > 15
-    li t1, 4                           # compute vector address
-    mul t0, s1, t1
-    la t1, exceptions_vector
-    add t0, t0, t1
-    lw t1, (t0)
+
+    la t1, exceptions_vector           # compute vector address
+    slli t0, s1, 2                     # address offset: t0 = s1*4
+    add t0, t0, t1                     # final addressL t0 += t1 (base address)
+
+    lw t1, (t0)                        # load handler's address
     beqz t1, 1f                        # exit if handler addr = 0
     jalr t1                            # execute function
 1:
@@ -279,7 +279,7 @@ endfn
 
 
 fn handle_exception
-.if debug==1
+.if DEBUG==1
     stack_alloc 32
     la a0, exception_message
     call prints
@@ -309,17 +309,18 @@ fn handle_exception
 endfn
 
 
-fn handle_math
+fn handle_illegal
     stack_alloc
-
+    csrr a0, mtval
     stack_free
+    ret
 endfn
 
 
 
 # FIXME Doesn't work on virt
 fn handle_brk
-.if debug==1
+.if DEBUG==1
     stack_alloc 32
     mv t0, a0
     mv t1, a1
@@ -359,7 +360,7 @@ isr_stack_end:
 exceptions_vector:
     .word    handle_exception          #  0: Instruction address misaligned
     .word    handle_exception          #  1: Instruction access fault
-    .word    handle_exception          #  2: Illegal instruction
+    .word    handle_illegal            #  2: Illegal instruction
     .word    handle_brk                #  3: Breakpoint
     .word    handle_exception          #  4: Load address misaligned
     .word    handle_exception          #  5: Load access fault
