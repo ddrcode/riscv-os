@@ -1,5 +1,5 @@
 # Generic
-.equ DEBUG, 1
+.equ DEBUG, 0
 
 .weak ENABLE_IRQ
 .weak ENABLE_PLIC

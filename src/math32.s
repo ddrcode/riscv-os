@@ -10,6 +10,7 @@
 .section .text
 
 .global udiv32
+.global urem32
 .global pow32
 .global smul32
 
@@ -75,6 +76,7 @@ fn urem32
     call udiv32
     mv a0, a1
     stack_free
+    ret
 endfn
 
 # Computes 32-bit integer power of x^y

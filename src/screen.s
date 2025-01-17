@@ -64,7 +64,7 @@ scr_print:
         sub t0, t2, t0              # compute how many lines to scroll...
         li a0, SCREEN_WIDTH
         mv t0, a0
-        div a0, t0, a0
+        divu a0, t0, a0
         mul t0, t0, a0              # and adjust the start address (a1) accordingly
         sub a1, a1, t0
         push a1, 0                  # preserver the start address on the stack

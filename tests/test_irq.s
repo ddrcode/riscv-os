@@ -21,13 +21,19 @@ fn test_illegal_op
     la a0, str_test_ilegal_op
     mv a1, zero
     call print_test_name
+    call eol
 
-    li a0, 28
+    li t0, 28
     li a1, 4
-    divu a0, a0, a1
+    divu a0, t0, a1
     li a1, 7
     call assert_eq
 
+    li a0, 33
+    li a1, 5
+    remu a0, a0, a1
+    li a1, 3
+    call assert_eq
     ret
 endfn
 
