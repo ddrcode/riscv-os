@@ -1,3 +1,6 @@
+.ifndef __CONFIG_S__
+.equ __CONFIG_S__, 1
+
 # Generic
 .equ DEBUG, 0
 
@@ -6,9 +9,20 @@
 
 
 # Global / default settings
-.set MIN_STACK_ALLOC_CHUNK, 4
+# Don't change these, but edit your platform-specifc config file instead.
+
+# Specifies the minimum stack size allocated per function
+# when stack_alloc macro is used without any argument.
+# If the macro is called with argument smaller than this value,
+# the assmebling process will be aborted.
+# The ILP32I ABI specifies that individual stack-chunk should be
+# 16-bytes long.
+.set MIN_STACK_ALLOC_CHUNK, 0
+
+# Defines the total size of a stack used be IRQ handlers.
 .set ISR_STACK_SIZE, 4096
 
+#--------------------------------------
 
 # All the above settings can be overwritten in the individaul
 # per-machine configs
@@ -23,4 +37,6 @@
     .equ ENABLE_IRQ, 1
     .equ ENABLE_PLIC, 1
     .include "platforms/config-sifive_u.s"
+.endif
+
 .endif

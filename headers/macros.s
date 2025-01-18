@@ -1,19 +1,24 @@
+.ifndef __MACROS_S__
+.equ __MACROS_S__, 1
+
 .include "config.s"
 
-.macro stack_alloc, size=16
+.macro stack_alloc, size=MIN_STACK_ALLOC_CHUNK
 .if \size < MIN_STACK_ALLOC_CHUNK
-    .abort
-.endif
+    addi sp, sp, -MIN_STACK_ALLOC_CHUNK
+.else
     addi sp, sp, -\size
+.endif
     sw ra, \size-4(sp)
 .endm
 
-.macro stack_free, size=16
-.if \size < MIN_STACK_ALLOC_CHUNK
-    .abort
-.endif
+.macro stack_free, size=MIN_STACK_ALLOC_CHUNK
     lw ra, \size-4(sp)
+.if \size < MIN_STACK_ALLOC_CHUNK
+    addi sp, sp, MIN_STACK_ALLOC_CHUNK
+.else
     addi sp, sp, \size
+.endif
 .endm
 
 .macro push, reg, pos
@@ -70,3 +75,5 @@
     .global \name
     fn \name
 .endm
+
+.endif

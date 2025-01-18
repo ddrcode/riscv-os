@@ -1,3 +1,6 @@
+.ifndef __CONSTS_S__
+.equ __CONSTS_S__, 1
+
 # System functions
 
 .equ SYS_FN_LEN, 5
@@ -13,3 +16,5 @@
 .equ ERR_NOT_SUPPORTED, 3
 .equ ERR_INVALID_ARGUMENT, 4
 .equ ERR_STACK_OVERFLOW, 5
+
+.endif
