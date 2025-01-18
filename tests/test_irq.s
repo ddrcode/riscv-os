@@ -15,6 +15,9 @@ fn test_main
 endfn
 
 fn test_illegal_op
+    stack_alloc
+    push s1, 8
+
     li t0, 0x880
     csrc mie, t0                       # disable system timer and hw irqs
 
@@ -34,6 +37,23 @@ fn test_illegal_op
     remu a0, a0, a1
     li a1, 3
     call assert_eq
+
+    li t2, -17
+    li t1, 4
+    div t0, t2, t1
+    mv a0, t0
+    li a1, -4
+    call assert_eq_signed
+
+    li t2, -17
+    li s1, 4
+    rem t0, t2, s1
+    mv a0, t0
+    li a1, -1
+    call assert_eq_signed
+
+    pop s1, 8
+    stack_free
     ret
 endfn
 

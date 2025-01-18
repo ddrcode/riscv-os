@@ -13,6 +13,10 @@
 
 .section .text
 
+
+fn refl_decode_r
+endfn
+
 # Returns registry number from an instruction
 # Arguments
 #     a0 - RISC-V instruction

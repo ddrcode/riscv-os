@@ -15,9 +15,10 @@
 .global div32
 .global rem32
 .global pow32
-.global smul32
+.global mul32
 
 
+# Returns an absolute value of a0
 fn abs
     bgez a0, 1f
     not a0, a0
@@ -26,6 +27,8 @@ fn abs
 endfn
 
 
+# Returns a sign of a0
+# 1 - positive, 0 - zero, -1 - negative
 fn sign
     mv t0, zero
     beqz a0, 1f
@@ -57,8 +60,7 @@ endfn
 # Q - a2
 # R - a3
 # i - t0
-.type udiv32, @function
-udiv32:
+fn udiv32
     stack_alloc
     push a0, 8
     push a1, 4
@@ -92,6 +94,7 @@ udiv32:
 
     stack_free
     ret
+endfn
 
 
 # Computes remainder of unsigned division a0 by a1
@@ -104,6 +107,16 @@ fn urem32
 endfn
 
 
+# Computes signed division of a0 by a1
+# Algorithm: it performs udiv32(abs(x), abs(y)) and then
+# it adjusts sign accordingly.
+# TODO the function is way too long and contains too many function calls - optimize!
+# Argumenst
+#     a0 - x
+#     a1 - y
+# Results
+#     a0 - x/y
+#     a1 - x%y
 fn div32
     .set x, 16
     .set y, 12
@@ -161,6 +174,7 @@ fn div32
 endfn
 
 
+# Computes signed reminder of a0/a1
 fn rem32
     stack_alloc
     call div32
@@ -176,8 +190,7 @@ endfn
 # Returns:
 #     a0 - result (or x if error)
 #     a5 - error code (or 0)
-.type pow32, @function
-pow32:
+fn pow32
     setz a5                            # set error code
     bltz a1, 2f
     beqz a1, 3f
@@ -196,6 +209,7 @@ pow32:
 
 4:  mv a0, t0
 5:  ret
+endfn
 
 
 # Signed, 32-bit integer multiplication returning 64-bit product
@@ -205,11 +219,10 @@ pow32:
 # Returns:
 #     a0 - x*y lower 32 bits
 #     a1 - x*y upper 32 bits
-.type smul32, @function
-smul32:
+fn mul32
     mulh    t0, a1, a0
     mul     a0, a1, a0
     mv      a1, t0
     ret
-
+endfn
 

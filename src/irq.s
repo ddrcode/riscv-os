@@ -459,9 +459,9 @@ m_extension_fallbacks_vector:
     .word    0                         #  1: MULH
     .word    0                         #  2: MULHSU
     .word    0                         #  3: MULHU
-    .word    0                         #  4: DIV
+    .word    div32                     #  4: DIV
     .word    udiv32                    #  5: DIVU
-    .word    0                         #  6: REM
+    .word    rem32                     #  6: REM
     .word    urem32                    #  7: REMU
 
 

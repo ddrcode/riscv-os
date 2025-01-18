@@ -56,6 +56,22 @@ int assert_eq(u32 val, u32 expected) {
     return ok;
 }
 
+int assert_eq_signed(i32 val, i32 expected) {
+    char str[64];
+    int ok = val != expected;
+    itoa(val, str, 10);
+    print(str);
+    print("=>");
+    itoa(expected, str, 10);
+    print(str);
+    print(ok==0 ? "\t[OK]" : "\t[FAILED]");
+    print("\n");
+
+    ++test_count;
+    test_results += ok;
+    return ok;
+}
+
 int assert_arr(u32* vals, u32* expected, i32 len) {
     int ok = 0;
     char str[64];
