@@ -383,21 +383,11 @@ fn handle_illegal
     add t0, s1, t0
     sw a0, (t0)                        # store the result in the registry
     j 5f
-3:
-    # for unhandled m-operations just return 0 as a result :-)
-    li t2, 15
-    srli t0, s0, 7                     # extract result registry (bits 7-11)
-    andi t0, t0, 0b11111               # registry number
-    bgt t0, t2, 4f                     # can't handle for reg id > 15
-    slli t0, t0, 2
-    add t0, s1, t0
-    sw zero, (t0)                      # store the result in the registry
-    j 5f
 
-4:
+4: # na fallback found (or error occured in a fallback)
     call handle_exception
 
-5:
+5: # end
     pop s0, 8
     pop s1, 4
     stack_free

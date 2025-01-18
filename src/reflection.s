@@ -5,6 +5,7 @@
 # See LICENSE file for license details.
 
 .include "macros.s"
+.include "consts.s"
 
 .global refl_get_reg_id
 .global refl_get_reg
@@ -57,12 +58,8 @@ endfn
 #     a5 - error code
 fn refl_get_reg
     stack_alloc
-    push a2, 8
-    call refl_get_reg_id
-    pop a2, 8
-    slli a0, a0, 2
-    add t0, a0, a2
-    lw a0, (t0)
+    mv a3, zero
+    call _get_set_reg
     stack_free
     ret
 endfn
@@ -79,13 +76,43 @@ endfn
 #     a5 - error code
 fn refl_set_reg
     stack_alloc
-    push a2, 8
-    call refl_get_reg_id
-    pop a2, 8
-    slli a0, a0, 2
-    add t0, a0, a2
-    sw a0, (t0)
+    li a3, 1
+    call _get_set_reg
     stack_free
     ret
 endfn
 
+
+# Gets or sets a value of a registry from RISC-V instruction
+# Arguments
+#     a0 - RISC-V instruction
+#     a1 - register (0 - rd, 1 - rs1, 2 - rs2)
+#     a2 - pointer to a memory (usually stack) with registers dump
+#          starting from x0 (so x1 i addr+4, etc)
+#     a3 - operation (0 - get, 1 - set)
+# Returns
+#     a0 - value from the registry
+#     a5 - error code
+fn _get_set_reg
+    stack_alloc
+    push a2, 8
+    push a3, 4
+    call refl_get_reg_id
+    bgez a0, 1f
+        li a5, ERR_INVALID_ARGUMENT
+        mv a0, zero
+        j 2f
+
+1:  pop a2, 8
+    pop a3, 4
+    slli a0, a0, 2
+    add t0, a0, a2
+    bnez a3, 2f
+        lw a0, (t0)
+        j 3f
+2:
+    sw a0, (t0)
+3:
+    stack_free
+    ret
+endfn
