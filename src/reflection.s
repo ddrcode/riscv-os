@@ -11,10 +11,57 @@
 .global refl_get_reg
 .global refl_set_reg
 
+.global refl_decode_r_instr
+
 .section .text
 
 
-fn refl_decode_r
+# Decodes r-format instruction into two word structure
+# Arguments:
+#     a0 - instruction
+#     a1 - pointer to memory where structure will be saved
+# Returns:
+#     same as input
+#
+# Output structure
+#      word 0, byte 0 - Opcode
+#      word 0, byte 1 - rd
+#      word 0, byte 2 - funct 3
+#      word 0, byte 3 - rs 1
+#      word 1, byte 0 - rs 2
+#      word 2, byte 1 - funct 7
+#      word 2, byte 2 - 0
+#      word 2, byte 3 - 0
+fn refl_decode_r_instr
+    mv a3, zero                        # word 1
+
+    andi a2, a0, 0b1111111             # save opcode (bits [6:0]) into w0b0
+
+    srli a0, a0, 7                     # shift instruction by 7 bits right
+    andi t0, a0, 0b11111               # extract the value of rd (bits [7:11])
+    slli t0, t0, 8                     # and move the result left by 8 bits
+    or a2, a2, t0                      # save rd in w0b1
+
+    srli a0, a0, 5                     # extract funct 3
+    andi t0, a0, 0b111
+    slli t0, t0, 16
+    or a2, a2, t0
+
+    srli a0, a0, 3                     # extract rs1
+    andi t0, a0, 0b11111
+    slli t0, t0, 24
+    or a2, a2, t0
+
+    srli a0, a0, 5                     # extract rs2
+    andi a3, a0, 0b11111
+
+    srli a0, a0, 5                     # extract funct 7
+    andi t0, a0, 0b1111111
+    slli t0, t0, 8
+    or a3, a3, t0
+
+    sw a2, (a1)
+    sw a2, 4(a1)
 endfn
 
 # Returns registry number from an instruction
