@@ -60,6 +60,7 @@ endfn
 # Q - a2
 # R - a3
 # i - t0
+.if HAS_EXTENSION_M == 0
 fn udiv32
     stack_alloc
     push a0, 8
@@ -95,6 +96,13 @@ fn udiv32
     stack_free
     ret
 endfn
+.else
+fn udiv32
+    divu t0, a0, a1
+    remu a1, a0, a1
+    mv a0, t0
+endfn
+.endif
 
 
 # Computes remainder of unsigned division a0 by a1

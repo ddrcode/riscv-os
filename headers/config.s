@@ -22,6 +22,9 @@
 # Defines the total size of a stack used be IRQ handlers.
 .set ISR_STACK_SIZE, 4096
 
+.set HAS_EXTENSION_M, 0
+.set HAS_EXTENSION_ZMMUL, 1
+
 #--------------------------------------
 
 # All the above settings can be overwritten in the individaul
