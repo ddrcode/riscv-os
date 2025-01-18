@@ -1,8 +1,8 @@
-    # Interrupt handlers
+# Interrupt handlers
 # author: David de Rosier
 # https://github.com/ddrcode/riscv-os
 #
-# See LICENSE for license details.
+# See LICENSE file for license details.
 
 .include "macros.s"
 .include "config.s"

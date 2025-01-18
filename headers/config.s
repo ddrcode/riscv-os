@@ -14,10 +14,10 @@
 # Specifies the minimum stack size allocated per function
 # when stack_alloc macro is used without any argument.
 # If the macro is called with argument smaller than this value,
-# the assmebling process will be aborted.
+# the value will be defaulted to this one
 # The ILP32I ABI specifies that individual stack-chunk should be
 # 16-bytes long.
-.set MIN_STACK_ALLOC_CHUNK, 0
+.set MIN_STACK_ALLOC_CHUNK, 4
 
 # Defines the total size of a stack used be IRQ handlers.
 .set ISR_STACK_SIZE, 4096
