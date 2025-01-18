@@ -338,6 +338,7 @@ fn handle_illegal
     push s0, 8
     push s1, 4
 
+.if HAS_EXTENSION_M == 0
     csrr s0, mtval                     # On most platforms the mtvl should contain the illegal instruction
     mv s1, a0                          # Store registers dump address in s1
 
@@ -383,6 +384,7 @@ fn handle_illegal
     add t0, s1, t0
     sw a0, (t0)                        # store the result in the registry
     j 5f
+.endif
 
 4: # na fallback found (or error occured in a fallback)
     call handle_exception
@@ -454,6 +456,7 @@ exceptions_vector:
     .word    handle_exception          # 15: Store/AMO page fault
 
 
+.if HAS_EXTENSION_M == 0
 m_extension_fallbacks_vector:
     .word    0                         #  0: MUL
     .word    0                         #  1: MULH
@@ -463,6 +466,7 @@ m_extension_fallbacks_vector:
     .word    udiv32                    #  5: DIVU
     .word    rem32                     #  6: REM
     .word    urem32                    #  7: REMU
+.endif
 
 
 #----------------------------------------

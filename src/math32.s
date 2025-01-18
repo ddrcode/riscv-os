@@ -60,8 +60,8 @@ endfn
 # Q - a2
 # R - a3
 # i - t0
-.if HAS_EXTENSION_M == 0
 fn udiv32
+.if HAS_EXTENSION_M == 0
     stack_alloc
     push a0, 8
     push a1, 4
@@ -95,22 +95,25 @@ fn udiv32
 
     stack_free
     ret
-endfn
 .else
-fn udiv32
     divu t0, a0, a1
     remu a1, a0, a1
     mv a0, t0
-endfn
 .endif
+    ret
+endfn
 
 
 # Computes remainder of unsigned division a0 by a1
 fn urem32
+.if HAS_EXTENSION_M == 0
     stack_alloc
     call udiv32
     mv a0, a1
     stack_free
+.else
+    remu a0, a0, a1
+.endif
     ret
 endfn
 
@@ -126,6 +129,7 @@ endfn
 #     a0 - x/y
 #     a1 - x%y
 fn div32
+.if HAS_EXTENSION_M == 0
     .set x, 16
     .set y, 12
     .set q, 24
@@ -178,16 +182,25 @@ fn div32
     pop s0, 24
     pop s1, 20
     stack_free 32
+.else
+    div t0, a0, a1
+    rem a1, a0, a1
+    mv a0, t0
+.endif
     ret
 endfn
 
 
 # Computes signed reminder of a0/a1
 fn rem32
+.if HAS_EXTENSION_M == 0
     stack_alloc
     call div32
     mv a0, a1
     stack_free
+.else
+    rem a0, a0, a1
+.endif
     ret
 endfn
 

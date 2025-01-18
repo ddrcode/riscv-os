@@ -2,7 +2,7 @@
 .equ __CONFIG_S__, 1
 
 # Generic
-.equ DEBUG, 0
+.equ DEBUG, 1
 
 .weak ENABLE_IRQ
 .weak ENABLE_PLIC
@@ -22,6 +22,11 @@
 # Defines the total size of a stack used be IRQ handlers.
 .set ISR_STACK_SIZE, 4096
 
+# Indicates whether the platform on which the OS will be running has
+# M or Zmmul extension. If not, the OS provides a fallback solution
+# that lets to execute math instructions (div, mul, etc) without any
+# further changes. Means the OS should be using math instructions of
+# RISC-V assembly, regardless the target platform.
 .set HAS_EXTENSION_M, 0
 .set HAS_EXTENSION_ZMMUL, 1
 
