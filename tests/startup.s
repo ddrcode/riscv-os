@@ -15,6 +15,11 @@ _start:
     mv s0, sp
 
     stack_alloc
+
+    call irq_init                      # enable IRQ's
+    li t0, 0x880
+    csrc mie, t0                       # but disable system timer and hw irqs
+
     call sysinit
     call test_main
     stack_free
@@ -23,4 +28,6 @@ _start:
 loop:
     wfi
     j loop
+
+.section .data
 

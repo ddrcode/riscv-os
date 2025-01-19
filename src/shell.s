@@ -181,6 +181,7 @@ set_prompt:
     la t0, prompt
     lbu t1, (a0)
     sb t1, (t0)
+    sb zero, 2(t0)                     # make sure string terminates
     setz a5
     j 2f
 1:
@@ -196,7 +197,12 @@ prompt: .string "> "
 .section .rodata
 
 welcome: .string "Welcome to RISC-V OS v0.1"
-commands: .string "cls", "date", "prompt", "print", "fbdump"
+# commands: .string "cls", "date", "prompt", "print", "fbdump"
+commands: .string "cls"
+          .string "date"
+          .string "prompt"
+          .string "print"
+          .string "fbdump"
 
 err_unknown: .string "Unknown error"
 err_not_found: .string "Command not found"

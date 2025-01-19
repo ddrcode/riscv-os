@@ -27,10 +27,12 @@ hardware and memory.
 - system functions callable via `ecall`
 - interrupt/exception handlers
 - various math and string functions
+- fallbacks for missing M-extension
 
 ### Planned features
 
 - supervisor and user modes (currently everything executes in machine mode)
+- system events
 
 ## Building and dependencies
 

@@ -169,7 +169,7 @@ _print_char:
     mv t0, a0
     inc t0
     li t1, 100
-    div t0, t0, t1
+    divu t0, t0, t1
     addi t0, t0, '0'
     sb t0, 6(sp)
 
@@ -178,7 +178,7 @@ _print_char:
     li t1, 100
     rem t0, a0, t1
     li t1, 10
-    div t0, t0, t1
+    divu t0, t0, t1
     addi t0, t0, '0'
     sb t0, 7(sp)
 
@@ -195,7 +195,7 @@ _print_char:
     pop a0, 52
     inc t0
     li t1, 100
-    div t0, a0, t1
+    divu t0, a0, t1
     addi t0, t0, '0'
     sb t0, 2(sp)
 
@@ -204,7 +204,7 @@ _print_char:
     li t1, 100
     rem t0, a0, t1
     li t1, 10
-    div t0, t0, t1
+    divu t0, t0, t1
     addi t0, t0, '0'
     sb t0, 3(sp)
 
