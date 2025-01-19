@@ -27,7 +27,7 @@
 # that lets to execute math instructions (div, mul, etc) without any
 # further changes. Means the OS should be using math instructions of
 # RISC-V assembly, regardless the target platform.
-.set HAS_EXTENSION_M, 0
+.set HAS_EXTENSION_M, 1
 .set HAS_EXTENSION_ZMMUL, 1
 
 #--------------------------------------

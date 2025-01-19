@@ -31,6 +31,7 @@ int test_main() {
     test_udiv32("16/8", 16, 8, 2);
     test_udiv32("333/9", 333, 9, 37);
     test_udiv32("1/18", 1, 18, 0);
+    test_udiv32("~0/16", ~0, 16, 0xfffffff);
     eol();
     test_urem32("16/8", 16, 8, 0);
     test_urem32("333/125", 333, 125, 83);

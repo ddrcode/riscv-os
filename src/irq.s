@@ -294,6 +294,17 @@ fn handle_exception_vector
 endfn
 
 
+fn handle_syscall
+    stack_alloc
+    mv t0, a0
+    lw a0, 40(t0)                      # fetch value of a0 (x10) from the stack
+    lw a5, 60(t0)                      # fetch value of a5 (x15) from the stack
+    call syscall
+    stack_free
+    ret
+endfn
+
+
 fn handle_exception
 .if DEBUG==1
     stack_alloc 32
@@ -446,10 +457,10 @@ exceptions_vector:
     .word    handle_exception          #  5: Load access fault
     .word    handle_exception          #  6: Store/AMO address misaligned
     .word    handle_exception          #  7: Store/AMO access fault
-    .word    syscall                   #  8: Environment call from U-mode
-    .word    syscall                   #  9: Environment call from S-mode
+    .word    0                         #  8: Environment call from U-mode
+    .word    0                         #  9: Environment call from S-mode
     .word    0                         # 10: Reserved
-    .word    syscall                   # 11: Environment call from M-mode
+    .word    handle_syscall            # 11: Environment call from M-mode
     .word    handle_exception          # 12: Instruction page fault
     .word    handle_exception          # 13: Load page fault
     .word    0                         # 14: Reserved

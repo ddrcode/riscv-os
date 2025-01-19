@@ -181,6 +181,7 @@ set_prompt:
     la t0, prompt
     lbu t1, (a0)
     sb t1, (t0)
+    sb zero, 2(t0)                     # make sure string terminates
     setz a5
     j 2f
 1:
