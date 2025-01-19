@@ -196,7 +196,12 @@ prompt: .string "> "
 .section .rodata
 
 welcome: .string "Welcome to RISC-V OS v0.1"
-commands: .string "cls", "date", "prompt", "print", "fbdump"
+# commands: .string "cls", "date", "prompt", "print", "fbdump"
+commands: .string "cls"
+          .string "date"
+          .string "prompt"
+          .string "print"
+          .string "fbdump"
 
 err_unknown: .string "Unknown error"
 err_not_found: .string "Command not found"
