@@ -288,6 +288,7 @@ print_screen:
     setz a1
     call set_cursor_pos
     call _print_frame
+    setz a5                            # Set the error code
     stack_free 4
     ret
 

@@ -4,6 +4,10 @@
 #
 # See LICENSE file for license details.
 
+
+# FIXME all function in this file are under development and not tested.
+#       The code is at this stage not being used by other parts of the system
+
 .include "macros.s"
 .include "consts.s"
 
