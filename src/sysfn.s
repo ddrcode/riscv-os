@@ -43,3 +43,15 @@ sysfn_vector:
     .word    0                         # 8
     .word    0                         # 9
     .word    get_secs_from_epoch       # 10
+    .word    0                         # 11
+    .word    0                         # 12
+    .word    0                         # 13
+    .word    0                         # 14
+    .word    0                         # 15
+    .word    0                         # 16
+    .word    0                         # 17
+    .word    0                         # 18
+    .word    0                         # 19
+    .word    uart_getc                 # 20
+    .word    uart_putc                 # 21
+    .word    uart_puts                 # 22
