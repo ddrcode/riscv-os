@@ -457,7 +457,7 @@ exceptions_vector:
     .word    handle_exception          #  5: Load access fault
     .word    handle_exception          #  6: Store/AMO address misaligned
     .word    handle_exception          #  7: Store/AMO access fault
-    .word    0                         #  8: Environment call from U-mode
+    .word    handle_syscall            #  8: Environment call from U-mode
     .word    0                         #  9: Environment call from S-mode
     .word    0                         # 10: Reserved
     .word    handle_syscall            # 11: Environment call from M-mode

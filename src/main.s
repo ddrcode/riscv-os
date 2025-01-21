@@ -13,6 +13,9 @@
 .global _start
 
 _start:
+
+    # Set the global pointers
+
     csrr t0, mhartid
     bnez t0, loop                      # initialize only if in hart 0
 
@@ -21,14 +24,25 @@ _start:
     la sp, __stack_top                 # initialize stack pointer
     mv s0, sp
 
+    # Initialize the system
+
     stack_alloc
 
     call platform_start
     call sysinit
-    call shell_init
-    call shell_command_loop
+
+    # Switch to User Mode and run shell
+
+    la t0, shell_init                  # set return address
+    csrw mepc, t0
+
+    li t0, 0b11                        # set PCP field of mstatus to 00 (User mode)
+    slli t0, t0, 11
+    csrc mstatus, t0
 
     stack_free
+
+    mret                               # Return to user mode
 
 loop:
     wfi
