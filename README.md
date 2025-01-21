@@ -24,7 +24,7 @@ hardware and memory.
 - trivial shell with five (!!!) commands: `cls`, `date`, `print`, `prompt`, `fbdump`
 - drivers for UART, RTC and PLIC
 - keyboard input (UART, interrupts)
-- system functions callable via `ecall`
+- [system functions](../wiki/System-functions) callable via `ecall`
 - interrupt/exception handlers
 - User Mode (for running shell) and Machine Mode (for the system)
 - various math and string functions
