@@ -11,7 +11,7 @@
 .section .text
 
 .global sysinit
-.global syscall
+.global sys_call
 .global check_stack
 .global panic
 
@@ -25,34 +25,30 @@ sysinit:
     stack_free 4
     ret
 
+
 # Calls system function
 # Arguments:
-#     a0 - pointer to arguments (or 0)
+#     a0-a4 - function arguments
 #     a5 - function id (as per ilp32e ABI)
-.type syscall, @function
-syscall:
+fn sys_call
     stack_alloc 4
-    li t0, SYS_FN_LEN
-    bgt a5, t0, 3f                       # exit if fn id is too big
-    bltz a5, 3f                          # exit if fn id is negative
-    la t1, fnjumptable                   # get addr of jump table
-    beqz a5, 1f                          # jump if fn id is 0 (cmd not found)
-        li t0, 4                         # compute fn address...
-        mul t0, t0, a5
-        add t0, t0, t1
-        lw t1, (t0)                      # ...addr of function to execute
+    li t0, SYSFN_LAST_FN_ID
+    bgt a5, t0, 1f                       # error if fn id is too big
+    blez a5, 1f                          # error if fn id <= 0
+
+    addr_from_vec sysfn_vector, a5, t0   # fetch function address from vector
+    beqz t0, 1f                          # error if fn not found (addr 0)
+
+        jalr t0                          # execute system function
         j 2f
-1:                                       # case when fn id is 0
-    li a0, 1                             # set error code to 1 (cmd not found)
-    lw t1, (t1)                          # load addr of show_error fn
-2:                                       # execute sys function
-    jalr t1
-    beqz a5, 3f                          # finish if return code is 0
-    mv a0, a5
-    call show_error                      # otherwise show error
-3:                                       # exit
+
+1:  # error handling
+    li a5, ERR_NOT_SUPPORTED
+
+2:  # end
     stack_free 4
     ret
+endfn
 
 
 .type check_stack, @function

@@ -21,8 +21,18 @@ _start:
     csrc mie, t0                       # but disable system timer and hw irqs
 
     call sysinit
-    call test_main
+
+    # Run test in user mode
+
+    la t0, test_main
+    csrw mepc, t0
+
+    li t0, 0b11                        # set PCP field of mstatus to 00 (User mode)
+    slli t0, t0, 11
+    csrc mstatus, t0
+
     stack_free
+    mret
 
 
 loop:

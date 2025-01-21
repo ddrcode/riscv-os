@@ -1,4 +1,12 @@
+# I/O functions, output-device aware
+# for RISC-V OS
+# author: David de Rosier
+# https://github.com/ddrcode/riscv-os
+#
+# See LICENSE file for license details.
+
 .include "macros.s"
+.include "consts.s"
 
 .global printc
 .global prints
@@ -15,7 +23,7 @@ printc:
     sb zero, 1(sp)
 
 .if OUTPUT_DEV & 0b10
-    call uart_putc
+    syscall SYSFN_PRINT_CHAR
 .endif
 
 .if OUTPUT_DEV & 1
@@ -39,7 +47,7 @@ prints:
     push a0, 8
 
 .if OUTPUT_DEV & 0b10
-    call uart_puts
+    syscall SYSFN_PRINT_STR
 .endif
 
 .if OUTPUT_DEV & 1
@@ -57,9 +65,9 @@ println:
     push a0, 8
 
 .if OUTPUT_DEV & 0b10
-    call uart_puts
+    syscall SYSFN_PRINT_STR
     li a0, '\n'
-    call uart_putc
+    syscall SYSFN_PRINT_CHAR
 .endif
 
 .if OUTPUT_DEV & 1
@@ -74,7 +82,7 @@ println:
 .type getc, @function
 getc:
     stack_alloc 4
-    call uart_getc
+    syscall SYSFN_GET_CHAR
     stack_free 4
     ret
 
@@ -100,7 +108,7 @@ read_line:
         beqz s0, 2f                    # call wfi if irqs are anbled
             # wfi                        # wait for IRQ
 2:
-        call getc
+        syscall SYSFN_GET_CHAR
         beqz a0, 1b                    # continue if no key identified
 
         li t0, 10                      # exit on \r or \n
@@ -139,11 +147,11 @@ _printc_bcksp:
 
 .if OUTPUT_DEV & 0b10
     li a0, '\b'
-    call uart_putc
+    syscall SYSFN_PRINT_CHAR
     li a0, ' '
-    call uart_putc
+    syscall SYSFN_PRINT_CHAR
     li a0, '\b'
-    call uart_putc
+    syscall SYSFN_PRINT_CHAR
 .endif
 
 .if OUTPUT_DEV & 0b10
