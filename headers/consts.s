@@ -3,9 +3,7 @@
 
 # System functions
 
-.equ SYS_FN_LEN, 5
-
-
+.equ SYSFN_SLEEP, 1
 .equ SYSFN_IDLE, 2
 
 # Time functions

@@ -294,6 +294,16 @@ fn handle_exception_vector
 endfn
 
 
+# Handler for ecall operations from user mode
+# As i's being invoked from handle_exception_vector, it takes
+# all params from a pointer to a dump of all registers on the stack.
+# Arguments
+#     a0 - pointer to registers dump on the stack
+# Returns
+#     Whatever the system functin returns
+# TODO it can be massively simplified (no stack operations)
+#      if caught early in handle_exception_vector function
+#      and called (or even jumped into) directly
 fn handle_syscall
     stack_alloc
     push s1, 8

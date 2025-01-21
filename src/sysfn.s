@@ -14,7 +14,7 @@
 
 .section .text
 
-fn get_secs_from_epoch
+fn sysfn_get_secs_from_epoch
 .ifdef RTC_BASE
     stack_alloc
     call rtc_time_in_sec
@@ -23,6 +23,30 @@ fn get_secs_from_epoch
 .else
     li a5, ERR_NOT_SUPPORTED
 .endif
+    ret
+endfn
+
+
+fn sysfn_get_date
+    stack_alloc
+    call sysfn_get_secs_from_epoch
+    bnez a5, 1f
+    call get_date
+    mv a5, zero
+1:
+    stack_free
+    ret
+endfn
+
+
+fn sysfn_get_time
+    stack_alloc
+    call sysfn_get_secs_from_epoch
+    bnez a5, 1f
+    call get_time
+    mv a5, zero
+1:
+    stack_free
     ret
 endfn
 
@@ -42,10 +66,10 @@ sysfn_vector:
     .word    0                         # 7
     .word    0                         # 8
     .word    0                         # 9
-    .word    get_secs_from_epoch       # 10
-    .word    0                         # 11
+    .word    sysfn_get_secs_from_epoch # 10
+    .word    sysfn_get_date            # 11
     .word    0                         # 12
-    .word    0                         # 13
+    .word    sysfn_get_time            # 13
     .word    0                         # 14
     .word    0                         # 15
     .word    0                         # 16

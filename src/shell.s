@@ -18,8 +18,7 @@
 .global show_error
 .global show_date_time
 
-.type shell_init, @function
-shell_init:
+fn shell_init
     stack_alloc
     call clear_screen
     la a0, welcome
@@ -30,9 +29,10 @@ shell_init:
     call shell_command_loop
     stack_free
     ret
+endfn
 
-.type shell_command_loop, @function
-shell_command_loop:
+
+fn shell_command_loop
     stack_alloc 64
 1:
         mv a0, sp
@@ -43,13 +43,16 @@ shell_command_loop:
             mv a0, sp
             call exec_cmd
         j 1b
+
     call panic                         # the loop should never end
     stack_free 64
     ret
+endfn
+
 
 # Arguments
 #    a0 - cmd string pointer
-exec_cmd:
+fn exec_cmd
     stack_alloc
     push a0, 8
     push zero, 4
@@ -80,6 +83,7 @@ exec_cmd:
 
     stack_free
     ret
+endfn
 
 
 # Splits string between command and argument(s).
@@ -88,7 +92,7 @@ exec_cmd:
 #    a0 - cmd string pointer
 # Returns
 #    a0 - address of arguments string (or 0 if none)
-split_cmd:
+fn split_cmd
     stack_alloc
     push a0, 8
 
@@ -102,6 +106,8 @@ split_cmd:
 1:
     stack_free
     ret
+endfn
+
 
 # Parses command line
 # Arguments:
@@ -110,22 +116,19 @@ split_cmd:
 #     a0 - system function id (or 0 when not found)
 #     a5 - error code
 # TODO make index byte not word
-parse_cmd:
+fn parse_cmd
     stack_alloc
+    push s1, 0
 
     la a1, commands
-    li a2, SYS_FN_LEN
+    mv s1, zero
 
     push a0, 8
-    push a2, 0
 1:                                   # do
         push a1, 4
         call strcmp
         bgtz a0, 2f                  # finish when command matches
-            pop a2, 0                # retrieve index from the stack
-            dec a2                   # decrement index
-            beqz a2, 3f              # finnish if index is 0
-            push a2, 0
+            inc s1                   # increment index
 
             pop a1, 4                # retrieve array pointer from the stack
             mv a0, a1
@@ -133,26 +136,28 @@ parse_cmd:
             pop a1, 4
             add a1, a1, a0           # Move array pointer to the next item
             inc a1
+            lbu t2, (a1)
+            beqz t2, 3f              # finish if the next item is 0
             pop a0, 8                # retrieve command pointer from the stack
     j 1b
 2:                                   # cmd found
-    li t0, SYS_FN_LEN                # retrieve num of commands
-    sub a0, t0, a2                   # fn_no = (no_of_comands - index) + 1
-    inc a0
+    addi a0, s1, 1
     setz a5
     j 4f
 3:                                   # cmd not found
     setz a0
     li a5, ERR_CMD_NOT_FOUND
 4:                                   # end
+    pop s1, 0
     stack_free
     ret
+endfn
 
 
 # Shows error
 # Arguments:
 #     a0 - error code
-show_error:
+fn show_error
     stack_alloc 4
     li t0, NUM_OF_ERRORS
     blt a0, t0, 1f                     # jump if valid error code
@@ -167,9 +172,10 @@ show_error:
     setz a5
     stack_free 4
     ret
+endfn
 
 
-show_date_time:
+fn show_date_time
     stack_alloc 32
 
     syscall SYSFN_GET_SECS_FROM_EPOCH
@@ -184,11 +190,13 @@ show_date_time:
 1:
     stack_free 32
     ret
+endfn
+
 
 # Set single-character prompt
 # arguments:
 #    a0 - pointer to prompt string (only the first char will be taken)
-set_prompt:
+fn set_prompt
     beqz a0, 1f
     la t0, prompt
     lbu t1, (a0)
@@ -199,6 +207,7 @@ set_prompt:
 1:
     li a5, 2                           # set error code
 2:  ret
+endfn
 
 
 #----------------------------------------
@@ -241,3 +250,4 @@ shell_cmd_vector:
         .word set_prompt
         .word println
         .word print_screen
+        .word 0
