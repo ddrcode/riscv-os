@@ -33,7 +33,8 @@ CFLAGS := -march=$(ARCH) -mabi=$(ABI)  -nostdlib -static -I headers -T platforms
 LDFLAGS := -Arv32$(RISC_V_EXTENSIONS) -melf32lriscv -T platforms/$(MACHINE).ld -static -nostdlib
 
 QEMU_EXTENSIONS := e=on,m=on,i=off,h=off,f=off,d=off,a=off,f=off,c=off,zawrs=off,sstc=off,zicntr=off,zihpm=off,zicboz=off,zicbom=off,svadu=off,zicsr=on,zfa=off,zmmul=on
-QEMU := qemu-system-riscv32 -machine $(MACHINE) $(QEMU_MACHINE_CONFIG) -cpu rv32,$(QEMU_EXTENSIONS) -nographic -serial mon:stdio -echr 17
+QEMU := qemu-system-riscv32 -machine $(MACHINE) \
+		-cpu rv32,pmp=false,$(QEMU_EXTENSIONS) -nographic -serial mon:stdio -echr 17
 
 ifneq ($(filter release, $(MAKECMDGOALS)),)
 CFLAGS += -Os

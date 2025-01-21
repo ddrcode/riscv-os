@@ -26,13 +26,14 @@ hardware and memory.
 - keyboard input (UART, interrupts)
 - system functions callable via `ecall`
 - interrupt/exception handlers
+- User Mode (for running shell) and Machine Mode (for the system)
 - various math and string functions
 - fallbacks for missing M-extension
 
 ### Planned features
 
-- supervisor and user modes (currently everything executes in machine mode)
 - system events
+- supervisor mode (currently everything executes in either user or machine mode)
 
 ## Building and dependencies
 

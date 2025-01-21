@@ -2,7 +2,7 @@
 .equ __CONFIG_S__, 1
 
 # Generic
-.equ DEBUG, 0
+.equ DEBUG, 1
 
 .weak ENABLE_IRQ
 .weak ENABLE_PLIC

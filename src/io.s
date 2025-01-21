@@ -98,7 +98,7 @@ read_line:
 
 1:
         beqz s0, 2f                    # call wfi if irqs are anbled
-            wfi                        # wait for IRQ
+            # wfi                        # wait for IRQ
 2:
         call getc
         beqz a0, 1b                    # continue if no key identified

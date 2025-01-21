@@ -27,6 +27,7 @@ shell_init:
     la a0, prompt
     call prints
     call show_cursor
+    call shell_command_loop
     stack_free
     ret
 
@@ -170,6 +171,7 @@ show_date_time:
     call println
 
     setz a5
+
     stack_free 32
     ret
 
@@ -189,15 +191,19 @@ set_prompt:
 2:  ret
 
 
+#----------------------------------------
+
 .section .data
 
 prompt: .string "> "
 
 
+#----------------------------------------
+
 .section .rodata
 
 welcome: .string "Welcome to RISC-V OS v0.1"
-# commands: .string "cls", "date", "prompt", "print", "fbdump"
+
 commands: .string "cls"
           .string "date"
           .string "prompt"
