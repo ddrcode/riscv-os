@@ -16,8 +16,8 @@
 
 .section .text
 
-.type printc, @function
-printc:
+
+fn printc
     stack_alloc
     sb a0, (sp)
     sb zero, 1(sp)
@@ -39,10 +39,10 @@ printc:
 
     stack_free
     ret
+endfn
 
 
-.type prints, @function
-prints:
+fn prints
     stack_alloc
     push a0, 8
 
@@ -57,10 +57,10 @@ prints:
 
     stack_free
     ret
+endfn
 
 
-.type println, @function
-println:
+fn println
     stack_alloc
     push a0, 8
 
@@ -77,14 +77,15 @@ println:
 
     stack_free
     ret
+endfn
 
 
-.type getc, @function
-getc:
+fn getc
     stack_alloc 4
     syscall SYSFN_GET_CHAR
     stack_free 4
     ret
+endfn
 
 
 # Reads line from standard input
@@ -92,8 +93,7 @@ getc:
 #     a0 - string pointer
 # Returns:
 #     a0 - length of the string
-.type read_line, @function
-read_line:
+fn read_line
     stack_alloc
     push s1, 8
     push a0, 4
@@ -106,7 +106,8 @@ read_line:
 
 1:
         beqz s0, 2f                    # call wfi if irqs are anbled
-            # wfi                        # wait for IRQ
+            # wfi                      # TODO wfi can't be called in user mode
+                                       #      must replaced with idle - sys function
 2:
         syscall SYSFN_GET_CHAR
         beqz a0, 1b                    # continue if no key identified
@@ -137,12 +138,15 @@ _bcksp:
     sb zero, (s1)                      # close the string
     pop a0, 4
     sub a0, s1, a0                     # compute string length
+
+    pop s0, 0
     pop s1, 8
     stack_free
     ret
+endfn
 
 
-_printc_bcksp:
+fn _printc_bcksp
     stack_alloc 4
 
 .if OUTPUT_DEV & 0b10
@@ -154,12 +158,11 @@ _printc_bcksp:
     syscall SYSFN_PRINT_CHAR
 .endif
 
-.if OUTPUT_DEV & 0b10
+.if OUTPUT_DEV & 1
     call scr_backspace
 .endif
 
-    pop s1, 8
-    pop s0, 0
     stack_free 4
     ret
+endfn
 
