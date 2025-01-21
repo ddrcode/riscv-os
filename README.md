@@ -21,10 +21,10 @@ hardware and memory.
 ### Implemented features
 
 - framebuffer (40x25 characters text screen, configurable),
-- trivial [shell](/ddrcode/riscv-os/wiki/Shell-commands) with five (!!!) commands: `cls`, `date`, `print`, `prompt`, `fbdump`
+- trivial [shell](https://github.com/ddrcode/riscv-os/wiki/Shell-commands) with five (!!!) commands: `cls`, `date`, `print`, `prompt`, `fbdump`
 - drivers for UART, RTC and PLIC
 - keyboard input (UART, interrupts)
-- [system functions](/ddrcode/riscv-os/wiki/System-functions) callable via `ecall`
+- [system functions](https://github.com/ddrcode/riscv-os/wiki/System-functions) callable via `ecall`
 - interrupt/exception handlers
 - User Mode (for running shell) and Machine Mode (for the system)
 - various math and string functions
