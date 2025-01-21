@@ -71,9 +71,9 @@
     .cfi_endproc
 .endm
 
-.macro global_fn, name
-    .global \name
-    fn \name
+.macro syscall, fn_id
+    li a5, \fn_id
+    ecall
 .endm
 
 .endif

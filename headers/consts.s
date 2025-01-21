@@ -6,6 +6,11 @@
 .equ SYS_FN_LEN, 5
 
 
+.equ SYSFN_IDLE, 2
+.equ SYSFN_GET_SEC_FROM_EPOCH, 10
+.equ SYSFN_GET_DATE, 11
+.equ SYSFN_GET_TIME, 13
+
 # Error Codes
 
 .equ NUM_OF_ERRORS, 6                  # number of error codes

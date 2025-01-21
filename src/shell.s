@@ -62,11 +62,23 @@ exec_cmd:
         push t0, 4                     # and place it on the stack
 1:
     call parse_cmd
+    beqz a0, 2f                        # show error if command not found
 
-    mv a5, a0                          # set the function id
+    la t0, shell_cmd_vector            # compute fn addr based on fn id
+    mv t1, a0                          # a0 - function id from parse_cmd
+    slli t1, t1, 2                     # multipli id by 4
+    add t0, t0, t1                     # compute the final address (base+offset)
+    lw t0, (t0)                        # read function address from vector
+
     pop a0, 4                          # restore args addr from the stack
-    ecall                              # call the system function
+    jalr t0                            # call the system function
 
+2:
+    beqz a5, 3f                        # check for errors
+        mv a0, a5
+        call show_error
+
+3:
     la a0, prompt
     call prints
 
@@ -100,6 +112,7 @@ split_cmd:
 #     a0 - pointer to command line string
 # Returns:
 #     a0 - system function id (or 0 when not found)
+#     a5 - error code
 # TODO make index byte not word
 parse_cmd:
     stack_alloc
@@ -130,9 +143,11 @@ parse_cmd:
     li t0, SYS_FN_LEN                # retrieve num of commands
     sub a0, t0, a2                   # fn_no = (no_of_comands - index) + 1
     inc a0
+    setz a5
     j 4f
 3:                                   # cmd not found
     setz a0
+    li a5, ERR_CMD_NOT_FOUND
 4:                                   # end
     stack_free
     ret
@@ -157,7 +172,7 @@ show_error:
     stack_free 4
     ret
 
-.align 4
+
 show_date_time:
     stack_alloc 32
 .ifdef RTC_BASE
@@ -227,3 +242,12 @@ errors: .word err_unknown
 .ifndef RTC_BASE
 err_no_rtc: .string "No RTC on this platform"
 .endif
+
+
+shell_cmd_vector:
+        .word show_error
+        .word clear_screen
+        .word show_date_time
+        .word set_prompt
+        .word println
+        .word print_screen
