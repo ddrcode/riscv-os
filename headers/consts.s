@@ -7,9 +7,11 @@
 
 
 .equ SYSFN_IDLE, 2
-.equ SYSFN_GET_SEC_FROM_EPOCH, 10
+.equ SYSFN_GET_SECS_FROM_EPOCH, 10
 .equ SYSFN_GET_DATE, 11
 .equ SYSFN_GET_TIME, 13
+
+.equ SYSFN_LAST_FN_ID, 14
 
 # Error Codes
 

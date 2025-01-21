@@ -72,8 +72,15 @@
 .endm
 
 .macro syscall, fn_id
-    li a5, \fn_id
-    ecall
+   li a5, \fn_id
+   ecall
+.endm
+
+.macro addr_from_vec, vector, id_reg, res_reg
+    la \res_reg, \vector
+    slli \id_reg, \id_reg, 2
+    add \res_reg, \res_reg, \id_reg
+    lw \res_reg, (\res_reg)
 .endm
 
 .endif

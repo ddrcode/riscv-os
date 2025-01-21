@@ -3,7 +3,7 @@
 # author: David de Rosier
 # https://github.com/ddrcode/riscv-os
 #
-# See LICENSE for license details.
+# See LICENSE file for license details.
 
 .include "macros.s"
 .include "consts.s"
@@ -64,11 +64,7 @@ exec_cmd:
     call parse_cmd
     beqz a0, 2f                        # show error if command not found
 
-    la t0, shell_cmd_vector            # compute fn addr based on fn id
-    mv t1, a0                          # a0 - function id from parse_cmd
-    slli t1, t1, 2                     # multipli id by 4
-    add t0, t0, t1                     # compute the final address (base+offset)
-    lw t0, (t0)                        # read function address from vector
+    addr_from_vec shell_cmd_vector, a0, t0
 
     pop a0, 4                          # restore args addr from the stack
     jalr t0                            # call the system function
@@ -175,18 +171,17 @@ show_error:
 
 show_date_time:
     stack_alloc 32
-.ifdef RTC_BASE
-    call rtc_time_in_sec
+
+    syscall SYSFN_GET_SECS_FROM_EPOCH
+    bnez a5, 1f                        # finish on error (i.e. no RTC)
+
     mv a1, sp
     call date_time_to_str
     mv a0, sp
-.else
-    la a0, err_no_rtc
-.endif
     call println
 
     setz a5
-
+1:
     stack_free 32
     ret
 
@@ -238,11 +233,6 @@ errors: .word err_unknown
         .word err_not_supported
         .word err_invalid_argument
         .word err_stack_overflow
-
-.ifndef RTC_BASE
-err_no_rtc: .string "No RTC on this platform"
-.endif
-
 
 shell_cmd_vector:
         .word show_error
