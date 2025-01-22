@@ -5,6 +5,8 @@
 
 .equ SYSFN_SLEEP, 1
 .equ SYSFN_IDLE, 2
+.equ SYSFN_RUN, 3
+.equ SYSFN_EXIT, 4
 
 # Time functions
 .equ SYSFN_GET_SECS_FROM_EPOCH, 10

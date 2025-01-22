@@ -34,6 +34,7 @@ LDFLAGS := -Arv32$(RISC_V_EXTENSIONS) -melf32lriscv -T platforms/$(MACHINE).ld -
 
 QEMU_EXTENSIONS := e=on,m=on,i=off,h=off,f=off,d=off,a=off,f=off,c=off,zawrs=off,sstc=off,zicntr=off,zihpm=off,zicboz=off,zicbom=off,svadu=off,zicsr=on,zfa=off,zmmul=on
 QEMU := qemu-system-riscv32 -machine $(MACHINE) \
+		-drive file=hello.bin,format=raw,if=pflash,unit=1 \
 		-cpu rv32,pmp=false,$(QEMU_EXTENSIONS) -nographic -serial mon:stdio -echr 17
 
 ifneq ($(filter release, $(MAKECMDGOALS)),)

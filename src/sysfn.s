@@ -14,6 +14,39 @@
 
 .section .text
 
+fn sysfn_run
+    stack_alloc
+
+    csrr t0, mepc
+    la t1, program_return_address
+    sw t0, (t1)
+
+    li a0, PROGRAM_RAM
+    li a1, FLASH1_BASE
+    li a2, 1024
+
+    addi t0, a0, -4
+    csrw mepc, t0
+
+    call memcpy
+
+    stack_free
+    ret
+endfn
+
+
+fn sysfn_exit
+    la t1, program_return_address
+    lw t0, (t1)
+    beqz t0, 1f
+        sw zero, (t1)
+        csrw mepc, t0
+1:
+    mv a5, a0
+    ret
+endfn
+
+
 fn sysfn_get_secs_from_epoch
 .ifdef RTC_BASE
     stack_alloc
@@ -50,8 +83,8 @@ fn sysfn_get_time
     ret
 endfn
 
-#----------------------------------------
 
+#----------------------------------------
 
 .section .data
 
@@ -59,8 +92,8 @@ sysfn_vector:
     .word    0                         # 0
     .word    0                         # 1
     .word    0                         # 2
-    .word    0                         # 3
-    .word    0                         # 4
+    .word    sysfn_run                 # 3
+    .word    sysfn_exit                # 4
     .word    0                         # 5
     .word    0                         # 6
     .word    0                         # 7
@@ -79,3 +112,5 @@ sysfn_vector:
     .word    uart_getc                 # 20
     .word    uart_putc                 # 21
     .word    uart_puts                 # 22
+
+program_return_address: .word 0

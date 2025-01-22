@@ -30,6 +30,10 @@
 .set HAS_EXTENSION_M, 1
 .set HAS_EXTENSION_ZMMUL, 1
 
+# Address where user programs being loaded
+.set PROGRAM_RAM, 0x80100000
+.set FLASH1_BASE, 0x22000000
+
 #--------------------------------------
 
 # All the above settings can be overwritten in the individaul
