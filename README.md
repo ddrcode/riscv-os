@@ -52,6 +52,10 @@ Optionally each command can be provided with `MACHINE` attribute, i.e.
 `make run start MACHINE=sifive_u`. Currently, the available machines are
 `virt` (default) and `sifive_u`.
 
+The QEMU-related targets (like `make run`) accept optional `DRIVE` argument,
+that can be loaded to `flash1.rom` on virt device. If done so then the `run` command
+in the shell executes the binary at the beginning of the drive.
+
 ### Output options
 
 The system can be compiled with extra `OUTPUT_DEV` option, that defines how it
