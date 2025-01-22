@@ -36,6 +36,10 @@ QEMU_EXTENSIONS := e=on,m=on,i=off,h=off,f=off,d=off,a=off,f=off,c=off,zawrs=off
 QEMU := qemu-system-riscv32 -machine $(MACHINE) \
 		-cpu rv32,pmp=false,$(QEMU_EXTENSIONS) -nographic -serial mon:stdio -echr 17
 
+ifdef DRIVE
+QEMU += -drive file=$(DRIVE),format=raw,if=pflash,unit=1
+endif
+
 ifneq ($(filter release, $(MAKECMDGOALS)),)
 CFLAGS += -Os
 LDFLAGS += --gc-sections

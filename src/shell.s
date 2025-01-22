@@ -210,6 +210,15 @@ fn set_prompt
 endfn
 
 
+fn run_prog
+    stack_alloc
+    syscall SYSFN_RUN
+    li a0, '\n'
+    call printc
+    stack_free
+    ret
+endfn
+
 #----------------------------------------
 
 .section .data
@@ -228,6 +237,7 @@ commands: .string "cls"
           .string "prompt"
           .string "print"
           .string "fbdump"
+          .string "run"
 
 err_unknown: .string "Unknown error"
 err_not_found: .string "Command not found"
@@ -250,4 +260,5 @@ shell_cmd_vector:
         .word set_prompt
         .word println
         .word print_screen
+        .word run_prog
         .word 0

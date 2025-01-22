@@ -280,7 +280,7 @@ fn handle_exception_vector
     addi a0, sp, 12
     jalr t1                            # execute function
 1:
-    csrr t0, mepc                      # in case of exception move PC to the next instruction
+    csrr t0, mepc                      # move PC to the next instruction
     addi t0, t0, 4
     csrw mepc, t0
     j 3f
@@ -308,6 +308,9 @@ fn handle_syscall
     stack_alloc
     push s1, 8
     mv s1, a0
+
+    # csrs mstatus, 0x8                  # enable interrupts back, no need to block them
+                                       # for the time of executing a syscall
 
     lw a0, 40(s1)                      # fetch value of a0 (x10) from the stack
     lw a1, 44(s1)                      # fetch value of a1 (x10) from the stack
