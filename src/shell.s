@@ -23,6 +23,7 @@ fn shell_init
     call clear_screen
     la a0, welcome
     call println
+    call file_ls
     la a0, prompt
     call prints
     call show_cursor
