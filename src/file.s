@@ -24,6 +24,7 @@ fn file_ls
     la a0, _print_ls_file
     call fs_scan_dir
     stack_free
+    ret
 endfn
 
 
@@ -42,7 +43,13 @@ fn _print_ls_file
     mv a1, sp
     li a2, 10
     call utoa
-    call println
+    call prints
+
+    li a0, 'B'
+    call printc
+
+    li a0, '\n'
+    call printc
 
     addi a0, zero, 1
 
@@ -50,3 +57,4 @@ fn _print_ls_file
     stack_free 64
     ret
 endfn
+
