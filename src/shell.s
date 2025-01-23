@@ -67,6 +67,13 @@ fn exec_cmd
     call parse_cmd
     beqz a0, 2f                        # show error if command not found
 
+    li t0, 512                         # FIXME So ugly!
+    blt a0, t0, 11f                    # If returned file id (large number), run program
+
+        call run_prog
+        j 2f
+
+11:
     addr_from_vec shell_cmd_vector, a0, t0
 
     pop a0, 4                          # restore args addr from the stack
@@ -142,12 +149,16 @@ fn parse_cmd
     j 1b
 2:                                   # cmd found
     addi a0, s1, 1
-    setz a5
-    j 4f
-3:                                   # cmd not found
+    setz a5                          # insert 0 in place of space between cmd and argument
+    j 5f
+3:                                   # cmd not found (look for file)
+    pop a0, 8
+    call file_find
+    bnez a0, 5f
+4:                                   # command & file not found
     setz a0
     li a5, ERR_CMD_NOT_FOUND
-4:                                   # end
+5:                                   # end
     pop s1, 0
     stack_free
     ret
@@ -210,6 +221,9 @@ fn set_prompt
 endfn
 
 
+# Runs program from disc
+# Arguments:
+#     a0 - file id
 fn run_prog
     stack_alloc
     syscall SYSFN_RUN
@@ -237,7 +251,7 @@ commands: .string "cls"
           .string "prompt"
           .string "print"
           .string "fbdump"
-          .string "run"
+          .string "ls"
 
 err_unknown: .string "Unknown error"
 err_not_found: .string "Command not found"
@@ -260,5 +274,5 @@ shell_cmd_vector:
         .word set_prompt
         .word println
         .word print_screen
-        .word run_prog
+        .word file_ls
         .word 0

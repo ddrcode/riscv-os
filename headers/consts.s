@@ -18,7 +18,11 @@
 .equ SYSFN_PRINT_CHAR, 21
 .equ SYSFN_PRINT_STR, 22
 
-.equ SYSFN_LAST_FN_ID, 23
+# File functions
+.equ SYSFN_FILE_INFO, 30
+.equ SYSFN_READ, 31
+
+.equ SYSFN_LAST_FN_ID, 32
 
 # Error Codes
 

@@ -9,8 +9,10 @@
 .include "consts.s"
 
 .global printc
+.global printw
 .global prints
 .global println
+.global printnum
 .global getc
 .global read_line
 
@@ -37,6 +39,32 @@ fn printc
 2:
 .endif
 
+    stack_free
+    ret
+endfn
+
+
+fn printw
+    stack_alloc
+    push s1, 8
+    mv s1, a0
+
+    srli a0, s1, 24
+    and a0, a0, 0xff
+    call printc
+
+    srli a0, s1, 16
+    and a0, a0, 0xff
+    call printc
+
+    srli a0, s1, 8
+    and a0, a0, 0xff
+    call printc
+
+    and a0, s1, 0xff
+    call printc
+
+    pop s1, 8
     stack_free
     ret
 endfn
@@ -76,6 +104,17 @@ fn println
 .endif
 
     stack_free
+    ret
+endfn
+
+
+fn printnum
+    stack_alloc 32
+    mv a1, sp
+    li a2, 10
+    call utoa
+    call prints
+    stack_free 32
     ret
 endfn
 

@@ -14,6 +14,7 @@
 .global strcmp
 .global strcpy
 .global str_find_char
+.global str_align_right
 
 .section .text
 
@@ -256,5 +257,57 @@ strcpy:
     pop a0, 8
     pop a1, 4
     call memcpy
+    pop a0, 8
     stack_free
     ret
+
+
+# If a string is shorter than it's memory region
+# moves all characters to the right and fils
+# the gap with given char
+# Arguments
+#      a0 - pointer to the string
+#      a1 - total length of the string
+#      a2 - fill character
+fn str_align_right
+    stack_alloc
+    push s0, 8
+    push s1, 4
+    push a2, 0
+
+    mv s0, a0
+    mv s1, a1
+
+    call strlen
+    bge a0, s1, 3f
+    beqz a0, 3f
+
+    add t0, s0, a0
+
+    add t1, s0, s1
+    dec t1
+    sb zero, (t1)
+    pop a2, 0
+1:
+    dec t0
+    blt t0, s0, 2f
+    dec t1
+
+    lbu t2, (t0)
+    sb t2, (t1)
+    j 1b
+
+2:
+    dec t1
+    blt t1, s0, 3f
+    sb a2, (t1)
+    j 2b
+
+3:
+    mv a0, s0
+    pop s0, 8
+    pop s1, 4
+    stack_free
+    ret
+endfn
+

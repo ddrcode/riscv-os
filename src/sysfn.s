@@ -14,23 +14,39 @@
 
 .section .text
 
+# Runs program from disc
+# Arguments
+#     a0 - file id
 fn sysfn_run
-    stack_alloc
+    stack_alloc 64
+
+    call fs_file_info
+    lbu t0, 8(sp)
+    andi t0, t0, 1
+    beqz t0, 1f                        # Exit for non-exec file
 
     csrr t0, mepc
     la t1, program_return_address
     sw t0, (t1)
 
     li a0, PROGRAM_RAM
-    li a1, FLASH1_BASE
-    li a2, 1024
 
-    addi t0, a0, -4
-    csrw mepc, t0
+    lw t0, (sp)
+    li a1, FLASH1_BASE
+    add a1, a1, t0
+    addi a1, a1, 512
+
+    lw a2, 4(sp)
+
+    addi t0, a0, -4                    # Set prg start addr - 4
+    csrw mepc, t0                      # because IRQ handler increments it by 4
 
     call memcpy
-
-    stack_free
+    j 2f
+1:
+    li a5, 1
+2:
+    stack_free 64
     ret
 endfn
 
@@ -112,5 +128,16 @@ sysfn_vector:
     .word    uart_getc                 # 20
     .word    uart_putc                 # 21
     .word    uart_puts                 # 22
+    .word    0                         # 23
+    .word    0                         # 24
+    .word    0                         # 25
+    .word    0                         # 26
+    .word    0                         # 27
+    .word    0                         # 28
+    .word    0                         # 29
+    .word    fs_file_info              # 30
+    .word    fs_read                   # 31
+    .word    0                         # 32
 
 program_return_address: .word 0
+
