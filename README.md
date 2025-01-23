@@ -29,6 +29,8 @@ hardware and memory.
 - User Mode (for running shell) and Machine Mode (for the system)
 - various math and string functions
 - fallbacks for missing M-extension
+- trivial file system
+- external programs (implemented in Assembly and C), loadable to the system
 
 ### Planned features
 

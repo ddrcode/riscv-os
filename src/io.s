@@ -12,6 +12,7 @@
 .global printw
 .global prints
 .global println
+.global printnum
 .global getc
 .global read_line
 
@@ -103,6 +104,17 @@ fn println
 .endif
 
     stack_free
+    ret
+endfn
+
+
+fn printnum
+    stack_alloc 32
+    mv a1, sp
+    li a2, 10
+    call utoa
+    call prints
+    stack_free 32
     ret
 endfn
 
