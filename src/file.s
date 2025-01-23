@@ -8,10 +8,15 @@
 # File structure
 #
 # Byte   Size     Description
-# 0-1       2     File ID
-# 2-3       2     File Info (flags)
+# 0-3       4     File ID
 # 4-7       4     Size
-# 8-39     32     Name
+# 8         1     File flags
+# 9-39     31     Name
+#
+# Flags
+# bit 0 - executable
+# bit 1 - hidden
+# bit 2 - deleted
 
 .include "macros.s"
 
@@ -42,10 +47,17 @@ fn _print_ls_file
     call str_align_right
     call prints
 
-    li a0, 0x20422020                  # print " B  "
+    lbu t0, 8(s1)
+    andi t0, t0, 1
+    li t1, '*' - ' '
+    mul t0, t0, t1
+    addi t0, t0, 0x20
+
+    li a0, 0x20422000                  # print " B  "
+    or a0, a0, t0
     call printw
 
-    addi a0, s1, 8                     # print filename
+    addi a0, s1, 9                     # print filename
     call prints
 
     li a0, '\n'

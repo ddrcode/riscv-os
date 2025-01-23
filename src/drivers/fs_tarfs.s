@@ -30,16 +30,20 @@ fn fs_file_info
 
     sw a0, 0(s0)                       # Save file ID
 
-    addi a0, s0, 8                     # Retrive filename
+    addi a0, s0, 9                     # Retrive filename
     mv a1, s1
-    li a2, 32
+    li a2, 30
     call memcpy
     sb zero, 39(s0)                    # Make sure it ends with zero
 
     addi a0, s1, 124                   # Retrieve file length
-    li a1, 8                           # which is a string in base-8
+    li a1, 8                           # which is an octal string
     call atoi
-    sw a0, 4(s0)
+    sw a0, 4(s0)                       # and store it in bytes 4-7
+
+    lb t0, 105(s1)                     # load last byte of file mode (bytes 100-107)
+    andi t0, t0, 1                     # check for execution flag
+    sb t0, 8(s0)                       # save file flags in byte 8
 
     pop s0, 24
     pop s1, 20
@@ -66,7 +70,7 @@ fn fs_scan_dir
 1:
     call fs_file_info
 
-    lbu t0, 8(sp)
+    lbu t0, 9(sp)
     beqz t0, 2f                        # Exit for empty filename
 
     pop t0, 40
