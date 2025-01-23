@@ -6,8 +6,10 @@
 i32 itoa(i32 num, char* str, i32 base);
 i32 utoa(u32 num, char* str, i32 base);
 u32 atoi(char* str, i32 base);
-i32 strlen(char* str);
-i32 strcmp(char* str1, char* str2);
+u32 strlen(const char* str);
+i32 strcmp(const char* str1, const char* str2);
+char* strcpy(char* dst, const char* src);
 i32 str_find_char(char* str, u32 charcode);
+i32 str_align_right(char* str, i32 len, char fill);
 
 #endif

@@ -23,7 +23,6 @@ fn shell_init
     call clear_screen
     la a0, welcome
     call println
-    call file_ls
     la a0, prompt
     call prints
     call show_cursor
@@ -238,6 +237,7 @@ commands: .string "cls"
           .string "prompt"
           .string "print"
           .string "fbdump"
+          .string "ls"
           .string "run"
 
 err_unknown: .string "Unknown error"
@@ -261,5 +261,6 @@ shell_cmd_vector:
         .word set_prompt
         .word println
         .word print_screen
+        .word file_ls
         .word run_prog
         .word 0

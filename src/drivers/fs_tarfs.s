@@ -74,16 +74,16 @@ fn fs_scan_dir
     jalr t0                            # Execute callback
     beqz a0, 2f                        # Exit if callback returns 0
 
-                                       # Compute offset of the next file
-    li t2, 0x200                       # Header and min lbock-size is 512B
+                                       # Compute offset to the next header/file
+    li t2, 0x200                       # Header and min file-size is 512B
     lw t0, 4(sp)                       # Fetch current file length
-    divu t1, t0, t2
-    remu t0, t0, t2
-    snez t0, t0                        # Is it precisely 512B?
+    divu t1, t0, t2                    # ...divide it by 512
+    remu t0, t0, t2                    # ... and find remainder of it
+    snez t0, t0                        # Is it precisely 512B? (t0 = (t0 % 512) != 0)
     addi t1, t1, 1                     # Add 512B for header
     add t1, t1, t0                     # And another 512B if the last block < 512B
     mul t1, t1, t2                     # Multiply num of blocks by block size
-    lw a0, (sp)                        # Load current offset
+    lw a0, (sp)                        # Load current offset from stack
     add a0, a0, t1                     # And add a new one to it
 
     j 1b

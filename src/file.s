@@ -33,20 +33,20 @@ fn _print_ls_file
     push s1, 56
     mv s1, a0
 
-    addi a0, s1, 8
-    call prints
-
-    li a0, ' '
-    call printc
-
-    lw a0, 4(s1)
+    lw a0, 4(s1)                       # print file size
     mv a1, sp
     li a2, 10
     call utoa
+    li a1, 10
+    li a2, ' '
+    call str_align_right
     call prints
 
-    li a0, 'B'
-    call printc
+    li a0, 0x20422020                  # print " B  "
+    call printw
+
+    addi a0, s1, 8                     # print filename
+    call prints
 
     li a0, '\n'
     call printc
