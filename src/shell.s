@@ -186,24 +186,6 @@ fn show_error
 endfn
 
 
-fn show_date_time
-    stack_alloc 32
-
-    syscall SYSFN_GET_SECS_FROM_EPOCH
-    bnez a5, 1f                        # finish on error (i.e. no RTC)
-
-    mv a1, sp
-    call date_time_to_str
-    mv a0, sp
-    call println
-
-    setz a5
-1:
-    stack_free 32
-    ret
-endfn
-
-
 # Set single-character prompt
 # arguments:
 #    a0 - pointer to prompt string (only the first char will be taken)
@@ -247,7 +229,6 @@ prompt: .string "> "
 welcome: .string "Welcome to RISC-V OS v0.1"
 
 commands: .string "cls"
-          .string "date"
           .string "prompt"
           .string "print"
           .string "fbdump"
@@ -270,7 +251,6 @@ errors: .word err_unknown
 shell_cmd_vector:
         .word show_error
         .word clear_screen
-        .word show_date_time
         .word set_prompt
         .word println
         .word print_screen
