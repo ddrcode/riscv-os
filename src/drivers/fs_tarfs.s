@@ -8,7 +8,6 @@
 .include "config.s"
 
 .global fs_file_info
-.global fs_scan_dir
 .global fs_read
 
 .section .text
@@ -57,59 +56,6 @@ fn fs_file_info
     pop s0, 24
     pop s1, 20
     stack_free 32
-    ret
-endfn
-
-
-# Scans current folder item by item
-# executing provided function for each one
-# The scanning stops when the function returns 0
-# Arguments:
-#     a0 - pointer to a function executed for every file.
-#          The function takes pointer to a file structure
-#     a1 - additional parameter (a pointer) added to every call
-#          of a callback
-# Returns:
-#     a0 - The file ID of the last checked file
-#          (so for which callback returned 1)
-fn fs_scan_dir
-    stack_alloc 64
-    push a0, 56
-    push a1, 52
-
-    mv a0, zero
-1:
-    call fs_file_info
-
-    lbu t0, 9(sp)
-    beqz t0, 3f                        # Exit for empty filename
-
-    pop t0, 56
-    mv a0, sp
-    pop a1, 52
-    jalr t0                            # Execute callback
-    bnez a0, 2f                        # Exit if callback returns non zero
-
-                                       # Compute offset to the next header/file
-    li t2, 0x200                       # Header and min file-size is 512B
-    lw t0, 4(sp)                       # Fetch current file length
-    divu t1, t0, t2                    # ...divide it by 512
-    remu t0, t0, t2                    # ... and find remainder of it
-    snez t0, t0                        # Is it precisely 512B? (t0 = (t0 % 512) != 0)
-    addi t1, t1, 1                     # Add 512B for header
-    add t1, t1, t0                     # And another 512B if the last block < 512B
-    mul t1, t1, t2                     # Multiply num of blocks by block size
-    lw a0, (sp)                        # Load current offset from stack
-    add a0, a0, t1                     # And add a new one to it
-
-    j 1b
-
-2:  lw a0, (sp)
-    j 4f
-
-3:  mv a0, zero
-
-4:  stack_free 64
     ret
 endfn
 
