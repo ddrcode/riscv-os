@@ -147,6 +147,8 @@ sysfn_vector:
     .word    0                         # 38
     .word    0                         # 39
     .word    fb_info                   # 40
+    .word    fb_get_cursor             # 41
+    .word    fb_set_cursor             # 42
 
 program_return_address: .word 0
 

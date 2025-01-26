@@ -52,6 +52,7 @@ fn fb_info
 .else
     mv a0, zero
 .endif
+    mv a5, zero
     ret
 endfn
 
@@ -66,6 +67,7 @@ fn fb_set_cursor
     or a0, a1, t0
     la t0, cursor
     sh a0, (t0)
+    mv a5, zero
     ret
 endfn
 
@@ -75,6 +77,7 @@ endfn
 fn fb_get_cursor
     la t0, cursor
     lhu a0, (t0)
+    mv a5, zero
     ret
 endfn
 

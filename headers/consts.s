@@ -25,8 +25,10 @@
 
 # Frambuffer function
 .equ SYSFN_FB_INFO, 40
+.equ SYSFN_FB_GET_CURSOR, 41
+.equ SYSFN_FB_SET_CURSOR, 42
 
-.equ SYSFN_LAST_FN_ID, 41
+.equ SYSFN_LAST_FN_ID, 43
 
 # Error Codes
 

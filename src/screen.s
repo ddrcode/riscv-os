@@ -6,6 +6,7 @@
 
 .include "macros.s"
 .include "config.s"
+.include "consts.s"
 
 .global scr_init
 .global clear_screen
@@ -24,13 +25,21 @@
     lw \reg, (\reg)
 .endm
 
+.macro get_cursor
+    syscall SYSFN_FB_GET_CURSOR
+.endm
+
+.macro set_cursor
+    syscall SYSFN_FB_SET_CURSOR
+.endm
+
 .section .text
 
 scr_init:
     stack_alloc 16
     mv a0, zero
     mv a1, sp
-    call fb_info
+    syscall SYSFN_FB_INFO
     la t0, screen_ptr
     sw a0, (t0)
     stack_free 16
@@ -149,7 +158,7 @@ set_cursor_pos:
     mv a2, a1
     mv a1, a0
     mv a0, zero
-    call fb_set_cursor
+    set_cursor
     stack_free
     ret
 
@@ -160,7 +169,7 @@ set_cursor_pos_from_offset:
     divu a2, a0, t0
     remu a1, a0, t0
     setz a0
-    call fb_set_cursor
+    set_cursor
     srai a1, a0, 8
     andi a0, a0, 0xff
     stack_free
@@ -175,7 +184,7 @@ set_cursor_pos_from_offset:
 get_cursor_pos:
     stack_alloc
     mv a0, zero
-    call fb_get_cursor
+    get_cursor
     srai a1, a0, 8
     andi a0, a0, 0xff
     stack_free
