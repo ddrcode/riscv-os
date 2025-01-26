@@ -21,24 +21,32 @@
 
 fn printc
     stack_alloc
+    push s1, 8
     sb a0, (sp)
     sb zero, 1(sp)
 
-.if OUTPUT_DEV & 0b10
-    syscall SYSFN_PRINT_CHAR
-.endif
+    li a0, INFO_OUTPUT_DEV             # get active output device(s)
+    syscall SYSFN_GET_CFG
+    mv s1, a0
 
-.if OUTPUT_DEV & 1
-    mv a0, sp
-    lbu t0, (a0)
-    li t1, '\n'
-    bne t0, t1, 1f
-        call scr_println
-        j 2f
-1:  call scr_print
-2:
-.endif
+    andi t0, s1, 0b10                  # if UART is active
+    beqz t0, 1f
+        lb a0, 0(sp)
+        syscall SYSFN_PRINT_CHAR
 
+1:
+    andi t0, s1, 1                     # if frmebuffer is active
+    beqz t0, 3f
+        mv a0, sp
+        lbu t0, (a0)
+        li t1, '\n'
+        bne t0, t1, 2f
+            call scr_println
+            j 3f
+2:      call scr_print
+
+3:
+    pop s1, 8
     stack_free
     ret
 endfn
@@ -73,16 +81,25 @@ endfn
 fn prints
     stack_alloc
     push a0, 8
+    push s1, 4
 
-.if OUTPUT_DEV & 0b10
-    syscall SYSFN_PRINT_STR
-.endif
+    li a0, INFO_OUTPUT_DEV             # get active output device(s)
+    syscall SYSFN_GET_CFG
+    mv s1, a0
 
-.if OUTPUT_DEV & 1
-    pop a0, 8
-    call scr_print
-.endif
+    andi t0, s1, 0b10
+    beqz t0, 1f
+        pop a0, 8
+        syscall SYSFN_PRINT_STR
 
+1:
+    andi t0, s1, 1
+    beqz t0, 2f
+        pop a0, 8
+        call scr_print
+
+2:
+    pop s1, 4
     stack_free
     ret
 endfn
@@ -91,18 +108,27 @@ endfn
 fn println
     stack_alloc
     push a0, 8
+    push s1, 4
 
-.if OUTPUT_DEV & 0b10
-    syscall SYSFN_PRINT_STR
-    li a0, '\n'
-    syscall SYSFN_PRINT_CHAR
-.endif
+    li a0, INFO_OUTPUT_DEV             # get active output device(s)
+    syscall SYSFN_GET_CFG
+    mv s1, a0
 
-.if OUTPUT_DEV & 1
-    pop a0, 8
-    call scr_println
-.endif
+    andi t0, s1, 0b10
+    beqz t0, 1f
+        pop a0, 8
+        syscall SYSFN_PRINT_STR
+        li a0, '\n'
+        syscall SYSFN_PRINT_CHAR
 
+1:
+    andi t0, s1, 1
+    beqz t0, 2f
+        pop a0, 8
+        call scr_println
+
+2:
+    pop s1, 4
     stack_free
     ret
 endfn
@@ -140,7 +166,8 @@ fn read_line
 
     mv s1, a0                          # s1 - pointer to the end of the string
 
-    call uart_get_status
+    # call uart_get_status
+    mv s0, zero
     and s0, a0, 1                      # s0 - 1 if IRQ for uart is enabled, 0 otherwise
 
 1:
@@ -186,22 +213,30 @@ endfn
 
 
 fn _printc_bcksp
-    stack_alloc 4
+    stack_alloc
+    push s1, 8
 
-.if OUTPUT_DEV & 0b10
-    li a0, '\b'
-    syscall SYSFN_PRINT_CHAR
-    li a0, ' '
-    syscall SYSFN_PRINT_CHAR
-    li a0, '\b'
-    syscall SYSFN_PRINT_CHAR
-.endif
+    li a0, INFO_OUTPUT_DEV             # get active output device(s)
+    syscall SYSFN_GET_CFG
+    mv s1, a0
 
-.if OUTPUT_DEV & 1
-    call scr_backspace
-.endif
+    andi t0, s1, 0b10
+    beqz t0, 1f
+        li a0, '\b'
+        syscall SYSFN_PRINT_CHAR
+        li a0, ' '
+        syscall SYSFN_PRINT_CHAR
+        li a0, '\b'
+        syscall SYSFN_PRINT_CHAR
 
-    stack_free 4
+1:
+    andi t0, s1, 1
+    beqz t0, 2f
+        call scr_backspace
+
+2:
+    pop s1, 8
+    stack_free
     ret
 endfn
 

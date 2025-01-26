@@ -6,8 +6,8 @@ Currently, the OS runs on [virt](https://www.qemu.org/docs/master/system/riscv/v
 and [SiFive](https://www.qemu.org/docs/master/system/riscv/sifive_u.html)
 machines under QEMU.
 It uses very minimalistic configuration of hardware: 4MB of RAM and 1 core.
-It's also minimalistic in terms of RISC-V instruction set, as it only utilizes the E and M
-extensions.
+It's also minimalistic in terms of RISC-V instruction set, as it only utilizes the E, M
+and Zicsr extensions.
 
 ## Features
 
@@ -15,13 +15,12 @@ extensions.
 
 The RISC-V OS is in very early stage of development, and currently conceptually is closer to C64's
 [Kernal](https://en.wikipedia.org/wiki/KERNAL) rather than
-Linux or any RTOS. Most importantly it runs on cpu's machine level, giving the user full access to
-hardware and memory.
+Linux or any RTOS. 
 
 ### Implemented features
 
 - framebuffer (40x25 characters text screen, configurable),
-- trivial [shell](https://github.com/ddrcode/riscv-os/wiki/Shell-commands) with five (!!!) commands: `cls`, `date`, `print`, `prompt`, `fbdump`
+- trivial [shell](https://github.com/ddrcode/riscv-os/wiki/Shell-commands) 
 - drivers for UART, RTC and PLIC
 - keyboard input (UART, interrupts)
 - [system functions](https://github.com/ddrcode/riscv-os/wiki/System-functions) callable via `ecall`
@@ -29,13 +28,14 @@ hardware and memory.
 - User Mode (for running shell) and Machine Mode (for the system)
 - various math and string functions
 - fallbacks for missing M-extension
-- trivial file system
-- external programs (implemented in Assembly and C), loadable to the system
+- trivial, read-only file system
+- external [programs](https://github.com/ddrcode/riscv-os-apps) (implemented in Assembly, C and Rust), loadable to the system
 
 ### Planned features
 
 - system events
 - supervisor mode (currently everything executes in either user or machine mode)
+- HAL
 
 ## Building and dependencies
 
@@ -43,12 +43,24 @@ I strongly recommend using [nix](https://nixos.org/download/#download-nix) for h
 In such case just enter the project's folder and type `nix-shell`, or - if you use
 [nix direnv](https://github.com/nix-community/nix-direnv) - `direnv allow`.
 
+The project requires a [riscv-os-apps](https://github.com/ddrcode/riscv-os) repo that contains 
+common libraries and applications. The `apps` folder after cloning this repo is a sub-tree pointing to
+the apps repo.
+
 Most important Makefile options:
-- `make run` - runs the system in QEMU
+- `make run` - runs the system in QEMU (see notes below on building apps disc image)
 - `make test TEST_NAME=shell` - runs a specific test and outputs results to stdout
 - `make debug TEST_NAME=shell` - loads test to QEMU and waits for connection from GDB
 - `make gdb TEST_NAME=shell` - connects GDB with QEMU
 Other available tests (among others): `math32`, `math64`, `string`, `rtc`
+
+To have fully-functional system, you should run it with a disc image contaiing the apps.
+To build it, just `cd` the apps folder and run `make disc`. The start QEMU with the following command
+(from system repo, not the `apps` folder): 
+
+```
+make run DRIVE=apps/disc.tar
+```
 
 Optionally each command can be provided with `MACHINE` attribute, i.e.
 `make run start MACHINE=sifive_u`. Currently, the available machines are

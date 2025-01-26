@@ -21,6 +21,7 @@ fn platform_start
     li a0, 1
     call uart_init
     stack_free
+    ret
 endfn
 
 .section .data.platform

@@ -1,36 +1,16 @@
-# File manipulation library
-# author: David de Rosier
-# https://github.com/ddrcode/riscv-os
-#
-# See LICENSE file for license details.
-
-
-# File structure
-#
-# Byte   Size     Description
-# 0-3       4     File ID
-# 4-7       4     Size
-# 8         1     File flags
-# 9-39     31     Name
-#
-# Flags
-# bit 0 - executable
-# bit 1 - hidden
-# bit 2 - deleted
-
 .include "macros.s"
 .include "consts.s"
 
-.global file_ls
-.global file_find
+.global main
 
 .section .text
 
-fn file_ls
+
+fn main
     stack_alloc
     la a0, _print_ls_file
     mv a1, zero
-    call fs_scan_dir
+    call file_scan_dir
     mv a5, zero
     mv a0, zero
     stack_free
@@ -81,25 +61,3 @@ fn _print_ls_file
 endfn
 
 
-# Finds file by name
-# Arguments:
-#     a0 - pointer to string with file name
-# Returns:
-#     a0 - 1 if file found, 0 otherwise
-fn file_find
-    stack_alloc 16
-    mv a1, a0
-    la a0, _file_find_cb
-    call fs_scan_dir
-    stack_free 16
-    ret
-endfn
-
-
-fn _file_find_cb
-    stack_alloc
-    addi a0, a0, 9
-    call strcmp
-    stack_free
-    ret
-endfn

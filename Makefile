@@ -4,7 +4,7 @@
 # Command line parameters
 
 TEST_NAME ?= shell
-OUTPUT_DEV ?= 5
+OUTPUT_DEV ?= 3
 MACHINE ?= virt
 
 include platforms/$(MACHINE).mk
@@ -25,11 +25,13 @@ CC := $(TOOL)-cc
 LD := $(TOOL)-ld
 
 # use im and -mabi=ilp32 if planning to not use reduced base integer extension
+
 RISC_V_EXTENSIONS := emzicsr
 ARCH := rv32$(RISC_V_EXTENSIONS)
 ABI := ilp32e
-ASFLAGS := -march=$(ARCH) -mabi=$(ABI) -I headers --defsym OUTPUT_DEV=$(OUTPUT_DEV) --defsym m_$(MACHINE)=1
-CFLAGS := -march=$(ARCH) -mabi=$(ABI)  -nostdlib -static -I headers -T platforms/$(MACHINE).ld
+HEADERS := -I headers -I apps/headers
+ASFLAGS := -march=$(ARCH) -mabi=$(ABI) $(HEADERS) --defsym OUTPUT_DEV=$(OUTPUT_DEV) --defsym m_$(MACHINE)=1
+CFLAGS := -march=$(ARCH) -mabi=$(ABI)  -nostdlib -static $(HEADERS) -T platforms/$(MACHINE).ld
 LDFLAGS := -Arv32$(RISC_V_EXTENSIONS) -melf32lriscv -T platforms/$(MACHINE).ld -static -nostdlib
 
 QEMU_EXTENSIONS := e=on,m=on,i=off,h=off,f=off,d=off,a=off,f=off,c=off,zawrs=off,sstc=off,zicntr=off,zihpm=off,zicboz=off,zicbom=off,svadu=off,zicsr=on,zfa=off,zmmul=on
@@ -52,9 +54,10 @@ endif
 #----------------------------------------
 # Project files
 
-VPATH = src src/drivers src/platforms tests
+VPATH = src src/drivers src/platforms tests apps/lib
 
 SRC := $(wildcard src/*.s)
+SRC += $(wildcard apps/lib/*.s)
 SRC += $(DRIVERS)
 SRC += src/platforms/$(MACHINE).s
 

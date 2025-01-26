@@ -97,20 +97,25 @@ video_repaint:
     push s0, Y
     push s1, X
 
-    li s0, SCREEN_HEIGHT
-    li s1, SCREEN_WIDTH
+    mv a0, zero
+    mv a1, sp                          # Get framebuffer info onto the stack
+    call fb_info                       # a0 in result is a fb screen data address
+    beqz a0, 5f                        # no fb present, exit
 
-    mul t0, s0, s1
-    la a0, screen
+    lb s0, 7(sp)                       # get fb height
+    lb s1, 8(sp)                       # get fb width
+
+    mul t0, s0, s1                     # fb size in bytes
+    lw a0, 1(sp)
     la a1, prev_screen
-    add a0, a0, t0
-    add a1, a1, t0
+    add a0, a0, t0                     # end address of a screen
+    add a1, a1, t0                     # end address of a copy
 1:
     dec s0
     bltz s0, 4f
 2:  dec s1
     bgez s1, 3f
-    li s1, SCREEN_WIDTH
+    lb s1, 8(sp)                       # get fb width
     j 1b
 3:
     dec a0
@@ -137,6 +142,7 @@ video_repaint:
     li a2, 0
     call _print_char
 
+5:
     pop s0, Y
     pop s1, X
     stack_free 32
@@ -147,7 +153,7 @@ video_repaint:
 #     a0 - x
 #     a1 - y
 #     a2 - charcode
-# TODO Fix that uglyness :-)
+# TODO Fix that ugliness :-)
 _print_char:
     stack_alloc 64
 

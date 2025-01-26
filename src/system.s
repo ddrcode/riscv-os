@@ -15,15 +15,21 @@
 .global check_stack
 .global panic
 
+#------------------------------------------------------------------------------
 
-.type sysinit, @function
-sysinit:
+fn sysinit
     stack_alloc 4
+    li a0, INFO_OUTPUT_DEV
+    li a1, OUTPUT_DEV
+    call cfg_set
+
 .if OUTPUT_DEV & 0b100
     call video_init
 .endif
+
     stack_free 4
     ret
+endfn
 
 
 # Calls system function
@@ -51,8 +57,7 @@ fn sys_call
 endfn
 
 
-.type check_stack, @function
-check_stack:
+fn check_stack
     stack_alloc 4
     la t0, __stack_top
     li t1, STACK_SIZE
@@ -66,28 +71,21 @@ check_stack:
 
 1:  stack_free 4
     ret
+endfn
 
 
-.type panic, @function
-panic:
+fn panic
     stack_alloc 4
     la a0, kernel_panic
     call println
     stack_free 4
     ret
+endfn
+
 
 #------------------------------------------------------------------------------
 
 .section .rodata
-
-# Jump table to system functions
-# TODO function address size could be half-words
-fnjumptable: .word show_error
-             .word clear_screen
-             .word show_date_time
-             .word set_prompt
-             .word println
-             .word print_screen
 
 kernel_panic: .string "Kernel panic!"
 
