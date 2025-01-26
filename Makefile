@@ -24,6 +24,8 @@ AS := $(TOOL)-as
 CC := $(TOOL)-cc
 LD := $(TOOL)-ld
 
+RUST_FLAGS :=
+
 # use im and -mabi=ilp32 if planning to not use reduced base integer extension
 RISC_V_EXTENSIONS := emzicsr
 ARCH := rv32$(RISC_V_EXTENSIONS)
@@ -52,9 +54,10 @@ endif
 #----------------------------------------
 # Project files
 
-VPATH = src src/drivers src/platforms tests
+VPATH = src src/drivers src/platforms tests apps/lib
 
 SRC := $(wildcard src/*.s)
+SRC += $(wildcard apps/lib/*.s)
 SRC += $(DRIVERS)
 SRC += src/platforms/$(MACHINE).s
 
