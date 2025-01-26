@@ -4,7 +4,7 @@
 # Command line parameters
 
 TEST_NAME ?= shell
-OUTPUT_DEV ?= 5
+OUTPUT_DEV ?= 3
 MACHINE ?= virt
 
 include platforms/$(MACHINE).mk
@@ -23,8 +23,6 @@ TOOL := riscv64-none-elf
 AS := $(TOOL)-as
 CC := $(TOOL)-cc
 LD := $(TOOL)-ld
-
-RUST_FLAGS :=
 
 # use im and -mabi=ilp32 if planning to not use reduced base integer extension
 
