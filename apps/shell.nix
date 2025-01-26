@@ -10,6 +10,7 @@ in
       minicom
       ccls
       rustup
+      hexedit
     ] ++ optionals isLinux [
       gdb
     ];

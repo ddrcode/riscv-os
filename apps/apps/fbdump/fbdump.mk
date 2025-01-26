@@ -2,18 +2,20 @@
 
 # This is a sub-make script
 # Call it from repo's root falder as
-# make build/hello-c.elf
+# make build/fbdump.elf
 
-ELF := hello-c.elf
+FILE := fbdump
+ELF := $(FILE).elf
 
 $(OUT):
 	mkdir -p $(OUT)
 
-$(OUT)/$(ELF): hello.c
-	$(CC) $(CFLAGS) -o $(OUT)/$(ELF) $(COMMON) hello.c
+$(OUT)/$(ELF): $(FILE).s
+	$(CC) $(CFLAGS) -o $(OUT)/$(ELF) $(COMMON) $(FILE).s
 
 .PHONY: clean
 
 clean:
 	rm -f $(OUT)/$(ELF)
+
 
