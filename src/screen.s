@@ -84,7 +84,7 @@ scr_print:
         mul t0, t0, a0              # and adjust the start address (a1) accordingly
         sub a1, a1, t0
         push a1, 0                  # preserver the start address on the stack
-        # call scroll                 # and scroll
+        call scroll                 # and scroll
         screen_addr t1
         pop a1, 0
 
@@ -125,7 +125,7 @@ scr_println:
         dec a1
         push a0, 8
         push a1, 4
-        # call scroll                    # scroll screen content up
+        call scroll                    # scroll screen content up
         pop a1, 4
         pop a0, 8
 1:                                     # handling null
@@ -161,32 +161,8 @@ set_cursor_pos_from_offset:
     remu a1, a0, t0
     setz a0
     call fb_set_cursor
-    stack_free
-    ret
-
-# a0 - offset
-set_cursor_pos_from_offset2:
-    stack_alloc
-    setz a1
-    li t0, SCREEN_WIDTH
-1:
-    sub a0, a0, t0
-    bltz a0, 2f
-    inc a1
-    j 1b
-2:
-    add a0, a0, t0
-
-    mv a2, a1
-    mv a1, a0
-    mv a0, zero
-
-    srli t0, a1, 8
-    # add a2, a2, t0
-    andi a1, a1, 0xff
-
-    call fb_set_cursor
-
+    srai a1, a0, 8
+    andi a0, a0, 0xff
     stack_free
     ret
 

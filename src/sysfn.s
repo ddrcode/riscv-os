@@ -111,7 +111,7 @@ sysfn_vector:
     .word    0                         #  2
     .word    sysfn_run                 #  3
     .word    sysfn_exit                #  4
-    .word    0                         #  5
+    .word    cfg_get                   #  5
     .word    0                         #  6
     .word    0                         #  7
     .word    0                         #  8

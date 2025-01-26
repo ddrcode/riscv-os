@@ -7,6 +7,7 @@
 .equ SYSFN_IDLE, 2
 .equ SYSFN_RUN, 3
 .equ SYSFN_EXIT, 4
+.equ SYSFN_GET_CFG, 5
 
 # Time functions
 .equ SYSFN_GET_SECS_FROM_EPOCH, 10
@@ -37,5 +38,10 @@
 .equ ERR_NOT_SUPPORTED, 3
 .equ ERR_INVALID_ARGUMENT, 4
 .equ ERR_STACK_OVERFLOW, 5
+
+
+# SYSTEM INFO
+
+.equ INFO_OUTPUT_DEV, 0
 
 .endif
