@@ -68,6 +68,9 @@
 .endm
 
 .macro endfn
+.if DEBUG > 0
+    call debug_missing_ret
+.endif
     .cfi_endproc
 .endm
 

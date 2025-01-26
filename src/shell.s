@@ -21,7 +21,7 @@
 fn shell_init
     stack_alloc
 
-.if OUTPUT_DEV & 1
+.if OUTPUT_DEV & 0b101
     call scr_init
     call clear_screen
 .endif
@@ -218,8 +218,6 @@ endfn
 fn run_prog
     stack_alloc
     syscall SYSFN_RUN
-    li a0, '\n'
-    call printc
     stack_free
     ret
 endfn
