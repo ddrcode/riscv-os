@@ -240,7 +240,6 @@ welcome: .string "Welcome to RISC-V OS v0.1"
 commands: .string "cls"
           .string "prompt"
           .string "print"
-          .string "fbdump"
 
 err_unknown: .string "Unknown error"
 err_not_found: .string "Command not found"
@@ -261,5 +260,4 @@ shell_cmd_vector:
         .word clear_screen
         .word set_prompt
         .word println
-        .word print_screen
         .word 0
