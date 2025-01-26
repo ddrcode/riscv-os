@@ -22,7 +22,10 @@
 .equ SYSFN_FILE_INFO, 30
 .equ SYSFN_READ, 31
 
-.equ SYSFN_LAST_FN_ID, 32
+# Frambuffer function
+.equ SYSFN_FB_INFO, 40
+
+.equ SYSFN_LAST_FN_ID, 41
 
 # Error Codes
 

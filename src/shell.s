@@ -20,12 +20,21 @@
 
 fn shell_init
     stack_alloc
+
+.if OUTPUT_DEV & 1
+    call scr_init
     call clear_screen
+.endif
+
     la a0, welcome
     call println
     la a0, prompt
     call prints
+
+.if OUTPUT_DEV & 1
     call show_cursor
+.endif
+
     call shell_command_loop
     stack_free
     ret
@@ -232,7 +241,6 @@ commands: .string "cls"
           .string "prompt"
           .string "print"
           .string "fbdump"
-          .string "ls"
 
 err_unknown: .string "Unknown error"
 err_not_found: .string "Command not found"
@@ -254,5 +262,4 @@ shell_cmd_vector:
         .word set_prompt
         .word println
         .word print_screen
-        .word file_ls
         .word 0

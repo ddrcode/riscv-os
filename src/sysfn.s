@@ -20,6 +20,7 @@
 fn sysfn_run
     stack_alloc 64
 
+    mv a1, sp
     call fs_file_info
     lbu t0, 8(sp)
     andi t0, t0, 1
@@ -105,16 +106,16 @@ endfn
 .section .data
 
 sysfn_vector:
-    .word    0                         # 0
-    .word    0                         # 1
-    .word    0                         # 2
-    .word    sysfn_run                 # 3
-    .word    sysfn_exit                # 4
-    .word    0                         # 5
-    .word    0                         # 6
-    .word    0                         # 7
-    .word    0                         # 8
-    .word    0                         # 9
+    .word    0                         #  0
+    .word    0                         #  1
+    .word    0                         #  2
+    .word    sysfn_run                 #  3
+    .word    sysfn_exit                #  4
+    .word    0                         #  5
+    .word    0                         #  6
+    .word    0                         #  7
+    .word    0                         #  8
+    .word    0                         #  9
     .word    sysfn_get_secs_from_epoch # 10
     .word    sysfn_get_date            # 11
     .word    0                         # 12
@@ -138,6 +139,14 @@ sysfn_vector:
     .word    fs_file_info              # 30
     .word    fs_read                   # 31
     .word    0                         # 32
+    .word    0                         # 33
+    .word    0                         # 34
+    .word    0                         # 35
+    .word    0                         # 36
+    .word    0                         # 37
+    .word    0                         # 38
+    .word    0                         # 39
+    .word    fb_info                   # 40
 
 program_return_address: .word 0
 

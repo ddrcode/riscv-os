@@ -2,11 +2,12 @@
 # author: David de Rosier
 # https://github.com/ddrcode/riscv-os
 #
-# See LICENSE for license details.
+# See LICENSE file for license details.
 
 .include "macros.s"
 .include "config.s"
 
+.global scr_init
 .global clear_screen
 .global scr_print
 .global scr_println
@@ -18,13 +19,28 @@
 
 .global screen
 
+.macro screen_addr, reg
+    la \reg, screen_ptr
+    lw \reg, (\reg)
+.endm
+
 .section .text
+
+scr_init:
+    stack_alloc 16
+    mv a0, zero
+    mv a1, sp
+    call fb_info
+    la t0, screen_ptr
+    sw a0, (t0)
+    stack_free 16
+    ret
 
 clear_screen:
     stack_alloc 4
-    la a0, screen
+    screen_addr a0
     li a1, SCREEN_WIDTH*SCREEN_HEIGHT
-    li a2, 0x20
+    li a2, ' '
     call memfill
 
     setz a0
@@ -50,7 +66,7 @@ scr_print:
     push a0, 0                      # and push it to the stack
 
     call get_cursor_offset          # get cursor offset
-    la a1, screen                   # load screen address..
+    screen_addr a1                  # load screen address..
     mv t1, a1                       # copy screen address to t1
     add a1, a1, a0                  # ...and increase it by the offset
 
@@ -68,8 +84,8 @@ scr_print:
         mul t0, t0, a0              # and adjust the start address (a1) accordingly
         sub a1, a1, t0
         push a1, 0                  # preserver the start address on the stack
-        call scroll                 # and scroll
-        la t1, screen
+        # call scroll                 # and scroll
+        screen_addr t1
         pop a1, 0
 
 1:
@@ -109,7 +125,7 @@ scr_println:
         dec a1
         push a0, 8
         push a1, 4
-        call scroll                    # scroll screen content up
+        # call scroll                    # scroll screen content up
         pop a1, 4
         pop a0, 8
 1:                                     # handling null
@@ -129,17 +145,30 @@ scr_println:
 # returns cursor 16-bit number representing cursor in a0
 # TODO check screen boundaries
 set_cursor_pos:
-    slli t0, a1, 8
-    or a0, a0, t0
-    la t0, cursor
-    sh a0, (t0)
+    stack_alloc
+    mv a2, a1
+    mv a1, a0
+    mv a0, zero
+    call fb_set_cursor
+    stack_free
     ret
 
 
-# a0 - offset
 set_cursor_pos_from_offset:
+    stack_alloc
+    li t0, SCREEN_WIDTH
+    divu a2, a0, t0
+    remu a1, a0, t0
+    setz a0
+    call fb_set_cursor
+    stack_free
+    ret
+
+# a0 - offset
+set_cursor_pos_from_offset2:
+    stack_alloc
     setz a1
-    li t0, 40
+    li t0, SCREEN_WIDTH
 1:
     sub a0, a0, t0
     bltz a0, 2f
@@ -148,11 +177,17 @@ set_cursor_pos_from_offset:
 2:
     add a0, a0, t0
 
-    slli t0, a1, 8
-    or t0, t0, a0
-    la t1, cursor
-    sh t0, (t1)
+    mv a2, a1
+    mv a1, a0
+    mv a0, zero
 
+    srli t0, a1, 8
+    # add a2, a2, t0
+    andi a1, a1, 0xff
+
+    call fb_set_cursor
+
+    stack_free
     ret
 
 
@@ -162,10 +197,12 @@ set_cursor_pos_from_offset:
 #    a0 - x position
 #    a1 - y position
 get_cursor_pos:
-    la t0, cursor
-    lh a0, (t0)
+    stack_alloc
+    mv a0, zero
+    call fb_get_cursor
     srai a1, a0, 8
     andi a0, a0, 0xff
+    stack_free
     ret
 
 
@@ -189,7 +226,7 @@ get_cursor_offset:
 get_cursor_address:
     stack_alloc 4
     call get_cursor_offset
-    la t0, screen
+    screen_addr t0
     add a0, a0, t0
     stack_free 4
     ret
@@ -198,7 +235,7 @@ get_cursor_address:
 show_cursor:
     stack_alloc 4
     call get_cursor_offset
-    la t0, screen
+    screen_addr t0
     add t0, t0, a0
     li t1, '_'
     sb t1, (t0)
@@ -212,7 +249,7 @@ show_cursor:
 scroll:
     # copy screen memory one line up
     stack_alloc 4
-    la a0, screen
+    screen_addr a0
     addi a1, a0, SCREEN_WIDTH
     li a2, SCREEN_WIDTH*(SCREEN_HEIGHT-1)
     call memcpy
@@ -223,11 +260,10 @@ scroll:
     call memfill
 
     # adjust cursor position (one line up)
-    la t0, cursor
-    lbu t1, 1(t0)
-    beqz t1, 1f
-    dec t1
-    sb t1, 1(t0)
+    call get_cursor_pos
+    beqz a1, 1f
+        dec a1
+        call set_cursor_pos
 
 1:
     stack_free 4
@@ -255,7 +291,7 @@ print_screen:
 .if OUTPUT_DEV & 2 && !(OUTPUT_DEV & 0b100)
     stack_alloc 4
     call _print_frame
-    la a0, screen                      # set a0 to beginning of screen region
+    screen_addr a0                     # set a0 to beginning of screen region
     li a1, UART_BASE
     li t1, SCREEN_WIDTH                # t1 is a  char counter within line
     li t2, SCREEN_HEIGHT               # t2 is a line counter
@@ -308,10 +344,10 @@ _print_frame:
 .endif
     ret
 
+
 #--------------------------------------
 
 .section .data
 
-cursor: .half 0
-screen: .space SCREEN_WIDTH*SCREEN_HEIGHT
-
+# FIXME temporary solution. Use fb functions instead
+screen_ptr: .word 0

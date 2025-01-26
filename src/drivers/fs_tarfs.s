@@ -14,17 +14,16 @@
 
 .set HEADER_SIZE, 134
 
-# This function returns a structure, means it writes to the
-# caller's stack. Make sure There are 40 bytes avaialble from 0(sp)
-# C-style signature: struct FileDesc fs_file_info(u32 offset)
+# Reads a file header based on file id
 # Arguments
 #     a0 - file id (file offset)
+#     a1 - file structure pointer
 fn fs_file_info
     stack_alloc 32
     push s0, 24
     push s1, 20
 
-    addi s0, sp, 32
+    mv s0, a1
 
     li s1, FLASH1_BASE
     add s1, s1, a0
@@ -52,6 +51,8 @@ fn fs_file_info
 
     or t0, t0, t1
     sb t0, 8(s0)                       # save file flags in byte 8
+
+    mv a0, s0                          # Move pointer to the structure to a0
 
     pop s0, 24
     pop s1, 20

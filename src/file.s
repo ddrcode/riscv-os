@@ -45,7 +45,8 @@ fn file_scan_dir
 
     mv a0, zero
 1:
-    call fs_file_info
+    mv a1, sp
+    syscall SYSFN_FILE_INFO
 
     lbu t0, 9(sp)
     beqz t0, 3f                        # Exit for empty filename
