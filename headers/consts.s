@@ -42,10 +42,17 @@
 .equ ERR_STACK_OVERFLOW, 5
 
 
-# SYSTEM INFO
+# SYSTEM CONFIG
 
 .equ INFO_OUTPUT_DEV, 0
 .equ CFG_STD_OUT, 4
 .equ CFG_STD_IN, 8
+.equ CFG_STD_ERR, 12
+.equ CFG_STD_DEBUG, 16
+
+
+# HAL
+
+.equ DRV_UART_STRUCT_SIZE, 16
 
 .endif

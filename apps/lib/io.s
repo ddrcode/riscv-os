@@ -15,6 +15,7 @@
 .global printnum
 .global getc
 .global read_line
+.global print_debug
 
 .section .text
 
@@ -237,6 +238,23 @@ fn _printc_bcksp
 2:
     pop s1, 8
     stack_free
+    ret
+endfn
+
+
+fn print_debug
+.if DEBUG > 0
+    stack_alloc
+    push a0, 8
+
+    li a0, CFG_STD_DEBUG
+    call cfg_get
+
+    pop a1, 8
+    call uart_puts
+
+    stack_free
+.endif
     ret
 endfn
 

@@ -44,3 +44,5 @@ sysinfo:
 output_dev:     .word      0
 std_out:        .word      0
 std_in:         .word      0
+std_err:        .word      0
+std_debug:      .word      0

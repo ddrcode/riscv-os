@@ -66,7 +66,7 @@
 .macro debug, msg
 .if DEBUG==1
     la a0, \msg
-    call println
+    call print_debug
 .endif
 .endm
 
@@ -342,10 +342,10 @@ fn handle_exception
     li a2, 10
     call utoa
     mv a0, sp
-    call prints
+    call print_debug
 
     li a0, ' '
-    call printc
+    # call printc
 
     # csrr a0, mepc                    # Faulting address
     csrr a0, mtval                     # Additional fault information
@@ -353,7 +353,7 @@ fn handle_exception
     li a2, 16
     call utoa
     mv a0, sp
-    call println
+    call print_debug
 
     # call panic
     stack_free 32

@@ -21,18 +21,33 @@ fn platform_start
     call irq_init
     call plic_init
 
-    la a0, drv_uart_0
+    la a0, drv_uart_0                  # Configure UART0
     mv s1, a0
-    li a1, UART_BASE
-    li a2, 0b01
-    li a3, UART_IRQ
+    li a1, UART0_BASE
+    li a2, 0b11
+    li a3, UART0_IRQ
     call ns16550a_init
 
-    li a0, CFG_STD_OUT
+    li a0, CFG_STD_OUT                 # Set UART0 as stdin
     mv a1, s1
     call cfg_set
 
-    li a0, CFG_STD_IN
+    li a0, CFG_STD_IN                  # Set UART0 as stdout
+    mv a1, s1
+    call cfg_set
+
+    la a0, drv_uart_1                  # Configure UART1
+    mv s1, a0
+    li a1, UART1_BASE
+    li a2, 0b01
+    li a3, UART1_IRQ
+    call ns16550a_init
+
+    li a0, CFG_STD_ERR                 # Set UART1 as stderr
+    mv a1, s1
+    call cfg_set
+
+    li a0, CFG_STD_DEBUG               # Set UART1 as stddebug
     mv a1, s1
     call cfg_set
 
@@ -66,5 +81,6 @@ external_irq_vector:
     .word    0 /* reserved */          # IRQ 15
 
 .section .data
-drv_uart_0: .space 16, 0
+drv_uart_0: .space DRV_UART_STRUCT_SIZE, 0
+drv_uart_1: .space DRV_UART_STRUCT_SIZE, 0
 
