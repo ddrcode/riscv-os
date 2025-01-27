@@ -1,14 +1,15 @@
 # UART Structure
 # byte    size    name
-#    0       4    base_addr
+#    0       4    device id
 #    4       4    u32 putc(u32 base_addr, char c)
 #    8       4    byte getc(u32 base_addr)
 #   12       4    byte config(u32 base_addr, byte mask, byte val)
 #
 # Configuration
 #  bit     name
-#    0     enabled
-#    1     irq_enabled
+#    0     uart enabled
+#    1     input irq enabled
+#    2     output irq enabled
 
 
 .include "macros.s"

@@ -57,7 +57,7 @@ endif
 VPATH = src src/drivers src/platforms src/hal tests apps/lib
 
 SRC := $(wildcard src/*.s)
-SRC := $(wildcard src/hal/*.s)
+SRC += $(wildcard src/hal/*.s)
 SRC += $(wildcard apps/lib/*.s)
 SRC += $(DRIVERS)
 SRC += src/platforms/$(MACHINE).s
