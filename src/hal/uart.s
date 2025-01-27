@@ -1,6 +1,6 @@
 # UART Structure
 # byte    size    name
-#    0       4    device id
+#    0       4    device id (actually UART base)
 #    4       4    u32 putc(u32 base_addr, char c)
 #    8       4    byte getc(u32 base_addr)
 #   12       4    byte config(u32 base_addr, byte mask, byte val)

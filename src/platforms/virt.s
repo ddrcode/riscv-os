@@ -21,13 +21,11 @@ fn platform_start
     call irq_init
     call plic_init
 
-    li a0, 1
-    # call uart_init
-
     la a0, drv_uart_0
     mv s1, a0
     li a1, UART_BASE
-    li a2, 0b11
+    li a2, 0b01
+    li a3, UART_IRQ
     call ns16550a_init
 
     li a0, CFG_STD_OUT

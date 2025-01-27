@@ -5,15 +5,13 @@
 # UART initialization and getc inspired by
 # https://github.com/safinsingh/ns16550a
 #
-# See LICENSE for license details.
+# See LICENSE file for license details.
 
 .include "config.s"
 .include "macros.s"
 
+# dont expose more function from this file!
 .global ns16550a_init
-
-.equ NS16550A_MAX_DEVICES, 2
-.equ NS16550A_RECORD_SIZE, 5
 
 .equ IER,                       0x1    # Interrupt enable register
 .equ IIR,                       0x2    # Interrupt identification register
@@ -32,55 +30,26 @@
 
 .section .text
 
-# Device structure
-# Byte    Length     Name
-#    0         4     base address
-#    4         1     buffer
-
-
 # Arguments
 #     a0 - pointer to uart driver structure
 #     a1 - base address
 #     a2 - initial config
+#     a3 - IRQ id
 fn ns16550a_init
 
-    .set DEV_ID, 0
+    .set BASE, 0
     .set GETC, 4
     .set PUTC, 8
     .set CONFIG_FN, 12
 
-    .set BASE, 0
-    .set BUFFER, 4
-
     stack_alloc
     push a2, 8
-
-    la t0, ns16550a_registered_devices # check the number of already registered devices
-    lbu t2, (t0)
-    li t1, NS16550A_MAX_DEVICES
-    blt t2, t1, 1f
-        li a0, 0
-        call panic                     # panic on attempt to regsiter too many devices
-        j 2f
-1:
-    li t1, NS16550A_RECORD_SIZE        # compute config offset
-    mul t1, t1, t2
-
-    inc t2
-    sb t2, (t0)                        # save total number of devices registered
-
-    # ns16550a internal config
-
-    la t0, ns16550a_configs            # compute config address
-    add t0, t0, t1
-
-    sw a1, BASE(t0)                    # save base address
-    sb zero, BUFFER(t0)                # initialize buffer
+    push a1, 4
+    push a0, 0
 
     # UART record
 
-    sw t1, DEV_ID(a0)                  # save device id (that is offset)
-    push t1, 4
+    sw a1, BASE(a0)                    # save device id (that is base addr)
 
     la t0, ns16550a_putc               # pointer to putc
     sw t0, GETC(a0)
@@ -92,6 +61,7 @@ fn ns16550a_init
     sw t0, CONFIG_FN(a0)
 
     mv a0, a1
+    mv a1, a3
     call ns16550a_start                # start/initialize the device with default settings
 
     pop a0, 4
@@ -99,7 +69,7 @@ fn ns16550a_init
     pop a2, 8
     call ns16550a_config               # configure uart
 
-2:
+    pop a0, 0                          # return structure pointer
     stack_free
     ret
 endfn
@@ -107,6 +77,7 @@ endfn
 
 # Arguments
 #     a0 - UART base
+#     a1 - IRQ id
 fn ns16550a_start
     stack_alloc
     mv t0, a0
@@ -123,7 +94,7 @@ fn ns16550a_start
     sb t1, MCR(t0)                     # Enable OUT2
 
 .ifdef PLIC_BASE
-    li a0, UART_IRQ                    # configure PLIC IRQ
+    mv a0, a1                          # configure PLIC IRQ
     li a1, 1
     call plic_enable_irq
 .endif
@@ -135,40 +106,28 @@ endfn
 
 # Signature: void ns16550a_putc(u32 id, char c)
 # Arguments
-#     a0 - device id
+#     a0 - base address
 #     a1 - character to print
 # Returns: same as input
 fn ns16550a_putc
-    .set BASE, 0
-    .set BUFFER, 4
-
-    la t0, ns16550a_configs
-    add a0, t0, a0                     # overwrite a0 with record's address
-
-    lw t0, BASE(a0)
-
-1:  lbu t1, LSR(t0)                    # Loop until the line is idle and THR empty
+1:
+    lbu t1, LSR(a0)                    # Loop until the line is idle and THR empty
         andi t1, t1, UART_LSR_RI
         beqz t1, 1b
 
     andi t1, a1, 0xff                  # Ensure the parameter is a byte
-    sb t1, (t0)                        # Send byte to UART
-
-    mv a0, zero
+    sb t1, (a0)                        # Send byte to UART
     ret
 endfn
 
 
 # Signature: char ns16550a_getc(u32 id)
 # Arguments
-#     a0 - device id
+#     a0 - base address
 # Returns:
 #     a0 - char (zero if none)
 fn ns16550a_getc
-    la t0, ns16550a_configs
-    add a0, t0, a0                     # overwrite a0 with record's address
-    lw t0, (a0)                        # load uart base address
-
+    mv t0, a0
     mv a0, zero                        # set the default result
 
     lbu t1, IER(t0)                    # check whether interupts are on
@@ -197,44 +156,18 @@ fn ns16550a_getc
 endfn
 
 
-fn ns16550a_getc_irq
-    stack_alloc
-    la t0, ns16550a_configs
-    add a0, t0, a0                     # overwrite a0 with record's address
-    lw t0, (a0)                        # load uart base address
-
-    lbu t1, IIR(t0)                    # Read UART IIR to check interrupt type
-    andi t1, t1, 0x0f                  # Mask interrupt ID
-
-    mv a0, zero
-    li t2, 4                           # 0x4 = Received Data Available
-    bne t1, t2, 1f
-        lbu a0, 0(t0)                  # Read received byte to clear the interrupt
-
-    # beq t1, 0x2, tx_ready # 0x2 = Transmitter Empty
-1:
-    stack_free
-    ret
-endfn
-
-
 # Signature: byte ns16550a_config(u32 id, byte mask, byte config)
 # Arguments
-#     a0 - device id
+#     a0 - base addr
 #     a1 - mask
 #     a2 - config
 # Returns:
 #     a0 - new config
+#
+# TODO Handle IRQs for outgoing data (bit 0b100)
+# TODO handle enabling/disabling device (bit 1)
 fn ns16550a_config
-
-    .set BASE, 0
-    .set BUFFER, 4
-
-    la t0, ns16550a_configs
-    add a0, t0, a0                     # overwrite a0 with record's address
-
-    lw a3, BASE(a0)                    # load UART's base address
-
+    mv a3, a0                          # load UART's base address
     beqz a1, 1f                        # just return the config if mask is 0
 
 .ifdef PLIC_BASE                       # no point enabling IRQ if PLIC is not present
@@ -260,12 +193,3 @@ fn ns16550a_config
     ret
 endfn
 
-
-#----------------------------------------
-
-.section .data
-
-uart_buffer: .byte 0
-
-ns16550a_registered_devices: .byte 0
-ns16550a_configs: .space NS16550A_MAX_DEVICES * NS16550A_RECORD_SIZE
