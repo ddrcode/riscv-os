@@ -14,6 +14,12 @@
 
 .include "macros.s"
 
+
+.global uart_putc
+.global uart_puts
+.global uart_getc
+
+
 .section .text
 
 fn uart_putc
@@ -52,6 +58,16 @@ fn uart_puts
 3:  setz a0                            # Set exit code
 4:  pop s0, 8
     pop s1, 4
+    stack_free
+    ret
+endfn
+
+fn uart_getc
+    stack_alloc
+    mv t0, a0
+    lw a0, (t0)
+    lw t1, 8(t0)
+    jalr t1
     stack_free
     ret
 endfn

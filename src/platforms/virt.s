@@ -6,6 +6,7 @@
 
 .include "macros.s"
 .include "config.s"
+.include "consts.s"
 
 .global platform_start
 .global external_irq_vector
@@ -15,20 +16,38 @@
 
 fn platform_start
     stack_alloc
+    push s1, 8
+
     call irq_init
     call plic_init
 
     li a0, 1
-    call uart_init
+    # call uart_init
+
+    la a0, drv_uart_0
+    mv s1, a0
+    li a1, UART_BASE
+    li a2, 0b11
+    call ns16550a_init
+
+    li a0, CFG_STD_OUT
+    mv a1, s1
+    call cfg_set
+
+    li a0, CFG_STD_IN
+    mv a1, s1
+    call cfg_set
+
+    pop s1, 8
     stack_free
     ret
 endfn
 
 .section .data.platform
 
-drv_uart_0: .space 4*8
 
 # This is platform / machine - specific
+.align 4
 external_irq_vector:
     .word    0                         # IRQ  0
     .word    0                         # IRQ  1
@@ -46,3 +65,7 @@ external_irq_vector:
     .word    0                         # IRQ 13
     .word    0                         # IRQ 14
     .word    0                         # IRQ 15
+
+.section .data
+drv_uart_0: .space 16, 0
+

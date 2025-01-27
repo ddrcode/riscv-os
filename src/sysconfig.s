@@ -21,7 +21,7 @@
 fn cfg_set
     la t0, sysinfo
     add t0, t0, a0
-    sb a1, (t0)
+    sw a1, (t0)
     ret
 endfn
 
@@ -31,7 +31,7 @@ endfn
 fn cfg_get
     la t0, sysinfo
     add t0, t0, a0
-    lbu a0, (t0)
+    lw a0, (t0)
     ret
 endfn
 
@@ -41,4 +41,6 @@ endfn
 .section .data
 
 sysinfo:
-output_dev:     .byte      0
+output_dev:     .word      0
+std_out:        .word      0
+std_in:         .word      0

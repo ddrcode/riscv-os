@@ -10,13 +10,13 @@
 .include "config.s"
 .include "macros.s"
 
-.global uart_init
-.global uart_putc
-.global uart_puts
-.global uart_getc
-.global uart_get_status
+# .global uart_init
+# .global uart_putc
+# .global uart_puts
+# .global uart_getc
+# .global uart_get_status
 .global uart_handle_irq
-.global ns16550_init
+.global ns16550a_init
 
 .equ NS16550A_MAX_DEVICES, 2
 .equ NS16550A_RECORD_SIZE, 5
@@ -212,7 +212,7 @@ fn ns16550a_init
     la t0, ns16550a_putc               # pointer to putc
     sw t0, GETC(a0)
 
-    la t0, ns16550a_getc               # pointer to getc
+    la t0, ns16550a_getc_irq        # pointer to getc
     sw t0, PUTC(a0)
 
     la t0, ns16550a_config             # pointer to config
@@ -291,35 +291,40 @@ endfn
 #     a0 - device id
 # Returns:
 #     a0 - char (zero if none)
-fn ns16550a_getc
-    .set BASE, 0
-    .set BUFFER, 4
-
+fn ns16550a_getc_direct
     la t0, ns16550a_configs
     add a0, t0, a0                     # overwrite a0 with record's address
+    lw t0, (a0)                        # load uart base address
 
-    lw t0, BASE(a0)
-
-    lbu t1, IER(t0)                    # check whether interupts are on
-    bnez t1, 2f                        # jump if so
-
-    # Read byte from UART
     lbu t1, LSR(t0)
     andi t1, t1, UART_LSR_DA
 
-    bnez t1, 1f                        # jump if UART is ready to read from
-        mv a0, zero                    # otherwise, return 0
-        j 3f
+    mv a0, zero
+    beqz t1, 1f                        # jump if UART is not ready to read from
+        lbu a0, (t0)                   # load character at UART address
 1:
-    lbu a0, (t0)                       # load character at UART address
-    j 3f
+    ret
+endfn
 
-2:  # read from buffer rather than from UART itself (value set by irq)
-    mv t0, a0
-    lbu a0, BUFFER(t0)
-    sb zero, BUFFER(t0)
 
-3:  ret
+fn ns16550a_getc_irq
+    stack_alloc
+    la t0, ns16550a_configs
+    add a0, t0, a0                     # overwrite a0 with record's address
+    lw t0, (a0)                        # load uart base address
+
+    lbu t1, IIR(t0)                    # Read UART IIR to check interrupt type
+    andi t1, t1, 0x0f                  # Mask interrupt ID
+
+    mv a0, zero
+    li t2, 4                           # 0x4 = Received Data Available
+    bne t1, t2, 1f
+        lbu a0, 0(t0)                  # Read received byte to clear the interrupt
+
+    # beq t1, 0x2, tx_ready # 0x2 = Transmitter Empty
+1:
+    stack_free
+    ret
 endfn
 
 

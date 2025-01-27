@@ -7,7 +7,7 @@
 
 .macro print_code, str
     la a0, \str
-    call uart_puts
+    # call uart_puts
 .endm
 
 .include "macros.s"
@@ -74,9 +74,9 @@ _fill_canvas:
     addi s1, s1, SCREEN_HEIGHT
 1:
     mv a0, sp
-    call uart_puts
+    # call uart_puts
     li a0, '\n'
-    call uart_putc
+    # call uart_putc
     dec s1
     bnez s1, 1b
 
@@ -228,7 +228,7 @@ _print_char:
     sb zero, 11(sp)
 
     mv a0, sp
-    call uart_puts
+    # call uart_puts
 
     stack_free 64
     ret

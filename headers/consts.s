@@ -45,5 +45,7 @@
 # SYSTEM INFO
 
 .equ INFO_OUTPUT_DEV, 0
+.equ CFG_STD_OUT, 4
+.equ CFG_STD_IN, 8
 
 .endif
