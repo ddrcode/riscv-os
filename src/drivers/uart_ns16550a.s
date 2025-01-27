@@ -10,12 +10,6 @@
 .include "config.s"
 .include "macros.s"
 
-# .global uart_init
-# .global uart_putc
-# .global uart_puts
-# .global uart_getc
-# .global uart_get_status
-.global uart_handle_irq
 .global ns16550a_init
 
 .equ NS16550A_MAX_DEVICES, 2
@@ -37,127 +31,6 @@
 .equ UART_LSR_EF,               0x80   # Erroneous data in FIFO
 
 .section .text
-
-# Initialies the UART
-# Arguments:
-#     a0 - 1 to enable IRQs, 0 otherwise
-.type uart_init, @function
-uart_init:
-    stack_alloc
-    li t0, UART_BASE
-
-    li t1, 0x3                         # 0x3 -> 8 bit word length
-    sb t1, LCR(t0)
-
-    li t1, 1                           # 0x1 -> enable FIFOs
-    sb t1, LCR(t0)
-
-    sb a0, IER(t0)                     # 0x1 -> enable reciever interrupts
-
-    li t1, 0b1000
-    sb t1, MCR(t0)                     # Enable OUT2
-
-    li a0, UART_IRQ                    # configure PLIC IRQ
-    li a1, 1
-    call plic_enable_irq
-
-    stack_free
-    ret
-
-
-# prints a single character to the screen
-# a0 - char code
-.type putc, @function
-uart_putc:
-    li t0, UART_BASE
-
-1:  lbu t1, LSR(t0)                    # Loop until the line is idle and THR empty
-        andi t1, t1, UART_LSR_RI
-        beqz t1, 1b
-
-    andi t1, a0, 0xff                  # Ensure the parameter is a byte
-    sb t1, (t0)                        # Send byte to UART
-    ret
-
-
-# a0 - String address
-.type puts, @function
-uart_puts:
-    stack_alloc
-    push s0, 8
-    beqz a0, 2f                        # Null address - error
-    mv s0, a0
-1:                                     # While string byte is not null
-    lbu a0, (s0)                       # Get byte at current string pos
-    beqz a0, 3f                        # Is null?
-        call uart_putc                 # No, write byte to port
-        inc s0                         # Inc string pos
-        j 1b                           # Loop
-2:                                     # String byte is null
-    li a0, 2                           # Set error code
-    j 4f
-3:  setz a0                            # Set exit code
-4:  pop s0, 8
-    stack_free
-    ret
-
-
-.type uart_get, @function
-uart_getc:
-    li t0, UART_BASE
-
-    lbu t1, IER(t0)                    # check whether interupts are on
-    bnez t1, 2f                        # jump if so
-
-    # Read byte from UART
-    lbu t1, LSR(t0)
-    andi t1, t1, UART_LSR_DA
-
-    bnez t1, 1f                        # jump if UART is ready to read from
-        mv a0, zero                    # otherwise, return 0
-        j 3f
-1:
-    lbu a0, (t0)                       # load character at UART address
-    j 3f
-
-2:  # read from buffer rather than from UART itself (value set by irq)
-    la t0, uart_buffer
-    lbu a0, (t0)
-    sb zero, (t0)
-
-3:  ret
-
-
-.type uart_handle_irq, @function
-uart_handle_irq:
-    stack_alloc
-
-    li t0, UART_BASE
-    lbu t1, IIR(t0)                    # Read UART IIR to check interrupt type
-    andi t1, t1, 0x0f                  # Mask interrupt ID
-
-    li t2, 4                           # 0x4 = Received Data Available
-    bne t1, t2, 1f
-        lbu a0, 0(t0)                  # Read received byte to clear the interrupt
-        la t0, uart_buffer             # and store in the buffer
-        sb a0, (t0)
-
-    # beq t1, 0x2, tx_ready # 0x2 = Transmitter Empty
-1:
-    stack_free
-    ret
-
-
-uart_get_status:
-    mv a0, zero
-    li t0, UART_BASE
-
-    lbu t1, IER(t0)                    # check whether interupts are on
-    snez t1, t1                        # set t1 to 1 if so
-    or a0, a0, t1
-
-    ret
-
 
 # Device structure
 # Byte    Length     Name
@@ -212,7 +85,7 @@ fn ns16550a_init
     la t0, ns16550a_putc               # pointer to putc
     sw t0, GETC(a0)
 
-    la t0, ns16550a_getc_irq        # pointer to getc
+    la t0, ns16550a_getc               # pointer to getc
     sw t0, PUTC(a0)
 
     la t0, ns16550a_config             # pointer to config
@@ -291,18 +164,35 @@ endfn
 #     a0 - device id
 # Returns:
 #     a0 - char (zero if none)
-fn ns16550a_getc_direct
+fn ns16550a_getc
     la t0, ns16550a_configs
     add a0, t0, a0                     # overwrite a0 with record's address
     lw t0, (a0)                        # load uart base address
 
-    lbu t1, LSR(t0)
-    andi t1, t1, UART_LSR_DA
+    mv a0, zero                        # set the default result
 
-    mv a0, zero
-    beqz t1, 1f                        # jump if UART is not ready to read from
-        lbu a0, (t0)                   # load character at UART address
-1:
+    lbu t1, IER(t0)                    # check whether interupts are on
+    bnez t1, 1f                        # jump if so
+
+    # reading from UART directly
+
+    lbu t1, LSR(t0)                    # read byte from control register
+    andi t1, t1, UART_LSR_DA           # and check "data available" flag
+
+    bnez t1, 2f                        # jump if UART is ready to read from
+        j 3f                           # finish otherwise
+
+1:  # reading from IRQ buffer
+
+    li t2, 4                           # 4 = Received Data Available
+    lbu t1, IIR(t0)                    # Read UART IIR to check interrupt type
+    andi t1, t1, 0x0f                  # Mask interrupt ID
+    bne t1, t2, 3f                     # Exit if no data
+
+2:
+    lbu a0, (t0)                       # read byte from UART
+
+3:
     ret
 endfn
 
@@ -353,7 +243,7 @@ fn ns16550a_config
 
         andi t0, a2, 0b10
         srli t0, t0, 1
-        sb t0, IER(a3)                 # 0x1 -> enable reciever interrupts
+        sb t0, IER(a3)                 # 1 -> enable reciever interrupts
 
     # FIXME check for other flags
 

@@ -47,24 +47,25 @@ endfn
 
 
 # This is platform / machine - specific
+# UART irqs are handled directly by getc function
 .align 4
 external_irq_vector:
     .word    0                         # IRQ  0
-    .word    0                         # IRQ  1
-    .word    0                         # IRQ  2
-    .word    0                         # IRQ  3
-    .word    0                         # IRQ  4
-    .word    0                         # IRQ  5
-    .word    0                         # IRQ  6
-    .word    0                         # IRQ  7
-    .word    0                         # IRQ  8
-    .word    0                         # IRQ 19
-    .word    uart_handle_irq           # IRQ 10
-    .word    0                         # IRQ 11
-    .word    0                         # IRQ 12
-    .word    0                         # IRQ 13
-    .word    0                         # IRQ 14
-    .word    0                         # IRQ 15
+    .word    0 /* user defined */      # IRQ  1
+    .word    0 /* user defined */      # IRQ  2
+    .word    0 /* keyboard / mouse */  # IRQ  3
+    .word    0 /* keyboard / mouse */  # IRQ  4
+    .word    0 /* block device */      # IRQ  5
+    .word    0 /* network device */    # IRQ  6
+    .word    0 /* console device */    # IRQ  7
+    .word    0 /* RNG - random nums */ # IRQ  8
+    .word    0 /* balloon device */    # IRQ  9
+    .word    0 /* UART 0 */            # IRQ 10
+    .word    0 /* UART 1 */            # IRQ 11
+    .word    0 /* PCIE Root Port */    # IRQ 12
+    .word    0 /* RTC */               # IRQ 13
+    .word    0 /* reserved */          # IRQ 14
+    .word    0 /* reserved */          # IRQ 15
 
 .section .data
 drv_uart_0: .space 16, 0
