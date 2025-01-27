@@ -26,6 +26,8 @@ endfn
 
 .section .data.platform
 
+drv_uart_0: .space 4*8
+
 # This is platform / machine - specific
 external_irq_vector:
     .word    0                         # IRQ  0

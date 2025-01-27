@@ -155,6 +155,15 @@ uart_get_status:
     ret
 
 
+fn ns16550_init
+    sw a1, (a0)
+
+    la t0, uart_getc
+    sw t0, 4(a0)
+
+    ret
+endfn
+
 #----------------------------------------
 
 .section .data
