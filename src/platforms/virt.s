@@ -11,6 +11,13 @@
 .global platform_start
 .global external_irq_vector
 
+.macro call_cfg_set, cfg, val_reg
+    li a0, \cfg
+    mv a1, \val_reg
+    call cfg_set
+.endm
+
+#----------------------------------------
 
 .section .text.platform
 
@@ -28,28 +35,10 @@ fn platform_start
     li a3, UART0_IRQ
     call ns16550a_init
 
-    li a0, CFG_STD_OUT                 # Set UART0 as stdin
-    mv a1, s1
-    call cfg_set
-
-    li a0, CFG_STD_IN                  # Set UART0 as stdout
-    mv a1, s1
-    call cfg_set
-
-    la a0, drv_uart_1                  # Configure UART1
-    mv s1, a0
-    li a1, UART1_BASE
-    li a2, 0b01
-    li a3, UART1_IRQ
-    call ns16550a_init
-
-    li a0, CFG_STD_ERR                 # Set UART1 as stderr
-    mv a1, s1
-    call cfg_set
-
-    li a0, CFG_STD_DEBUG               # Set UART1 as stddebug
-    mv a1, s1
-    call cfg_set
+    call_cfg_set CFG_STD_OUT, s1
+    call_cfg_set CFG_STD_IN, s1
+    call_cfg_set CFG_STD_ERR, s1
+    call_cfg_set CFG_STD_DEBUG, s1
 
     pop s1, 8
     stack_free
@@ -63,11 +52,13 @@ fn handle_uart_irq
     ret
 endfn
 
+
+#----------------------------------------
+
 .section .data.platform
 
-
 # This is platform / machine - specific
-# UART irqs are handled directly by getc function
+# Provided devices are TBC
 .align 4
 external_irq_vector:
     .word    0                         # IRQ  0
@@ -81,13 +72,17 @@ external_irq_vector:
     .word    0 /* RNG - random nums */ # IRQ  8
     .word    0 /* balloon device */    # IRQ  9
     .word    handle_uart_irq           # IRQ 10 (UART 0)
-    .word    handle_uart_irq           # IRQ 11 (UART 1)
+    .word    0 /* ? */                 # IRQ 11
     .word    0 /* PCIE Root Port */    # IRQ 12
     .word    0 /* RTC */               # IRQ 13
     .word    0 /* reserved */          # IRQ 14
     .word    0 /* reserved */          # IRQ 15
 
+
+#----------------------------------------
+
 .section .data
+
 drv_uart_0: .space DRV_UART_STRUCT_SIZE, 0
 drv_uart_1: .space DRV_UART_STRUCT_SIZE, 0
 
