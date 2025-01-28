@@ -6,12 +6,15 @@
 # See LICENSE for license details.
 
 .macro print_code, str
-    la a0, \str
+    li a0, CFG_STD_OUT
+    call cfg_get
+    la a1, \str
     call uart_puts
 .endm
 
 .include "macros.s"
 .include "config.s"
+.include "consts.s"
 
 .global video_init
 .global video_repaint
@@ -38,6 +41,9 @@ video_cls:
 _fill_canvas:
     stack_alloc 128
     push s1, 120
+    push s0, 116
+
+    call_cfg_get CFG_STD_OUT, s0
 
     li s1, SCREEN_OVER_SERIAL_HBORDER
     slli s1, s1, 1
@@ -73,13 +79,18 @@ _fill_canvas:
     slli s1, s1, 1
     addi s1, s1, SCREEN_HEIGHT
 1:
-    mv a0, sp
+    mv a0, s0
+    mv a1, sp
     call uart_puts
-    li a0, '\n'
+
+    mv a0, s0
+    li a1, '\n'
     call uart_putc
+
     dec s1
     bnez s1, 1b
 
+    pop s0, 116
     pop s1, 120
     stack_free 128
     ret
@@ -197,7 +208,6 @@ _print_char:
     addi t0, t0, '0'
     sb t0, 8(sp)
 
-
     pop a0, 52
     inc t0
     li t1, 100
@@ -227,7 +237,9 @@ _print_char:
     sb t0, 10(sp)
     sb zero, 11(sp)
 
-    mv a0, sp
+    li a0, CFG_STD_OUT
+    call cfg_get
+    mv a1, sp
     call uart_puts
 
     stack_free 64

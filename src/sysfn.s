@@ -65,14 +65,17 @@ endfn
 
 
 fn sysfn_get_secs_from_epoch
-.ifdef RTC_BASE
     stack_alloc
-    call rtc_time_in_sec
-    setz a5
-    stack_free
-.else
+    li a0, DEV_RTC_0
+    call device_get
     li a5, ERR_NOT_SUPPORTED
-.endif
+    beqz a0, 1f
+
+    call rtc_get_secs_from_epoch
+    setz a5
+
+1:
+    stack_free
     ret
 endfn
 
@@ -101,6 +104,48 @@ fn sysfn_get_time
 endfn
 
 
+fn sysfn_putc
+    stack_alloc
+    push a0, 8
+
+    li a0, CFG_STD_OUT
+    call cfg_get
+
+    pop a1, 8
+    call uart_putc
+
+    stack_free
+    ret
+endfn
+
+fn sysfn_puts
+    stack_alloc
+    push a0, 8
+
+    li a0, CFG_STD_OUT
+    call cfg_get
+
+    pop a1, 8
+    call uart_puts
+
+    stack_free
+    ret
+endfn
+
+fn sysfn_getc
+    stack_alloc
+    push a0, 8
+
+    li a0, CFG_STD_OUT
+    call cfg_get
+
+    pop a1, 8
+    call uart_getc
+
+    stack_free
+    ret
+endfn
+
 #----------------------------------------
 
 .section .data
@@ -126,9 +171,9 @@ sysfn_vector:
     .word    0                         # 17
     .word    0                         # 18
     .word    0                         # 19
-    .word    uart_getc                 # 20
-    .word    uart_putc                 # 21
-    .word    uart_puts                 # 22
+    .word    sysfn_getc                # 20
+    .word    sysfn_putc                # 21
+    .word    sysfn_puts                # 22
     .word    0                         # 23
     .word    0                         # 24
     .word    0                         # 25

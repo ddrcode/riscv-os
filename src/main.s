@@ -44,9 +44,12 @@ _start:
 
     mret                               # Return to user mode
 
+    call panic                         # In case when user mode initialization failed
+                                       # it may ignore mret and step here
 loop:
     wfi
     j loop
 
 
+.section .data
 

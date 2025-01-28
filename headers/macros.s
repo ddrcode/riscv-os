@@ -50,7 +50,8 @@
 .endm
 
 .macro callfn, name, arg0, arg1=0, arg2=0, arg3=0, arg4=0, arg5=0
-    li a0, \arg0
+    # li a0, \arg0
+    _convert a0, arg1
     li a1, \arg1
     li a2, \arg2
     li a3, \arg3
@@ -84,6 +85,25 @@
     slli \id_reg, \id_reg, 2
     add \res_reg, \res_reg, \id_reg
     lw \res_reg, (\res_reg)
+.endm
+
+.macro call_cfg_get, cfg, val_reg
+    li a0, \cfg
+    call cfg_get
+    mv \val_reg, a0
+.endm
+
+.macro call_cfg_set, cfg, val_reg
+    li a0, \cfg
+    mv a1, \val_reg
+    call cfg_set
+.endm
+
+
+.macro add_device, dev_id, dev_label
+    li a0, \dev_id
+    la a1, \dev_label
+    call device_add
 .endm
 
 .endif
