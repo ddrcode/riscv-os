@@ -9,8 +9,8 @@
 .equ SCREEN_HEIGHT, 25
 
 # Devices
-.equ UART_BASE, 0x10010000
-.equ UART_IRQ, 4
+.equ UART0_BASE, 0x10010000
+.equ UART0_IRQ, 4
 
 .equ PLIC_BASE, 0xc000000
 

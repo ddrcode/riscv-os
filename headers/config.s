@@ -2,7 +2,7 @@
 .equ __CONFIG_S__, 1
 
 # Generic
-.equ DEBUG, 1
+.equ DEBUG, 0
 
 .weak ENABLE_IRQ
 .weak ENABLE_PLIC
@@ -17,7 +17,7 @@
 # the value will be defaulted to this one
 # The ILP32I ABI specifies that individual stack-chunk should be
 # 16-bytes long.
-.set MIN_STACK_ALLOC_CHUNK, 4
+.set MIN_STACK_ALLOC_CHUNK, 16
 
 # Defines the total size of a stack used be IRQ handlers.
 .set ISR_STACK_SIZE, 4096

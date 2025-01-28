@@ -11,11 +11,6 @@
 .global platform_start
 .global external_irq_vector
 
-.macro call_cfg_set, cfg, val_reg
-    li a0, \cfg
-    mv a1, \val_reg
-    call cfg_set
-.endm
 
 #----------------------------------------
 
@@ -84,5 +79,4 @@ external_irq_vector:
 .section .data
 
 drv_uart_0: .space DRV_UART_STRUCT_SIZE, 0
-drv_uart_1: .space DRV_UART_STRUCT_SIZE, 0
 

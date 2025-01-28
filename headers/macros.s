@@ -87,4 +87,10 @@
     lw \res_reg, (\res_reg)
 .endm
 
+.macro call_cfg_set, cfg, val_reg
+    li a0, \cfg
+    mv a1, \val_reg
+    call cfg_set
+.endm
+
 .endif

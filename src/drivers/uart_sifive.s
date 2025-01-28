@@ -1,12 +1,7 @@
 .include "macros.s"
 .include "config.s"
 
-.global uart_init
-.global uart_putc
-.global uart_puts
-.global uart_getc
-.global uart_get_status
-.global uart_handle_irq
+.global sifive_uart_init
 
 .equ UART_REG_TXFIFO,	0
 .equ UART_REG_RXFIFO,	4
@@ -24,15 +19,60 @@
 
 .section .text
 
-# Arguments:
-#     a0 - enable IRQ? (1 - yes, 0 - no)
-fn uart_init
-    stack_alloc
-    li t0, UART_BASE
+# Arguments
+#     a0 - pointer to uart driver structure
+#     a1 - base address
+#     a2 - initial config
+#     a3 - IRQ id
+fn sifive_uart_init
+    .set BASE, 0
+    .set GETC, 4
+    .set PUTC, 8
+    .set CONFIG_FN, 12
 
-    li t1, UART_REG_IE                 # enable interrupts for receive
-    add t1, t0, t1                     # based on a0 value
-    sw a0, (t1)
+    stack_alloc
+    push a2, 8
+    push a1, 4
+    push a0, 0
+
+    # UART record
+
+    sw a1, BASE(a0)                    # save device id (that is base addr)
+
+    la t0, sifive_uart_putc            # pointer to putc
+    sw t0, GETC(a0)
+
+    la t0, sifive_uart_getc            # pointer to getc
+    sw t0, PUTC(a0)
+
+    la t0, sifive_uart_config          # pointer to config
+    sw t0, CONFIG_FN(a0)
+
+    mv a0, a1
+    mv a1, a3
+    call sifive_uart_start             # start/initialize the device with default settings
+
+    pop a0, 4
+    li a1, ~0
+    pop a2, 8
+    call sifive_uart_config            # configure uart
+
+    pop a0, 0                          # return structure pointer
+    stack_free
+    ret
+endfn
+
+
+# Arguments:
+#     a0 - base addr
+#     a1 - irq id
+fn sifive_uart_start
+    stack_alloc
+    mv t0, a0
+
+    li t1, UART_REG_IE                 # disable interrupts for receive
+    add t1, t0, t1                     # by default
+    sw zero, (t1)
 
     li t1, UART_REG_TXCTRL             # enable tx
     add t1, t0, t1
@@ -44,83 +84,95 @@ fn uart_init
     li t2, UART_RXCTRL_RXEN
     sw t2, (t1)
 
-    li a0, UART_IRQ                    # sets up PLIC with UART's IRQ, but
-    li a1, 1                           # it doesn't enable the IRQ
+.ifdef PLIC_BASE
+    mv a0, a1                          # sets up PLIC with UART's IRQ (it doesn't enable IRQs)
+    li a1, 1                           # IRQ priority
     call plic_enable_irq
+.endif
 
     stack_free
     ret
 endfn
 
 
-# prints a single character to the screen
-# a0 - char code
-fn uart_putc
-    li t0, UART_BASE
+# Outputs single character to the device
+# Arguments
+#     a0 - base address
+#     a1 - character to print
+# Returns: same as input
+fn sifive_uart_putc
 1:
-    lw t1, UART_REG_TXFIFO(t0)
+    lw t1, UART_REG_TXFIFO(a0)
     li t2, UART_TXFIFO_FULL
     and t2, t1, t2
     bnez t2, 1b
 
-    sw a0, UART_REG_TXFIFO(t0)
+    # andi t1, a1, 0xff                  # Ensure the parameter is a byte
+    mv t1, a1
+    sw t1, UART_REG_TXFIFO(a0)
 
     ret
 endfn
 
 
-# a0 - String address
-fn uart_puts
-    stack_alloc
-    push s0, 8
-    beqz a0, 2f                        # Null address - error
-    mv s0, a0
-1:                                     # While string byte is not null
-    lbu a0, (s0)                       # Get byte at current string pos
-    beqz a0, 3f                        # Is null?
-        call uart_putc                 # No, write byte to port
-        inc s0                         # Inc string pos
-        j 1b                           # Loop
-2:                                     # String byte is null
-    li a0, 2                           # Set error code
-    j 4f
-3:  setz a0                            # Set exit code
-4:  pop s0, 8
-    stack_free
-    ret
-endfn
 
-
-fn uart_getc
-    li t0, UART_BASE
+# Reads a single byte from the device
+# Arguments
+#     a0 - base address
+# Returns:
+#     a0 - char (zero if none)
+fn sifive_uart_getc
+    mv t0, a0
 
     lw t1, UART_REG_IE(t0)             # check if irq is enabled
-    beqz t1, uart                      # jump if not
+    beqz t1, 1f                        # jump if not
 
-irq:
-    la t1, uart_buffer
-    lbu a0, (t1)
-    sb zero, (t1)
-    j 1f
+# irq:
+#     la t1, sifive_uart_buffer
+#     lbu a0, (t1)
+#     sb zero, (t1)
+#     j 1f
 
-uart:
+# polling
+
+1:
     mv a0, zero
     lw t1, UART_REG_RXFIFO(t0)
     li t2, UART_RXFIFO_EMPTY
     and t2, t1, t2
-    bnez t2, 1f
+    bnez t2, 2f
         li t2, UART_RXFIFO_DATA
         and a0, t1, t2
 
-1:
+2:
     ret
 endfn
 
 
-fn uart_handle_irq
+# Arguments
+#     a0 - base addr
+#     a1 - mask
+#     a2 - config
+# Returns:
+#     a0 - new config
+fn sifive_uart_config
+    mv t0, a0
+
+    li a0, 1                           # Set "enabled" bit
+
+    lw t1, UART_REG_IE(t0)             # check if irq is enabled
+    snez t1, t1                        # set t1 to 1 if so
+    slli t1, t1, 1                         # IRQ flag is bit 1 - shift
+    or a0, a0, t1
+
+    ret
+endfn
+
+
+fn sifive_uart_handle_irq
     stack_alloc
     # UART Base Address
-    li t0, UART_BASE
+    li t0, UART0_BASE
 
     # Read the ip register to check interrupt cause
     lw t1, 0x14(t0)          # Load ip register
@@ -141,8 +193,8 @@ rx_interrupt:
     lw t1, 0x04(t0)          # Load rxdata register
     andi t2, t1, 0xFF        # Mask to extract received byte (8 bits)
 
-    la t1, uart_buffer
-    sb t2, (t1)
+    # la t1, sifive_uart_buffer
+    # sb t2, (t1)
     # Process the received byte (e.g., store in a buffer or print it)
     # For simplicity, let's assume you output it back (echo)
     # sw t2, 0x00(t0)          # Write the byte back to txdata for echoing
@@ -154,7 +206,7 @@ tx_interrupt:
     # For simplicity, we'll send a test character ('A')
     # li t5, 'A'               # Load ASCII value of 'A'
     # sw t5, 0x00(t0)          # Write to txdata register to send
-    # la t1, uart_buffer
+    # la t1, sifive_uart_buffer
     # li t2, 'S'
     # sb t2, (t1)
 
@@ -165,16 +217,3 @@ done:
 endfn
 
 
-uart_get_status:
-    mv a0, zero
-    li t0, UART_BASE
-
-    lw t1, UART_REG_IE(t0)             # check if irq is enabled
-    snez t1, t1                        # set t1 to 1 if so
-    or a0, a0, t1
-
-    ret
-
-.section .data
-
-uart_buffer: .byte 0
