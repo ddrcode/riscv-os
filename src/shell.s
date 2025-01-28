@@ -79,6 +79,8 @@ fn exec_cmd
     li t0, 512                         # FIXME So ugly!
     blt a0, t0, 11f                    # If returned file id (large number), run program
 
+        pop a1, 8                      # program name (argv[0])
+        pop a2, 4                      # args address (argv[1])
         call run_prog
         j 2f
 
@@ -215,10 +217,19 @@ endfn
 # Runs program from disc
 # Arguments:
 #     a0 - file id
+#     a1 - program name
+#     a2 - args address
 fn run_prog
-    stack_alloc
+    stack_alloc 16
+    snez t0, a2                        # has the program been called with args?
+    inc t0                             # arg count is always at least 1 (argv[0] is program name)
+
+    pushb t0, 0                        # argc
+    push a1, 1                         # argv[0] - program name
+    push a2, 5                         # argv[1] - arguments (TODO split them)
+
     syscall SYSFN_RUN
-    stack_free
+    stack_free 16
     ret
 endfn
 

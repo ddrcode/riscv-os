@@ -31,7 +31,7 @@ fn main
 
 3:
 
-    mv a5, zero
+    mv a0, zero
     stack_free
     ret
 endfn

@@ -2,9 +2,9 @@
 #include "system.h"
 #include "io.h"
 
-int main() {
+int main(int argc, char* argv[]) {
     char* msg = "Running C program";
-    // syscall((u32)msg, 0, 0, 0, 0, 22);
-    prints(msg);
+    prints("Hello, ");
+    println(argc > 1 ? argv[1] : "RISCV-OS");
     return 0;
 }

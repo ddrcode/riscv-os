@@ -17,7 +17,7 @@ main:
     mv a0, sp
     call println
 
-    setz a5
+    setz a0
 1:
     stack_free 32
     ret
