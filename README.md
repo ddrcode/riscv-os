@@ -15,13 +15,14 @@ and Zicsr extensions.
 
 The RISC-V OS is in very early stage of development, and currently conceptually is closer to C64's
 [Kernal](https://en.wikipedia.org/wiki/KERNAL) rather than
-Linux or any RTOS. 
+Linux or any RTOS.
 
 ### Implemented features
 
 - framebuffer (40x25 characters text screen, configurable),
-- trivial [shell](https://github.com/ddrcode/riscv-os/wiki/Shell-commands) 
+- trivial [shell](https://github.com/ddrcode/riscv-os/wiki/Shell-commands)
 - drivers for UART, RTC and PLIC
+- driver/hardware abstraction layer (HAL)
 - keyboard input (UART, interrupts)
 - [system functions](https://github.com/ddrcode/riscv-os/wiki/System-functions) callable via `ecall`
 - interrupt/exception handlers
@@ -43,7 +44,7 @@ I strongly recommend using [nix](https://nixos.org/download/#download-nix) for h
 In such case just enter the project's folder and type `nix-shell`, or - if you use
 [nix direnv](https://github.com/nix-community/nix-direnv) - `direnv allow`.
 
-The project requires a [riscv-os-apps](https://github.com/ddrcode/riscv-os) repo that contains 
+The project requires a [riscv-os-apps](https://github.com/ddrcode/riscv-os) repo that contains
 common libraries and applications. The `apps` folder after cloning this repo is a sub-tree pointing to
 the apps repo.
 
@@ -56,7 +57,7 @@ Other available tests (among others): `math32`, `math64`, `string`, `rtc`
 
 To have fully-functional system, you should run it with a disc image contaiing the apps.
 To build it, just `cd` the apps folder and run `make disc`. The start QEMU with the following command
-(from system repo, not the `apps` folder): 
+(from system repo, not the `apps` folder):
 
 ```
 make run DRIVE=apps/disc.tar
