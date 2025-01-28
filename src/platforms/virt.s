@@ -56,6 +56,13 @@ fn platform_start
     ret
 endfn
 
+fn handle_uart_irq
+    # nothing to do here, as the IRQ's are handled directly
+    # by the UART's driver, however the handler must exist
+    # as otherwise there is unhandled IRQ error
+    ret
+endfn
+
 .section .data.platform
 
 
@@ -73,8 +80,8 @@ external_irq_vector:
     .word    0 /* console device */    # IRQ  7
     .word    0 /* RNG - random nums */ # IRQ  8
     .word    0 /* balloon device */    # IRQ  9
-    .word    0 /* UART 0 */            # IRQ 10
-    .word    0 /* UART 1 */            # IRQ 11
+    .word    handle_uart_irq           # IRQ 10 (UART 0)
+    .word    handle_uart_irq           # IRQ 11 (UART 1)
     .word    0 /* PCIE Root Port */    # IRQ 12
     .word    0 /* RTC */               # IRQ 13
     .word    0 /* reserved */          # IRQ 14

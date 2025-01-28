@@ -1,4 +1,4 @@
 build
 .direnv
 .ccls-cache
-
+*.log
