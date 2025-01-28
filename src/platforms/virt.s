@@ -35,6 +35,13 @@ fn platform_start
     call_cfg_set CFG_STD_ERR, s1
     call_cfg_set CFG_STD_DEBUG, s1
 
+    la a0, drv_rtc_0
+    li a1, RTC_BASE
+    call goldfish_rtc_init
+
+    add_device DEV_UART_0, drv_uart_0
+    add_device DEV_RTC_0, drv_rtc_0
+
     pop s1, 8
     stack_free
     ret
@@ -78,5 +85,5 @@ external_irq_vector:
 
 .section .data
 
-drv_uart_0: .space DRV_UART_STRUCT_SIZE, 0
-
+drv_uart_0:    .space DRV_UART_STRUCT_SIZE, 0
+drv_rtc_0:     .space DRV_RTC_STRUCT_SIZE, 0

@@ -93,4 +93,11 @@
     call cfg_set
 .endm
 
+
+.macro add_device, dev_id, dev_label
+    li a0, \dev_id
+    la a1, \dev_label
+    call device_add
+.endm
+
 .endif

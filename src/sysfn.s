@@ -65,14 +65,17 @@ endfn
 
 
 fn sysfn_get_secs_from_epoch
-.ifdef RTC_BASE
     stack_alloc
-    call rtc_time_in_sec
-    setz a5
-    stack_free
-.else
+    li a0, DEV_RTC_0
+    call device_get
     li a5, ERR_NOT_SUPPORTED
-.endif
+    beqz a0, 1f
+
+    call rtc_get_secs_from_epoch
+    setz a5
+
+1:
+    stack_free
     ret
 endfn
 

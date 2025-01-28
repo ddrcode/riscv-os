@@ -54,5 +54,20 @@
 # HAL
 
 .equ DRV_UART_STRUCT_SIZE, 16
+.equ DRV_RTC_STRUCT_SIZE, 8
+
+# DEVICE MANAGER
+
+.equ DEV_MAX_DEVICES_NO, 16
+
+.equ DEV_UART_0, 0
+.equ DEV_UART_1, 4
+.equ DEV_UART_2, 8
+.equ DEV_UART_3, 12
+
+.equ DEV_RTC_0, 16
+.equ DEV_RTC_1, 20
+
+
 
 .endif
