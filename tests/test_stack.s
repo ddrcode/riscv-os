@@ -72,7 +72,6 @@ test_overflow:
     li a0, 1
     li a1, 1
     call assert
-    call print_screen
 
     stack_free
     ret
