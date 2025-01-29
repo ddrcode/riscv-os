@@ -71,7 +71,7 @@ disc: release-all
 	rm -f disc.tar
 	touch $(OUT)/release/.system
 	ls -A $(OUT)/release | xargs tar -cvf disc.tar -C $(OUT)/release
-	truncate -s 33554432 disc.tar
+	truncate -c -s 32M disc.tar
 
 clean:
 	@for app in $(APPS); do \
