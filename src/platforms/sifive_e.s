@@ -23,15 +23,26 @@ fn platform_start
 
     la a0, drv_uart_0                  # Configure UART0
     mv s1, a0
-    li a1, UART0_BASE
+    li a1, UART_0_BASE
     li a2, 0b01
-    li a3, UART0_IRQ
+    li a3, UART_0_IRQ
     call sifive_uart_init
 
     call_cfg_set CFG_STD_OUT, s1
     call_cfg_set CFG_STD_IN, s1
     call_cfg_set CFG_STD_ERR, s1
+
+    la a0, drv_uart_1                  # Configure UART1
+    mv s1, a0
+    li a1, UART_1_BASE
+    li a2, 0b01
+    li a3, UART_1_IRQ
+    call sifive_uart_init
+
     call_cfg_set CFG_STD_DEBUG, s1
+
+    add_device DEV_UART_0, drv_uart_0  # add devices to device manager
+    add_device DEV_UART_1, drv_uart_1
 
     pop s1, 8
     stack_free
