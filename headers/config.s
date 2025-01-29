@@ -51,4 +51,10 @@
     .include "platforms/config-sifive_u.s"
 .endif
 
+.ifdef m_sifive_e
+    .equ ENABLE_IRQ, 1
+    .equ ENABLE_PLIC, 1
+    .include "platforms/config-sifive_e.s"
+.endif
+
 .endif

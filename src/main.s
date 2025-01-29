@@ -8,9 +8,9 @@
 .include "consts.s"
 .include "macros.s"
 
-.section .text.start
-
 .global _start
+
+.section .text.start
 
 _start:
 
