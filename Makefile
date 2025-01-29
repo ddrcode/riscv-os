@@ -34,13 +34,17 @@ ASFLAGS := -march=$(ARCH) -mabi=$(ABI) $(HEADERS) --defsym OUTPUT_DEV=$(OUTPUT_D
 CFLAGS := -march=$(ARCH) -mabi=$(ABI)  -nostdlib -static $(HEADERS) -T platforms/$(MACHINE).ld
 LDFLAGS := -Arv32$(RISC_V_EXTENSIONS) -melf32lriscv -T platforms/$(MACHINE).ld -static -nostdlib
 
-QEMU_EXTENSIONS := e=on,m=on,i=off,h=off,f=off,d=off,a=off,f=off,c=off,zawrs=off,sstc=off,zicntr=off,zihpm=off,zicboz=off,zicbom=off,svadu=off,zicsr=on,zfa=off,zmmul=on
-QEMU := qemu-system-riscv32 -machine $(MACHINE) \
+QEMU_EXTENSIONS := e=on,m=on,i=off,h=off,f=off,d=off,a=off,f=off,c=off,zawrs=off,sstc=off,zicntr=off,zihpm=off,zicboz=off,zicbom=off,svadu=off,zicsr=on,zfa=off,zmmul=off
+QEMU := qemu-system-riscv32 -machine $(MACHINE) -bios none \
 		-cpu rv32,pmp=false,$(QEMU_EXTENSIONS) -nographic -echr 17 \
         -serial mon:stdio -serial file:riscv-os.log
 
 ifdef DRIVE
 QEMU += -drive file=$(DRIVE),format=raw,if=pflash,unit=1
+endif
+
+ifdef QEMU_MACHINE_CONFIG
+QEMU += $(QEMU_MACHINE_CONFIG)
 endif
 
 ifneq ($(filter release, $(MAKECMDGOALS)),)
@@ -117,19 +121,19 @@ build-all: build build-tests
 
 run: build
 	@echo "Ctrl-Q C for QEMU console, then quit to exit"
-	$(QEMU) -bios build/$(MACHINE).elf
+	$(QEMU) -kernel build/$(MACHINE).elf
 
 test: build-test
 	@echo "Ctrl-Q C for QEMU console, then quit to exit"
-	$(QEMU) -bios build/test_$(TEST_NAME).elf
+	$(QEMU) -kernel build/test_$(TEST_NAME).elf
 
 debug: build-test
 	@echo "Ctrl-Q C for QEMU console, then quit to exit"
-	$(QEMU) -s -S -bios build/test_$(TEST_NAME).elf
+	$(QEMU) -s -S -kernel build/test_$(TEST_NAME).elf
 
 debug-main: build
 	@echo "Ctrl-Q C for QEMU console, then quit to exit"
-	$(QEMU) -s -S -bios build/$(MACHINE).elf
+	$(QEMU) -s -S -kernel build/$(MACHINE).elf
 
 gdb: build-test
 	gdb -ex 'target remote localhost:1234' ./build/test_$(TEST_NAME).elf

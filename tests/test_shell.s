@@ -22,7 +22,6 @@ test_main:
         j 1b
 2:
     call show_cursor
-    call print_screen
 
     stack_free
     ret

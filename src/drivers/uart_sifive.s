@@ -172,7 +172,7 @@ endfn
 fn sifive_uart_handle_irq
     stack_alloc
     # UART Base Address
-    li t0, UART0_BASE
+    li t0, UART_0_BASE
 
     # Read the ip register to check interrupt cause
     lw t1, 0x14(t0)          # Load ip register
