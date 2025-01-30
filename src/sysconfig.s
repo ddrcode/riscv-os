@@ -46,3 +46,11 @@ std_out:        .word      0
 std_in:         .word      0
 std_err:        .word      0
 std_debug:      .word      0
+platform_name:  .word      default_platform_name
+
+
+#----------------------------------------
+
+.section .rodata
+
+default_platform_name: .string "unknown"
