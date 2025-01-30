@@ -23,7 +23,7 @@ fn platform_start
 
     la a0, drv_uart_0                  # Configure UART0
     li a1, UART_0_BASE
-    li a2, 0b01
+    li a2, 0b11                        # Enable device and IRQ
     li a3, UART_0_IRQ
     call sifive_uart_init
     mv s1, a0
@@ -35,7 +35,7 @@ fn platform_start
 
     la a0, drv_uart_1                  # Configure UART1
     li a1, UART_1_BASE
-    li a2, 0b01
+    li a2, 0b01                        # Enable device without IRQs
     li a3, UART_1_IRQ
     call sifive_uart_init
     mv s1, a0

@@ -124,17 +124,6 @@ endfn
 fn sifive_uart_getc
     mv t0, a0
 
-    lw t1, UART_REG_IE(t0)             # check if irq is enabled
-    beqz t1, 1f                        # jump if not
-
-# irq:
-#     la t1, sifive_uart_buffer
-#     lbu a0, (t1)
-#     sb zero, (t1)
-#     j 1f
-
-# polling
-
 1:
     mv a0, zero
     lw t1, UART_REG_RXFIFO(t0)
@@ -156,64 +145,31 @@ endfn
 # Returns:
 #     a0 - new config
 fn sifive_uart_config
-    mv t0, a0
+    beqz a1, 1f                        # if mask is 0, then just read the config
 
-    li a0, 1                           # Set "enabled" bit
+    # set the config
+.ifdef PLIC_BASE                       # no point enabling IRQ if PLIC is not present
+    andi t0, a1, 0b10
+    beqz t0, 1f                        # should input IRQ be configured?
+
+        andi t0, a2, 0b10
+        srli t0, t0, 1
+        sw t0, UART_REG_IE(a0)         # check if irq is enabled
+.endif
+
+
+    # get the config
+1:
+    mv t0, a0
+    li a0, 1                           # Set "enabled" bit  (FIXME don't hardcode it)
 
     lw t1, UART_REG_IE(t0)             # check if irq is enabled
     snez t1, t1                        # set t1 to 1 if so
-    slli t1, t1, 1                         # IRQ flag is bit 1 - shift
+    slli t1, t1, 1                     # IRQ flag is bit 1 - shift
     or a0, a0, t1
 
     ret
 endfn
 
-
-fn sifive_uart_handle_irq
-    stack_alloc
-    # UART Base Address
-    li t0, UART_0_BASE
-
-    # Read the ip register to check interrupt cause
-    lw t1, 0x14(t0)          # Load ip register
-
-    # Check for RX interrupt (bit 1)
-    andi t2, t1, 0x2         # Mask RX interrupt bit
-    bnez t2, rx_interrupt    # Jump if RX interrupt is pending
-
-    # Check for TX interrupt (bit 0)
-    andi t2, t1, 0x1         # Mask TX interrupt bit
-    bnez t2, tx_interrupt    # Jump if TX interrupt is pending
-
-    # No UART interrupt
-    j done
-
-rx_interrupt:
-    # Read received data from rxdata register
-    lw t1, 0x04(t0)          # Load rxdata register
-    andi t2, t1, 0xFF        # Mask to extract received byte (8 bits)
-
-    # la t1, sifive_uart_buffer
-    # sb t2, (t1)
-    # Process the received byte (e.g., store in a buffer or print it)
-    # For simplicity, let's assume you output it back (echo)
-    # sw t2, 0x00(t0)          # Write the byte back to txdata for echoing
-
-    j done
-
-tx_interrupt:
-    # Handle TX interrupt (e.g., load next byte to send)
-    # For simplicity, we'll send a test character ('A')
-    # li t5, 'A'               # Load ASCII value of 'A'
-    # sw t5, 0x00(t0)          # Write to txdata register to send
-    # la t1, sifive_uart_buffer
-    # li t2, 'S'
-    # sb t2, (t1)
-
-    j done
-
-done:
-    ret                      # Return to the main IRQ handler
-endfn
 
 
