@@ -18,6 +18,7 @@
 .global uart_putc
 .global uart_puts
 .global uart_getc
+.global uart_get_config
 .global uart_handle_irq
 
 

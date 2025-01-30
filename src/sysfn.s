@@ -27,7 +27,7 @@ fn sysfn_run
     beqz t0, 1f                        # Exit for non-exec file
 
     csrr t0, mepc
-    la t1, program_return_address
+    la t1, program_return_address      # FIXME state is not required, just pass the arg back to cmd_run
     sw t0, (t1)
 
     li a0, PROGRAM_RAM
@@ -60,6 +60,22 @@ fn sysfn_exit
         csrw mepc, t0
 1:
     mv a5, a0
+    ret
+endfn
+
+
+fn sysfn_idle
+    csrr a0, mepc                      # the function returns return address from idle
+    mv a5, zero                        # and no error code
+
+    la t0, idle                        # return from the trap to idle function
+    addi t0, t0, -4
+    csrw mepc, t0
+
+    li t0, 0b11                        # in machine mode
+    slli t0, t0, 11
+    csrs mstatus, t0
+
     ret
 endfn
 
@@ -136,7 +152,7 @@ fn sysfn_getc
     stack_alloc
     push a0, 8
 
-    li a0, CFG_STD_OUT
+    li a0, CFG_STD_IN
     call cfg_get
 
     pop a1, 8
@@ -153,7 +169,7 @@ endfn
 sysfn_vector:
     .word    0                         #  0
     .word    0                         #  1
-    .word    0                         #  2
+    .word    sysfn_idle                #  2
     .word    sysfn_run                 #  3
     .word    sysfn_exit                #  4
     .word    cfg_get                   #  5

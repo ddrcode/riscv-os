@@ -65,7 +65,7 @@ fn ns16550a_init
     call ns16550a_start                # start/initialize the device with default settings
 
     pop a0, 4
-    li a1, ~0
+    not a1, zero
     pop a2, 8
     call ns16550a_config               # configure uart
 
