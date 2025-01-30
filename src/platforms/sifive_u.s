@@ -22,28 +22,39 @@ fn platform_start
     call plic_init
 
     la a0, drv_uart_0                  # Configure UART0
-    mv s1, a0
-    li a1, UART0_BASE
+    li a1, UART_0_BASE
     li a2, 0b01
-    li a3, UART0_IRQ
+    li a3, UART_0_IRQ
     call sifive_uart_init
+    mv s1, a0
 
     call_cfg_set CFG_STD_OUT, s1
     call_cfg_set CFG_STD_IN, s1
     call_cfg_set CFG_STD_ERR, s1
+
+
+    la a0, drv_uart_1                  # Configure UART1
+    li a1, UART_1_BASE
+    li a2, 0b01
+    li a3, UART_1_IRQ
+    call sifive_uart_init
+    mv s1, a0
+
     call_cfg_set CFG_STD_DEBUG, s1
+
+
+    add_device DEV_UART_0, drv_uart_0  # add devices to device manager
+    add_device DEV_UART_1, drv_uart_1
+
+
+    la s1, platform_name
+    call_cfg_set CFG_PLATFORM_NAME, s1
 
     pop s1, 8
     stack_free
     ret
 endfn
 
-fn handle_uart_irq
-    # nothing to do here, as the IRQ's are handled directly
-    # by the UART's driver, however the handler must exist
-    # as otherwise there is unhandled IRQ error
-    ret
-endfn
 
 
 #----------------------------------------
@@ -56,8 +67,8 @@ external_irq_vector:
     .word    0                         # IRQ  1
     .word    0                         # IRQ  2
     .word    0                         # IRQ  3
-    .word    handle_uart_irq           # IRQ  4
-    .word    0                         # IRQ  5
+    .word    uart_handle_irq           # IRQ  4
+    .word    uart_handle_irq           # IRQ  5
     .word    0                         # IRQ  6
     .word    0                         # IRQ  7
     .word    0                         # IRQ  8
@@ -73,3 +84,9 @@ external_irq_vector:
 drv_uart_0: .space DRV_UART_STRUCT_SIZE, 0
 drv_uart_1: .space DRV_UART_STRUCT_SIZE, 0
 
+
+#----------------------------------------
+
+.section .rodata
+
+platform_name: .string "sifive_u"

@@ -11,7 +11,6 @@
 .global platform_start
 .global external_irq_vector
 
-
 #----------------------------------------
 
 .section .text.platform
@@ -35,29 +34,28 @@ fn platform_start
     call_cfg_set CFG_STD_ERR, s1
     call_cfg_set CFG_STD_DEBUG, s1
 
-    la a0, drv_rtc_0
+
+    la a0, drv_rtc_0                   # configure GoldFish RTV
     li a1, RTC_BASE
     call goldfish_rtc_init
 
-    add_device DEV_UART_0, drv_uart_0
+
+    add_device DEV_UART_0, drv_uart_0  # add devices to device managet
     add_device DEV_RTC_0, drv_rtc_0
+
+
+    la s1, platform_name
+    call_cfg_set CFG_PLATFORM_NAME, s1
 
     pop s1, 8
     stack_free
     ret
 endfn
 
-fn handle_uart_irq
-    # nothing to do here, as the IRQ's are handled directly
-    # by the UART's driver, however the handler must exist
-    # as otherwise there is unhandled IRQ error
-    ret
-endfn
-
 
 #----------------------------------------
 
-.section .data.platform
+.section .data
 
 # This is platform / machine - specific
 # Provided devices are TBC
@@ -73,7 +71,7 @@ external_irq_vector:
     .word    0 /* console device */    # IRQ  7
     .word    0 /* RNG - random nums */ # IRQ  8
     .word    0 /* balloon device */    # IRQ  9
-    .word    handle_uart_irq           # IRQ 10 (UART 0)
+    .word    uart_handle_irq           # IRQ 10 (UART 0)
     .word    0 /* ? */                 # IRQ 11
     .word    0 /* PCIE Root Port */    # IRQ 12
     .word    0 /* RTC */               # IRQ 13
@@ -81,9 +79,12 @@ external_irq_vector:
     .word    0 /* reserved */          # IRQ 15
 
 
-#----------------------------------------
-
-.section .data
-
 drv_uart_0:    .space DRV_UART_STRUCT_SIZE, 0
 drv_rtc_0:     .space DRV_RTC_STRUCT_SIZE, 0
+
+
+#----------------------------------------
+
+.section .rodata
+
+platform_name: .string "virt"

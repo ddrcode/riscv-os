@@ -65,7 +65,7 @@ make run DRIVE=apps/disc.tar
 
 Optionally each command can be provided with `MACHINE` attribute, i.e.
 `make run start MACHINE=sifive_u`. Currently, the available machines are
-`virt` (default) and `sifive_e` (`sifive_u` in progress).
+`virt` (default) and `sifive_e` and `sifive_u`.
 
 The QEMU-related targets (like `make run`) accept optional `DRIVE` argument,
 that can be loaded to `flash1.rom` on virt device. If done so then the `run` command

@@ -14,7 +14,6 @@
 .global shell_init
 .global shell_command_loop
 .global exec_cmd
-.global set_prompt
 .global show_error
 .global show_date_time
 
@@ -200,7 +199,7 @@ endfn
 # Set single-character prompt
 # arguments:
 #    a0 - pointer to prompt string (only the first char will be taken)
-fn set_prompt
+fn cmd_set_prompt
     beqz a0, 1f
     la t0, prompt
     lbu t1, (a0)
@@ -233,6 +232,26 @@ fn run_prog
     ret
 endfn
 
+
+fn cmd_print
+    stack_alloc
+    call println
+    mv a5, zero
+    stack_free
+    ret
+endfn
+
+
+fn cmd_platform
+    stack_alloc
+    li a0, CFG_PLATFORM_NAME
+    call cfg_get
+    call println
+    mv a5, zero
+    stack_free
+    ret
+endfn
+
 #----------------------------------------
 
 .section .data
@@ -249,6 +268,7 @@ welcome: .string "Welcome to RISC-V OS v0.1"
 commands: .string "cls"
           .string "prompt"
           .string "print"
+          .string "platform"
 
 err_unknown: .string "Unknown error"
 err_not_found: .string "Command not found"
@@ -267,6 +287,7 @@ errors: .word err_unknown
 shell_cmd_vector:
         .word show_error
         .word clear_screen
-        .word set_prompt
-        .word println
+        .word cmd_set_prompt
+        .word cmd_print
+        .word cmd_platform
         .word 0

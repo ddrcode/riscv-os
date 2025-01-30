@@ -18,6 +18,7 @@
 .global uart_putc
 .global uart_puts
 .global uart_getc
+.global uart_handle_irq
 
 
 .section .text
@@ -105,6 +106,14 @@ fn uart_set_config
     lw t1, 12(t0)
     jalr t1
     stack_free
+    ret
+endfn
+
+
+fn uart_handle_irq
+    # nothing to do here, as the IRQ's are handled directly
+    # by UART drivers, however the handler must exist
+    # as otherwise there is unhandled IRQ error
     ret
 endfn
 

@@ -9,10 +9,10 @@
 
 # Devices
 .equ UART_0_BASE, 0x10013000
-.equ UART_0_IRQ, 10 # TBC!
+.equ UART_0_IRQ, 3 # Based on Qemu sources
 
 .equ UART_1_BASE, 0x10023000
-.equ UART_1_IRQ, 11 # TBC!
+.equ UART_1_IRQ, 4 # Based on Qemu sources
 
 .equ PLIC_BASE, 0xc000000
 
