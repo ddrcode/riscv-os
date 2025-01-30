@@ -14,6 +14,7 @@
 .global sys_call
 .global check_stack
 .global panic
+.global idle
 
 #------------------------------------------------------------------------------
 
@@ -130,6 +131,19 @@ fn panic
     ret
 endfn
 
+
+# Arguments:
+#     a0 - return adress
+fn idle
+    wfi
+    csrw mepc, a0                      # set the return address
+
+    li t0, 0b11                        # set PCP field of mstatus to 00 (User mode)
+    slli t0, t0, 11
+    csrc mstatus, t0
+
+    mret                               # return to user mode
+endfn
 
 #------------------------------------------------------------------------------
 

@@ -35,7 +35,7 @@ fn platform_start
     call_cfg_set CFG_STD_DEBUG, s1
 
 
-    la a0, drv_rtc_0                   # configure GoldFish RTV
+    la a0, drv_rtc_0                   # configure GoldFish RTC
     li a1, RTC_BASE
     call goldfish_rtc_init
 

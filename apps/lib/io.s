@@ -166,14 +166,15 @@ fn read_line
 
     mv s1, a0                          # s1 - pointer to the end of the string
 
-    # call uart_get_status
-    mv s0, zero
-    and s0, a0, 1                      # s0 - 1 if IRQ for uart is enabled, 0 otherwise
+    # li a0, CFG_STD_IN                  # get stdin
+    # syscall SYSFN_GET_CFG
+    # call uart_get_config               # get config of stdin
+    # andi s0, a0, 0b10                  # and check if IRQs are enabled
 
 1:
-        beqz s0, 2f                    # call wfi if irqs are anbled
-            # wfi                      # TODO wfi can't be called in user mode
-                                       #      must replaced with idle - sys function
+        # beqz s0, 2f                    # call idle system function if irqs are anbled
+            syscall SYSFN_IDLE
+
 2:
         syscall SYSFN_GET_CHAR
         beqz a0, 1b                    # continue if no key identified
