@@ -1,7 +1,7 @@
 
 # Memory
-.equ MEM_MIN_ADDR, 0x80000000
-.equ MEM_MAX_ADDR, 0x803fffff
+.equ RAM_START_ADDR, 0x80000000
+.equ RAM_END_ADDR, 0x803fffff
 .equ STACK_SIZE, 16384
 
 # Screen

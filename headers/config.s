@@ -8,6 +8,8 @@
 .weak ENABLE_PLIC
 
 .equ PMP_ENABLED, 1
+.equ PMP_LOCKED, 1
+.set PMP_CUSTOM_CONFIG, 0
 
 
 # Global / default settings

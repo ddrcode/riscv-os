@@ -38,36 +38,46 @@ endfn
 
 
 # Setup phisical memory protection (PMP)
-# At this stage it just enables it, but doesn't provide any restrictions
-# means it gives permision to the entire memory range (0xffffffff).
-# That allows to run QEMU with pmp enabled and make run the OS on machines
-# that by default disable any access to memory in User mode (like sifive_u)
+# At this stage the PMP is configured that it gives full access to RAM
+# to the User Mode (U), and the rest of memory space is reserved to
+# the machine-mode (M) only. Any access to devices must happen
+# via drivers (accessed from syscalls)
+# There is an optional config flag that locks PMP registers,
+# making M-mode unable to reconfigure it until rest
+.if PMP_CUSTOM_CONFIG == 0
 fn setup_pmp
-    #not t0, zero                       # cover entore 32-bit memory range
-
-    li t0, (RAM_START_ADDR / 2) >> 2
-    csrw pmpaddr0, t0
+    li t0, (RAM_START_ADDR / 2) >> 2   # region 0 - addresses before RMA
+    csrw pmpaddr0, t0                  # if RAM starts at zero, the region is zero-size
 
     li t0, (RAM_START_ADDR + (RAM_END_ADDR - RAM_START_ADDR) / 2) >> 2
-    csrw pmpaddr1, t0
+    csrw pmpaddr1, t0                  # region 1 - RAM
 
-    not t0, zero
+    not t0, zero                       # region 2 - everything above RAM up to 0xffffffff
     csrw pmpaddr2, t0
 
-    li t2, 0b10011100
+.if RAM_START_ADDR == 0
+    mv t2, zero                        # if RAM starts at 0, ignore the pre-RAM region
+.else
+    li t2, 0b11100                     # Make pre-RAM accessible to machine mode only
+.endif
 
-    li t0, 0b00011111                      # (R | W | X | NAPOT mode)
+    li t0, 0b11111                     # RAM: give RWX rights to user mode
     slli t1, t0, 8
     or t2, t2, t1
 
-    li t0, 0b00001100
+    li t0, 0b01100                     # post-ram: access reserved to Machine only
     slli t1, t0, 16
     or t2, t2, t1
 
-    csrw pmpcfg0, t2                   # save permissions
+.if PMP_LOCKED > 0                     # If locking is enabled set bit 7 to 1 for
+    li t0, 0x00808080                  # all three regions
+    or t2, t2, t0
+.endif
 
+    csrw pmpcfg0, t2                   # save permissions
     ret
 endfn
+.endif
 
 
 # Calls system function
