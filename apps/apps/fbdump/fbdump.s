@@ -40,37 +40,44 @@ endfn
 # TODO use uart_putc function rather than direct access to NS16550A
 fn fb_dump
     stack_alloc
+    push s0, 4
     push s1, 8
     mv s1, a0
 
     call _print_frame
 
-    li a1, UART_BASE
-    li t1, SCREEN_WIDTH                # t1 is a  char counter within line
+#     li a1, UART_BASE
+    li s0, SCREEN_WIDTH                # s0 is a  char counter within line
     li t2, SCREEN_HEIGHT               # t2 is a line counter
+    push t2, 0
     li a4, 32                          # space character
-    li t0, '|'
-    sb t0, (a1)
+#     li t0, '|'
+#     sb t0, (a1)
+    li a0, '|'
+    syscall SYSFN_PRINT_CHAR
 1:
     lbu t0, (s1)                        # load a single byte to t0
     bge t0, a4, 2f                     # if it's printable character jump to 2
     mv t0, a4                          # otherwise replace character with space
 2:
-    sb t0, (a1)                        # send byte to uart
-    dec t1                             # decrement t1
+    mv a0, t0
+    syscall SYSFN_PRINT_CHAR           # send byte to uart
+    dec s0                             # decrement s0
     inc s1                             # increment fb address
-    beqz t1, 3f
+    beqz s0, 3f
     j 1b                               # jump to 1
 3:
-    li t0, '|'
-    sb t0, (a1)
-    li t0, '\n'                        # EOL character
-    sb t0, (a1)                        # send to UART
-    li t1, SCREEN_WIDTH                # reset t1 to 40
+    li a0, '|'
+    syscall SYSFN_PRINT_CHAR
+    li a0, '\n'                        # EOL character
+    syscall SYSFN_PRINT_CHAR
+    li s0, SCREEN_WIDTH                # reset s0 to 40
+    pop t2, 0
     dec t2                             # decrement t2
+    push t2, 0
     beqz t2, 4f                        # if t2 is zero jump to 3:
-    li t0, '|'
-    sb t0, (a1)
+    li a0, '|'
+    syscall SYSFN_PRINT_CHAR
     j 1b
 4:
     setz a0
@@ -78,6 +85,7 @@ fn fb_dump
     call set_cursor_pos
     call _print_frame
 
+    pop s0, 4
     pop s1, 8
     stack_free
     ret
@@ -85,17 +93,22 @@ endfn
 
 
 fn _print_frame
-    li t0, '-'
-    li t1, 42
-    la t2, UART_BASE
+    stack_alloc
+    push s0, 4
+
+    li s0, 42
 1:
-    beqz t1, 2f
-        sb t0, (t2)
-        dec t1
+    beqz s0, 2f
+        li a0, '-'
+        syscall SYSFN_PRINT_CHAR
+        dec s0
         j 1b
 2:
-    li t0, '\n'
-    sb t0, (t2)
+    li a0, '\n'
+    syscall SYSFN_PRINT_CHAR
+
+    pop s0, 4
+    stack_free
     ret
 endfn
 

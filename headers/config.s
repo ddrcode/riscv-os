@@ -7,6 +7,10 @@
 .weak ENABLE_IRQ
 .weak ENABLE_PLIC
 
+.equ PMP_ENABLED, 1
+.equ PMP_LOCKED, 1
+.set PMP_CUSTOM_CONFIG, 0
+
 
 # Global / default settings
 # Don't change these, but edit your platform-specifc config file instead.
