@@ -7,6 +7,8 @@
 .weak ENABLE_IRQ
 .weak ENABLE_PLIC
 
+.equ PMP_ENABLED, 1
+
 
 # Global / default settings
 # Don't change these, but edit your platform-specifc config file instead.

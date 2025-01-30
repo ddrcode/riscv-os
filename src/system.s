@@ -20,7 +20,9 @@
 fn sysinit
     stack_alloc
 
+.if PMP_ENABLED > 0
     call setup_pmp
+.endif
 
     li a0, INFO_OUTPUT_DEV
     li a1, OUTPUT_DEV
@@ -41,11 +43,28 @@ endfn
 # That allows to run QEMU with pmp enabled and make run the OS on machines
 # that by default disable any access to memory in User mode (like sifive_u)
 fn setup_pmp
-    not t0, zero                       # cover entore 32-bit memory range
+    #not t0, zero                       # cover entore 32-bit memory range
+
+    li t0, (RAM_START_ADDR / 2) >> 2
     csrw pmpaddr0, t0
 
-    li t0, 0b1111                      # (R | W | X | TOR mode)
-    csrw pmpcfg0, t0                   # save permissions
+    li t0, (RAM_START_ADDR + (RAM_END_ADDR - RAM_START_ADDR) / 2) >> 2
+    csrw pmpaddr1, t0
+
+    not t0, zero
+    csrw pmpaddr2, t0
+
+    li t2, 0b10011100
+
+    li t0, 0b00011111                      # (R | W | X | NAPOT mode)
+    slli t1, t0, 8
+    or t2, t2, t1
+
+    li t0, 0b00001100
+    slli t1, t0, 16
+    or t2, t2, t1
+
+    csrw pmpcfg0, t2                   # save permissions
 
     ret
 endfn

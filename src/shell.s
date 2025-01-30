@@ -17,12 +17,13 @@
 .global show_error
 .global show_date_time
 
+.align 4
 fn shell_init
     stack_alloc
 
 .if OUTPUT_DEV & 0b101
     call scr_init
-    call clear_screen
+    # call clear_screen
 .endif
 
     la a0, welcome

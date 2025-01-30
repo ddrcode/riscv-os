@@ -106,4 +106,13 @@
     call device_add
 .endm
 
+
+.macro debug, msg
+.if DEBUG==1
+    la a0, \msg
+    call debug_prints
+.endif
+.endm
+
+
 .endif

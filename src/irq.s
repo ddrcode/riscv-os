@@ -63,13 +63,6 @@
     csrrw sp, mscratch, sp             # exchange sp with mscratch
 .endm
 
-.macro debug, msg
-.if DEBUG==1
-    la a0, \msg
-    call print_debug
-.endif
-.endm
-
 .section .text
 
 
@@ -342,10 +335,10 @@ fn handle_exception
     li a2, 10
     call utoa
     mv a0, sp
-    call print_debug
+    call debug_prints
 
     li a0, ' '
-    # call printc
+    call debug_printc
 
     # csrr a0, mepc                    # Faulting address
     csrr a0, mtval                     # Additional fault information
@@ -353,7 +346,7 @@ fn handle_exception
     li a2, 16
     call utoa
     mv a0, sp
-    call print_debug
+    call debug_prints
 
     # call panic
     stack_free 32
