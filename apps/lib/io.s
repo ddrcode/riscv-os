@@ -166,13 +166,14 @@ fn read_line
 
     mv s1, a0                          # s1 - pointer to the end of the string
 
-    # li a0, CFG_STD_IN                  # get stdin
-    # syscall SYSFN_GET_CFG
-    # call uart_get_config               # get config of stdin
-    # andi s0, a0, 0b10                  # and check if IRQs are enabled
+    li a0, CFG_STD_IN                  # get stdin
+    syscall SYSFN_GET_CFG
+    syscall SYSFN_GET_DRV_CFG
+    andi s0, a0, 0b10
+
 
 1:
-        # beqz s0, 2f                    # call idle system function if irqs are anbled
+        beqz s0, 2f                    # call idle system function if irqs are anbled
             syscall SYSFN_IDLE
 
 2:

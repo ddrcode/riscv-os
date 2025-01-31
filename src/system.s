@@ -132,10 +132,22 @@ fn panic
 endfn
 
 
+# Waits until some action (IRQ) happens
+# it ignores timer interrupts and exceptions
 # Arguments:
-#     a0 - return adress
+#     a0 - return adress (PC)
 fn idle
+    li t1, 0x80000000
+    li t2, 0x80000007
+    li a3, 0x00000008
+1:
     wfi
+        csrr t0, mcause
+        beq t0, t2, 1b                 # loop in case of timer interrupt
+        bgtu t0, t1, 2f                # finish if any other IRQ
+        bne t0, a3, 1b                 # if exception is different than syscall go back
+
+2:
     csrw mepc, a0                      # set the return address
 
     li t0, 0b11                        # set PCP field of mstatus to 00 (User mode)

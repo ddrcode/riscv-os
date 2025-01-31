@@ -1,6 +1,7 @@
 .ifndef __CONSTS_S__
 .equ __CONSTS_S__, 1
 
+#----------------------------------------
 # System functions
 
 .equ SYSFN_SLEEP, 1
@@ -8,6 +9,7 @@
 .equ SYSFN_RUN, 3
 .equ SYSFN_EXIT, 4
 .equ SYSFN_GET_CFG, 5
+.equ SYSFN_GET_DRV_CFG, 6
 
 # Time functions
 .equ SYSFN_GET_SECS_FROM_EPOCH, 10
@@ -30,6 +32,8 @@
 
 .equ SYSFN_LAST_FN_ID, 43
 
+
+#----------------------------------------
 # Error Codes
 
 .equ NUM_OF_ERRORS, 6                  # number of error codes
@@ -42,6 +46,7 @@
 .equ ERR_STACK_OVERFLOW, 5
 
 
+#----------------------------------------
 # SYSTEM CONFIG
 
 .equ INFO_OUTPUT_DEV, 0
@@ -52,11 +57,14 @@
 .equ CFG_PLATFORM_NAME, 20
 
 
+#----------------------------------------
 # HAL
 
 .equ DRV_UART_STRUCT_SIZE, 16
 .equ DRV_RTC_STRUCT_SIZE, 8
 
+
+#----------------------------------------
 # DEVICE MANAGER
 
 .equ DEV_MAX_DEVICES_NO, 16
