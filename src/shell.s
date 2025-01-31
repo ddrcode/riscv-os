@@ -23,7 +23,7 @@ fn shell_init
 
 .if OUTPUT_DEV & 0b101
     call scr_init
-    # call clear_screen
+    call clear_screen
 .endif
 
     la a0, welcome

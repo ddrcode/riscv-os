@@ -48,4 +48,5 @@
 
 # System
 
-.equ SYSTEM_TIMER_INTERVAL, 1333333
+.equ CPU_FREQUENCY, 10000000           # 10MHz
+

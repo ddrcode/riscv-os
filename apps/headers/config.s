@@ -1,4 +1,4 @@
-    .ifndef __CONFIG_S__
+.ifndef __CONFIG_S__
 .equ __CONFIG_S__, 1
 
 # Generic

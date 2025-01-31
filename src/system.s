@@ -157,6 +157,11 @@ fn idle
     mret                               # return to user mode
 endfn
 
+
+fn pause
+    ret
+endfn
+
 #------------------------------------------------------------------------------
 
 .section .rodata
