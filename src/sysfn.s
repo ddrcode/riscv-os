@@ -80,6 +80,15 @@ fn sysfn_idle
 endfn
 
 
+fn sysfn_get_drv_config
+    stack_alloc
+    call hal_get_config
+    mv a5, zero
+    stack_free
+    ret
+endfn
+
+
 fn sysfn_get_secs_from_epoch
     stack_alloc
     li a0, DEV_RTC_0
@@ -173,7 +182,7 @@ sysfn_vector:
     .word    sysfn_run                 #  3
     .word    sysfn_exit                #  4
     .word    cfg_get                   #  5
-    .word    0                         #  6
+    .word    sysfn_get_drv_config      #  6
     .word    0                         #  7
     .word    0                         #  8
     .word    0                         #  9

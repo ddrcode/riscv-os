@@ -25,7 +25,7 @@ fn platform_start
     la a0, drv_uart_0                  # Configure UART0
     mv s1, a0
     li a1, UART_0_BASE
-    li a2, 0b11                        # IRQ enabled
+    li a2, 0b01                        # IRQ enabled
     li a3, UART_0_IRQ
     call sifive_uart_init
 

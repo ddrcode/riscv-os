@@ -38,9 +38,9 @@
 fn ns16550a_init
 
     .set BASE, 0
-    .set GETC, 4
-    .set PUTC, 8
-    .set CONFIG_FN, 12
+    .set GETC, 8
+    .set PUTC, 12
+    .set CONFIG_FN, 4
 
     stack_alloc
     push a2, 8
