@@ -167,7 +167,7 @@ fn sleep
 
     li t1, CPU_FREQUENCY               # compute number of cycles until the end of pause
     li t2, 1000
-    mul t1, t1, a0
+    mul t1, t1, a1
     div a2, t1, t2
 
     li t0, MTIME                       # get current cycles count

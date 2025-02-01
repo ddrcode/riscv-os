@@ -28,8 +28,10 @@ fn shell_init
 
     la a0, welcome
     call println
-    li a0, 8000
+    li a0, 22800000
     syscall SYSFN_SLEEP
+
+1:
     la a0, prompt
     call prints
 

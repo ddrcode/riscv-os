@@ -65,6 +65,8 @@ endfn
 
 
 fn sysfn_sleep
+    mv a1, a0
+
     csrr a0, mepc                      # the function returns return address from pause
     addi a0, a0, 4
     mv a5, zero                        # and no error code
