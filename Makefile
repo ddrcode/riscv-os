@@ -67,7 +67,8 @@ SRC += $(wildcard apps/lib/*.s)
 SRC += $(DRIVERS)
 SRC += src/platforms/$(MACHINE).s
 
-OBJDIR := build/obj
+BUILD := build
+OBJDIR := $(BUILD)/obj
 OBJ := $(patsubst %.s, %.o, $(notdir $(SRC)))
 OBJ_FILES := $(addprefix $(OBJDIR)/, $(OBJ))
 
@@ -83,64 +84,71 @@ TEST_SUPPORT_OBJ := $(OBJDIR)/assert.o $(OBJDIR)/helpers.o $(OBJDIR)/startup.o
 
 #----------------------------------------
 
-.PHONY: compile build compile-test build-test build-tests build-all run test clean gdb debug
+.PHONY: compile build compile-tests build-test build-tests build-all run test clean gdb debug
 
 default: build-all
 
 $(OBJDIR):
 	mkdir -p $(OBJDIR)
 
-$(OBJDIR)/$(OBJ): %.o: %.s | $(OBJDIR)
-	$(AS) $(ASFLAGS) -o $(OBJDIR)/$@ $<
+$(OBJDIR)/%.o: %.s $(OBJDIR)
+	$(AS) $(ASFLAGS) -o $@ $<
 
-compile: $(OBJ)
+compile: $(OBJ_FILES)
 
-build: compile platforms/$(MACHINE).ld
+$(BUILD)/%.elf: platforms/%.ld $(OBJ_FILES)
 	$(CC) $(CFLAGS) -o build/$(MACHINE).elf $(OBJ_FILES)
 
-release: compile platforms/$(MACHINE).ld
-	$(LD) $(LDFLAGS) -o build/$(MACHINE).elf $(OBJ_FILES)
-	$(TOOL)-strip --strip-all build/$(MACHINE).elf
-
-$(OBJDIR)/$(TEST_ASM_OBJ): %.o: %.s | $(OBJDIR)
-	$(AS) $(ASFLAGS) -o $(OBJDIR)/$@ $<
-
-$(OBJDIR)/$(TEST_C_OBJ): %.o: %.c | $(OBJDIR)
-	$(CC) $(CFLAGS) -o $(OBJDIR)/$@ -c $<
-
-compile-tests: $(TEST_ASM_OBJ) $(TEST_C_OBJ)
-
-$(TEST_FILES): %.elf: $(OBJDIR)/%.o
-	$(CC) $(CFLAGS) -o build/$@ $< $(filter-out $(OBJDIR)/main.o, $(OBJ_FILES)) $(TEST_SUPPORT_OBJ)
-
-build-test: compile compile-tests test_$(TEST_NAME).elf
-
-build-tests: compile compile-tests $(TEST_FILES)
-
-build-all: build build-tests
-
-run: build
-	@echo "Ctrl-Q C for QEMU console, then quit to exit"
-	$(QEMU) -kernel build/$(MACHINE).elf
-
-test: build-test
-	@echo "Ctrl-Q C for QEMU console, then quit to exit"
-	$(QEMU) -kernel build/test_$(TEST_NAME).elf
-
-debug: build-test
-	@echo "Ctrl-Q C for QEMU console, then quit to exit"
-	$(QEMU) -s -S -kernel build/test_$(TEST_NAME).elf
-
-debug-main: build
-	@echo "Ctrl-Q C for QEMU console, then quit to exit"
-	$(QEMU) -s -S -kernel build/$(MACHINE).elf
-
-gdb: build-test
-	gdb -ex 'target remote localhost:1234' ./build/test_$(TEST_NAME).elf
-
-gdb-main:
-	gdb -ex 'target remote localhost:1234' ./build/$(MACHINE).elf
-
+#
+# build: compile platforms/$(MACHINE).ld
+# 	$(CC) $(CFLAGS) -o build/$(MACHINE).elf $(OBJ_FILES)
+#
+# release: compile platforms/$(MACHINE).ld
+# 	$(LD) $(LDFLAGS) -o build/$(MACHINE).elf $(OBJ_FILES)
+# 	$(TOOL)-strip --strip-all build/$(MACHINE).elf
+#
+# $(OBJDIR)/$(TEST_ASM_OBJ): %.o: %.s | $(OBJDIR)
+# 	$(AS) $(ASFLAGS) -o $(OBJDIR)/$@ $<
+#
+# $(OBJDIR)/$(TEST_C_OBJ): %.o: %.c | $(OBJDIR)
+# 	$(CC) $(CFLAGS) -o $(OBJDIR)/$@ -c $<
+#
+# compile-tests: $(TEST_ASM_OBJ) $(TEST_C_OBJ)
+#
+# $(TEST_FILES): %.elf: $(OBJDIR)/%.o
+# 	$(CC) $(CFLAGS) -o build/$@ $< $(filter-out $(OBJDIR)/main.o, $(OBJ_FILES)) $(TEST_SUPPORT_OBJ)
+#
+# build-test: compile compile-tests test_$(TEST_NAME).elf
+#
+# build-tests: compile compile-tests $(TEST_FILES)
+#
+# build-all: build build-tests
+#
+# run: build
+# 	@echo "Ctrl-Q C for QEMU console, then quit to exit"
+# 	$(QEMU) -kernel build/$(MACHINE).elf
+#
+# test: build-test
+# 	@echo "Ctrl-Q C for QEMU console, then quit to exit"
+# 	$(QEMU) -kernel build/test_$(TEST_NAME).elf
+#
+# debug: build-test
+# 	@echo "Ctrl-Q C for QEMU console, then quit to exit"
+# 	$(QEMU) -s -S -kernel build/test_$(TEST_NAME).elf
+#
+# debug-main: build
+# 	@echo "Ctrl-Q C for QEMU console, then quit to exit"
+# 	$(QEMU) -s -S -kernel build/$(MACHINE).elf
+#
+# gdb: build-test
+# 	gdb -ex 'target remote localhost:1234' ./build/test_$(TEST_NAME).elf
+#
+# gdb-main:
+# 	gdb -ex 'target remote localhost:1234' ./build/$(MACHINE).elf
+#
+# platforms/%.dts: %.dtb
+# 	dtc -I dtb -O dts $< > $@
+#
 clean:
-	rm -rf build/*
+	rm -rf build
 
