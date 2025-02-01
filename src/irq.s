@@ -127,7 +127,7 @@ fn _set_mtimecmp
     call uadd64
 
     li t0, MTIMECMP
-    li t1, ~0                          # As the 64-bit addition is not atomic, it must be
+    not t1, zero                       # As the 64-bit addition is not atomic, it must be
     sw t1, (t0)                        # done in a fasion that it's never smaller than the
     sw a1, 4(t0)                       # previous value of mtime. Hence the lower half is first
     sw a0, (t0)                        # set with max value for uint32

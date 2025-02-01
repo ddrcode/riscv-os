@@ -15,6 +15,7 @@
 .global check_stack
 .global panic
 .global idle
+.global sleep
 
 #------------------------------------------------------------------------------
 
@@ -158,8 +159,49 @@ fn idle
 endfn
 
 
-fn pause
-    ret
+fn sleep
+    stack_alloc
+    push a0, 8
+
+    li t1, CPU_FREQUENCY               # compute number of cycles until the end of pause
+    li t2, 1000
+    mul t1, t1, a0
+    div a2, t1, t2
+
+    li t0, MTIME                       # get current cycles count
+
+    lw a0, 0(t0)                       # compute the sum of the two values from above
+    lw a1, 4(t0)
+    mv a3, zero
+    call uadd64
+    push a0, 0                         # and store it on the stack
+    push a1, 4
+    csrs mstatus, 0x8                  # enable global interrupts by setting the MIE field (bit 3)
+1:
+    li t1, 0x80000007                  # timer IRQ code
+2:
+    wfi
+        csrr t0, mcause
+        bne t0, t1, 2b                 # if it's not time IRQ, go back
+
+        li t0, MTIME                   # load number of cycles again
+        pop a0, 0
+        pop a1, 4
+        lw a3, 0(t0)
+        lw a4, 4(t0)
+
+        call ucmp64                    # and compare with values on the stack
+        bgtz a0, 1b                    # if the sum > current, loop again
+
+    pop a0, 8
+    csrw mepc, a0                      # set the return address
+
+    li t0, 0b11                        # set PCP field of mstatus to 00 (User mode)
+    slli t0, t0, 11
+    csrc mstatus, t0
+
+    stack_free
+    mret
 endfn
 
 #------------------------------------------------------------------------------

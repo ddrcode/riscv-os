@@ -64,8 +64,25 @@ fn sysfn_exit
 endfn
 
 
+fn sysfn_sleep
+    csrr a0, mepc                      # the function returns return address from pause
+    mv a5, zero                        # and no error code
+
+    la t0, sleep                       # return from the trap to pause function
+    # addi t0, t0, -4
+    csrw mepc, t0
+
+    li t0, 0b11                        # in machine mode
+    slli t0, t0, 11
+    csrs mstatus, t0
+
+    ret
+endfn
+
+
 fn sysfn_idle
     csrr a0, mepc                      # the function returns return address from idle
+    addi a0, a0, 4
     mv a5, zero                        # and no error code
 
     la t0, idle                        # return from the trap to idle function
@@ -177,7 +194,7 @@ endfn
 
 sysfn_vector:
     .word    0                         #  0
-    .word    0                         #  1
+    .word    sysfn_sleep               #  1
     .word    sysfn_idle                #  2
     .word    sysfn_run                 #  3
     .word    sysfn_exit                #  4
