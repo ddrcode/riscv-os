@@ -86,7 +86,10 @@ TEST_SUPPORT_OBJ := $(OBJDIR)/assert.o $(OBJDIR)/helpers.o $(OBJDIR)/startup.o
 
 .PHONY: compile build compile-tests build-test build-tests build-all run test clean gdb debug
 
-default: build-all
+default: $(BUILD)/$(MACHINE).bin
+
+$(BUILD):
+	mkdir -p $(BUILD)
 
 $(OBJDIR):
 	mkdir -p $(OBJDIR)
@@ -97,7 +100,12 @@ $(OBJDIR)/%.o: %.s $(OBJDIR)
 compile: $(OBJ_FILES)
 
 $(BUILD)/%.elf: platforms/%.ld $(OBJ_FILES)
-	$(CC) $(CFLAGS) -o build/$(MACHINE).elf $(OBJ_FILES)
+	$(CC) $(CFLAGS) -o $@ $(OBJ_FILES)
+
+$(BUILD)/%.bin: platforms/%.ld $(OBJ_FILES)
+	$(LD) $(LDFLAGS) -o $@ $(OBJ_FILES)
+	$(TOOL)-strip --strip-all $@
+	$(TOOL)-objcopy -O binary $@ $@
 
 #
 # build: compile platforms/$(MACHINE).ld
@@ -124,10 +132,16 @@ $(BUILD)/%.elf: platforms/%.ld $(OBJ_FILES)
 #
 # build-all: build build-tests
 #
-# run: build
-# 	@echo "Ctrl-Q C for QEMU console, then quit to exit"
-# 	$(QEMU) -kernel build/$(MACHINE).elf
-#
+run: $(BUILD)/$(MACHINE).elf
+	@echo "Ctrl-Q C for QEMU console, then quit to exit"
+	$(QEMU) -kernel $<
+
+debug: $(BUILD)/$(MACHINE).elf
+	@echo "Ctrl-Q C for QEMU console, then quit to exit"
+	$(QEMU) -s -S -kernel $<
+
+release: clean $(BUILD)/$(MACHINE).bin
+
 # test: build-test
 # 	@echo "Ctrl-Q C for QEMU console, then quit to exit"
 # 	$(QEMU) -kernel build/test_$(TEST_NAME).elf
@@ -145,10 +159,10 @@ $(BUILD)/%.elf: platforms/%.ld $(OBJ_FILES)
 #
 # gdb-main:
 # 	gdb -ex 'target remote localhost:1234' ./build/$(MACHINE).elf
-#
-# platforms/%.dts: %.dtb
-# 	dtc -I dtb -O dts $< > $@
-#
+
+platforms/%.dts: %.dtb
+	dtc -I dtb -O dts $< > $@
+
 clean:
 	rm -rf build
 
