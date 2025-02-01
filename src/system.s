@@ -138,6 +138,7 @@ endfn
 # Arguments:
 #     a0 - return adress (PC)
 fn idle
+    csrs mstatus, 0x8                  # enable global interrupts by setting the MIE field (bit 3)
     li t1, 0x80000000
     li t2, 0x80000007
     li a3, 0x00000008
@@ -146,7 +147,8 @@ fn idle
         csrr t0, mcause
         beq t0, t2, 1b                 # loop in case of timer interrupt
         bgtu t0, t1, 2f                # finish if any other IRQ
-        bne t0, a3, 1b                 # if exception is different than syscall go back
+        # bne t0, a3, 1b                 # if exception is different than syscall go back
+        j 1b
 
 2:
     csrw mepc, a0                      # set the return address

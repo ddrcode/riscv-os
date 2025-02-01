@@ -66,10 +66,11 @@ endfn
 
 fn sysfn_sleep
     csrr a0, mepc                      # the function returns return address from pause
+    addi a0, a0, 4
     mv a5, zero                        # and no error code
 
     la t0, sleep                       # return from the trap to pause function
-    # addi t0, t0, -4
+    addi t0, t0, -4
     csrw mepc, t0
 
     li t0, 0b11                        # in machine mode
