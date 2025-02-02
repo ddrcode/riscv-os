@@ -3,7 +3,6 @@
 #----------------------------------------
 # Command line parameters
 
-TEST_NAME ?= shell
 OUTPUT_DEV ?= 3
 MACHINE ?= virt
 
@@ -56,6 +55,12 @@ CFLAGS += -g -O0
 LDFLAGS += -g --no-gc-sections
 endif
 
+ifdef TEST_NAME
+ELF_NAME = test_$(TEST_NAME).elf
+else
+ELF_NAME = $(MACHINE).elf
+endif
+
 #----------------------------------------
 # Project files
 
@@ -73,14 +78,18 @@ OBJ := $(patsubst %.s, %.o, $(notdir $(SRC)))
 OBJ_FILES := $(addprefix $(OBJDIR)/, $(OBJ))
 
 TEST_ASM_SRC := $(wildcard tests/*.s)
-TEST_ASM_OBJ := $(patsubst %.s, %.o, $(notdir $(TEST_ASM_SRC)))
+TEST_ASM_OBJ := $(patsubst %.s, $(OBJDIR)/%.o, $(notdir $(TEST_ASM_SRC)))
 
 TEST_C_SRC := $(wildcard tests/*.c)
-TEST_C_OBJ := $(patsubst %.c, %.o, $(notdir $(TEST_C_SRC)))
+TEST_C_OBJ := $(patsubst %.c, $(OBJDIR)/%.o, $(notdir $(TEST_C_SRC)))
 
-TEST_FILES := $(patsubst %.o, %.elf, $(filter test_%.o, $(TEST_ASM_OBJ)))
-TEST_FILES += $(patsubst %.o, %.elf, $(filter test_%.o, $(TEST_C_OBJ)))
+# TEST_FILES := $(patsubst %.o, %.elf, $(filter test_%.o, $(TEST_ASM_OBJ)))
+# TEST_FILES += $(patsubst %.o, %.elf, $(filter test_%.o, $(TEST_C_OBJ)))
 TEST_SUPPORT_OBJ := $(OBJDIR)/assert.o $(OBJDIR)/helpers.o $(OBJDIR)/startup.o
+
+TEST_OBJ_FILES := $(filter-out $(OBJDIR)/main.o, $(OBJ_FILES))
+TEST_OBJ_FILES += $(TEST_SUPPORT_OBJ)
+TEST_OBJ_FILES += $(OBJDIR)/test_$(TEST_NAME).o
 
 #----------------------------------------
 
@@ -97,7 +106,15 @@ $(OBJDIR):
 $(OBJDIR)/%.o: %.s $(OBJDIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
+$(OBJDIR)/%.o: %.c $(OBJDIR)
+	$(CC) $(CFLAGS) -o $@ -c $<
+
 compile: $(OBJ_FILES)
+
+compile-tests: $(TEST_ASM_OBJ) $(TEST_C_OBJ)
+
+$(BUILD)/test_%.elf: platforms/$(MACHINE).ld $(TEST_OBJ_FILES)
+	$(CC) $(CFLAGS) -o $@ $(TEST_OBJ_FILES)
 
 $(BUILD)/%.elf: platforms/%.ld $(OBJ_FILES)
 	$(CC) $(CFLAGS) -o $@ $(OBJ_FILES)
@@ -132,11 +149,11 @@ $(BUILD)/%.bin: platforms/%.ld $(OBJ_FILES)
 #
 # build-all: build build-tests
 #
-run: $(BUILD)/$(MACHINE).elf
+run: $(BUILD)/$(ELF_NAME)
 	@echo "Ctrl-Q C for QEMU console, then quit to exit"
 	$(QEMU) -kernel $<
 
-debug: $(BUILD)/$(MACHINE).elf
+debug: $(BUILD)/$(ELF_NAME)
 	@echo "Ctrl-Q C for QEMU console, then quit to exit"
 	$(QEMU) -s -S -kernel $<
 
@@ -159,6 +176,9 @@ release: clean $(BUILD)/$(MACHINE).bin
 #
 # gdb-main:
 # 	gdb -ex 'target remote localhost:1234' ./build/$(MACHINE).elf
+
+gdb:
+	gdb -ex 'target remote localhost:1234' $(BUILD)/$(ELF_NAME)
 
 platforms/%.dts: %.dtb
 	dtc -I dtb -O dts $< > $@
