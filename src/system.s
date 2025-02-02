@@ -141,13 +141,11 @@ fn idle
     csrs mstatus, 0x8                  # enable global interrupts by setting the MIE field (bit 3)
     li t1, 0x80000000
     li t2, 0x80000007
-    li a3, 0x00000008
 1:
     wfi
         csrr t0, mcause
         beq t0, t2, 1b                 # loop in case of timer interrupt
         bgtu t0, t1, 2f                # finish if any other IRQ
-        # bne t0, a3, 1b                 # if exception is different than syscall go back
         j 1b
 
 2:
@@ -161,39 +159,24 @@ fn idle
 endfn
 
 
+# Oh how ugly solution it is (FIXME!). It assumes that the timer IRQ
+# accours every 16ms (as defined in irq.s), so it simply waits for
+# sleep_time / 16 timer interrupts to occur
 fn sleep
+    csrs mstatus, 0x8                  # enable global interrupts by setting the MIE field (bit 3)
     stack_alloc
     push a0, 8
 
-    li t1, CPU_FREQUENCY               # compute number of cycles until the end of pause
-    li t2, 1000
-    mul t1, t1, a1
-    div a2, t1, t2
+    li t0, 16                          # compute how many timer IRQs to wait
+    divu t0, a1, t0                    # assuming the frequency is 16ms
 
-    li t0, MTIME                       # get current cycles count
-
-    lw a0, 0(t0)                       # compute the sum of the two values from above
-    lw a1, 4(t0)
-    mv a3, zero
-    call uadd64
-    push a0, 0                         # and store it on the stack
-    push a1, 4
-    csrs mstatus, 0x8                  # enable global interrupts by setting the MIE field (bit 3)
+    li t2, 0x80000007                  # timer IRQ code
 1:
-    li t1, 0x80000007                  # timer IRQ code
-2:
     wfi
-        csrr t0, mcause
-        bne t0, t1, 2b                 # if it's not time IRQ, go back
-
-        li t0, MTIME                   # load number of cycles again
-        pop a0, 0
-        pop a1, 4
-        lw a3, 0(t0)
-        lw a4, 4(t0)
-
-        call ucmp64                    # and compare with values on the stack
-        bgtz a0, 1b                    # if the sum > current, loop again
+        csrr t1, mcause
+        bne t1, t2, 1b                 # if it's not time IRQ, go back
+        dec t0
+        bnez t0, 1b
 
     pop a0, 8
     csrw mepc, a0                      # set the return address
@@ -201,8 +184,6 @@ fn sleep
     li t0, 0b11                        # set PCP field of mstatus to 00 (User mode)
     slli t0, t0, 11
     csrc mstatus, t0
-
-    stack_free
     mret
 endfn
 
