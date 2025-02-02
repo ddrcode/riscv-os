@@ -3,10 +3,10 @@
 
 .section .text
 
-.global test_main
+.global main
 .global stackinfo
 
-test_main:
+main:
     stack_alloc
     call sysinit
     call stackinfo

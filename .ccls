@@ -1,6 +1,7 @@
 clang
 --gcc-toolchain=/home/dejf/.nix-profile/bin
 -Iheaders
+-Iapps/headers
 -target
 riscv32
 -nostdlib

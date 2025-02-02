@@ -1,7 +1,7 @@
 #include "drivers/uart.h"
 #include "types.h"
 
-int test_main() {
+int main() {
     uart_puts("Start typing (press ~ for clear screen)...\n");
 
     while (1) {

@@ -41,7 +41,7 @@ void time_in_sec() {
     eol();
 }
 
-int test_main(void) {
+int main(void) {
     eol();
     query_rtc(10);
     eol();

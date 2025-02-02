@@ -85,10 +85,10 @@ TEST_C_OBJ := $(patsubst %.c, $(OBJDIR)/%.o, $(notdir $(TEST_C_SRC)))
 
 # TEST_FILES := $(patsubst %.o, %.elf, $(filter test_%.o, $(TEST_ASM_OBJ)))
 # TEST_FILES += $(patsubst %.o, %.elf, $(filter test_%.o, $(TEST_C_OBJ)))
-TEST_SUPPORT_OBJ := $(OBJDIR)/assert.o $(OBJDIR)/helpers.o $(OBJDIR)/startup.o
+TEST_SUPPORT_OBJ := $(OBJDIR)/assert.o $(OBJDIR)/helpers.o
 
 TEST_OBJ_FILES := $(filter-out $(OBJDIR)/main.o, $(OBJ_FILES))
-TEST_OBJ_FILES += $(TEST_SUPPORT_OBJ)
+# TEST_OBJ_FILES += $(TEST_SUPPORT_OBJ)
 TEST_OBJ_FILES += $(OBJDIR)/test_$(TEST_NAME).o
 
 #----------------------------------------
@@ -113,8 +113,8 @@ compile: $(OBJ_FILES)
 
 compile-tests: $(TEST_ASM_OBJ) $(TEST_C_OBJ)
 
-$(BUILD)/test_%.elf: platforms/$(MACHINE).ld $(TEST_OBJ_FILES)
-	$(CC) $(CFLAGS) -o $@ $(TEST_OBJ_FILES)
+$(BUILD)/test_%.elf: platforms/$(MACHINE).ld $(TEST_SUPPORT_OBJ) $(TEST_OBJ_FILES)
+	$(CC) $(CFLAGS) -o $@ $(TEST_SUPPORT_OBJ) $(TEST_OBJ_FILES)
 
 $(BUILD)/%.elf: platforms/%.ld $(OBJ_FILES)
 	$(CC) $(CFLAGS) -o $@ $(OBJ_FILES)

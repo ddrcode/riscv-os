@@ -21,7 +21,7 @@ void test_align_right(char* test_case, char* str, i32 len, char fill, char* expe
     assert_str(str, expected);
 }
 
-int test_main() {
+int main() {
     eol();
     test_utoa("666, 10", 666, 10, "666");
     test_utoa("0x8000000, 16", 0x8000000, 16, "8000000");
