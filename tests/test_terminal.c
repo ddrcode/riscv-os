@@ -3,7 +3,7 @@
 #include "drivers/video.h"
 #include "assert.h"
 
-int test_main(void) {
+int main(void) {
     eol();
     video_init();
     video_repaint();

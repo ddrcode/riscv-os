@@ -96,6 +96,7 @@ endfn
 
 
 fn init_timer
+    .set SYSTEM_TIMER_INTERVAL, (CPU_FREQUENCY * 60) / 1000
     stack_alloc
     li a0, SYSTEM_TIMER_INTERVAL
     call _set_mtimecmp
@@ -126,7 +127,7 @@ fn _set_mtimecmp
     call uadd64
 
     li t0, MTIMECMP
-    li t1, ~0                          # As the 64-bit addition is not atomic, it must be
+    not t1, zero                       # As the 64-bit addition is not atomic, it must be
     sw t1, (t0)                        # done in a fasion that it's never smaller than the
     sw a1, 4(t0)                       # previous value of mtime. Hence the lower half is first
     sw a0, (t0)                        # set with max value for uint32
@@ -148,7 +149,9 @@ endfn
 # Handles system timer interrupts
 # For not only machine level (IRQ 7),
 # but it could be handling supervisor-level too (IRQ 5)
+# The default tick interval is set to roughly 60ms
 fn handle_timer
+    .set SYSTEM_TIMER_INTERVAL, (CPU_FREQUENCY * 16) / 1000
     irq_stack_alloc
 
     li a0, SYSTEM_TIMER_INTERVAL

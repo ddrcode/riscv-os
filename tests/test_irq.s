@@ -3,9 +3,9 @@
 
 .section .text
 
-.global test_main
+.global main
 
-fn test_main
+fn main
     stack_alloc
     call irq_init
     call test_illegal_op

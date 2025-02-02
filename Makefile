@@ -3,11 +3,8 @@
 #----------------------------------------
 # Command line parameters
 
-TEST_NAME ?= shell
 OUTPUT_DEV ?= 3
 MACHINE ?= virt
-
-include platforms/$(MACHINE).mk
 
 # The "terminal" test requires a specific output type.
 ifeq ($(TEST_NAME), terminal)
@@ -15,6 +12,13 @@ OUTPUT_DEV = 5
 else
 OUTPUT_DEV = 3
 endif
+
+
+#----------------------------------------
+# Include machine-specific configuration
+
+include platforms/$(MACHINE).mk
+
 
 #----------------------------------------
 # Build / compilation / execution flags
@@ -40,21 +44,29 @@ QEMU := qemu-system-riscv32 -machine $(MACHINE) -bios none \
         -serial mon:stdio -serial file:riscv-os.log
 
 ifdef DRIVE
-QEMU += -drive file=$(DRIVE),format=raw,if=pflash,unit=1
+    QEMU += -drive file=$(DRIVE),format=raw,if=pflash,unit=1
 endif
 
+# Can be defined in machine-specific mk file (see platforms folder)
 ifdef QEMU_MACHINE_CONFIG
-QEMU += $(QEMU_MACHINE_CONFIG)
+    QEMU += $(QEMU_MACHINE_CONFIG)
 endif
 
 ifneq ($(filter release, $(MAKECMDGOALS)),)
-CFLAGS += -Os
-LDFLAGS += --gc-sections
+    CFLAGS += -Os
+    LDFLAGS += --gc-sections
 else
-ASFLAGS += -g
-CFLAGS += -g -O0
-LDFLAGS += -g --no-gc-sections
+    ASFLAGS += -g
+    CFLAGS += -g -O0
+    LDFLAGS += -g --no-gc-sections
 endif
+
+ifdef TEST_NAME
+    ELF_NAME = test_$(TEST_NAME).elf
+else
+    ELF_NAME = $(MACHINE).elf
+endif
+
 
 #----------------------------------------
 # Project files
@@ -67,80 +79,71 @@ SRC += $(wildcard apps/lib/*.s)
 SRC += $(DRIVERS)
 SRC += src/platforms/$(MACHINE).s
 
-OBJDIR := build/obj
+BUILD := build
+OBJDIR := $(BUILD)/obj
 OBJ := $(patsubst %.s, %.o, $(notdir $(SRC)))
 OBJ_FILES := $(addprefix $(OBJDIR)/, $(OBJ))
 
 TEST_ASM_SRC := $(wildcard tests/*.s)
-TEST_ASM_OBJ := $(patsubst %.s, %.o, $(notdir $(TEST_ASM_SRC)))
+TEST_ASM_OBJ := $(patsubst %.s, $(OBJDIR)/%.o, $(notdir $(TEST_ASM_SRC)))
 
 TEST_C_SRC := $(wildcard tests/*.c)
-TEST_C_OBJ := $(patsubst %.c, %.o, $(notdir $(TEST_C_SRC)))
+TEST_C_OBJ := $(patsubst %.c, $(OBJDIR)/%.o, $(notdir $(TEST_C_SRC)))
 
-TEST_FILES := $(patsubst %.o, %.elf, $(filter test_%.o, $(TEST_ASM_OBJ)))
-TEST_FILES += $(patsubst %.o, %.elf, $(filter test_%.o, $(TEST_C_OBJ)))
-TEST_SUPPORT_OBJ := $(OBJDIR)/assert.o $(OBJDIR)/helpers.o $(OBJDIR)/startup.o
+TEST_SUPPORT_OBJ := $(OBJDIR)/assert.o $(OBJDIR)/helpers.o
+
+TEST_OBJ_FILES := $(filter-out $(OBJDIR)/main.o, $(OBJ_FILES))
+TEST_OBJ_FILES += $(OBJDIR)/test_$(TEST_NAME).o
 
 #----------------------------------------
 
-.PHONY: compile build compile-test build-test build-tests build-all run test clean gdb debug
+.PHONY: compile build compile-tests build-test build-tests build-all run test clean gdb debug
 
-default: build-all
+default: $(BUILD)/$(MACHINE).bin
+
+$(BUILD):
+	mkdir -p $(BUILD)
 
 $(OBJDIR):
 	mkdir -p $(OBJDIR)
 
-$(OBJDIR)/$(OBJ): %.o: %.s | $(OBJDIR)
-	$(AS) $(ASFLAGS) -o $(OBJDIR)/$@ $<
+$(OBJDIR)/%.o: %.s $(OBJDIR)
+	$(AS) $(ASFLAGS) -o $@ $<
 
-compile: $(OBJ)
+$(OBJDIR)/%.o: %.c $(OBJDIR)
+	$(CC) $(CFLAGS) -o $@ -c $<
 
-build: compile platforms/$(MACHINE).ld
-	$(CC) $(CFLAGS) -o build/$(MACHINE).elf $(OBJ_FILES)
-
-release: compile platforms/$(MACHINE).ld
-	$(LD) $(LDFLAGS) -o build/$(MACHINE).elf $(OBJ_FILES)
-	$(TOOL)-strip --strip-all build/$(MACHINE).elf
-
-$(OBJDIR)/$(TEST_ASM_OBJ): %.o: %.s | $(OBJDIR)
-	$(AS) $(ASFLAGS) -o $(OBJDIR)/$@ $<
-
-$(OBJDIR)/$(TEST_C_OBJ): %.o: %.c | $(OBJDIR)
-	$(CC) $(CFLAGS) -o $(OBJDIR)/$@ -c $<
+compile: $(OBJ_FILES)
 
 compile-tests: $(TEST_ASM_OBJ) $(TEST_C_OBJ)
 
-$(TEST_FILES): %.elf: $(OBJDIR)/%.o
-	$(CC) $(CFLAGS) -o build/$@ $< $(filter-out $(OBJDIR)/main.o, $(OBJ_FILES)) $(TEST_SUPPORT_OBJ)
+$(BUILD)/test_%.elf: platforms/$(MACHINE).ld $(TEST_SUPPORT_OBJ) $(TEST_OBJ_FILES)
+	$(CC) $(CFLAGS) -o $@ $(TEST_SUPPORT_OBJ) $(TEST_OBJ_FILES)
 
-build-test: compile compile-tests test_$(TEST_NAME).elf
+$(BUILD)/%.elf: platforms/%.ld $(OBJ_FILES)
+	$(CC) $(CFLAGS) -o $@ $(OBJ_FILES)
 
-build-tests: compile compile-tests $(TEST_FILES)
+$(BUILD)/%.bin: platforms/%.ld $(OBJ_FILES)
+	$(LD) $(LDFLAGS) -o $@ $(OBJ_FILES)
+	$(TOOL)-strip --strip-all $@
+	$(TOOL)-objcopy -O binary $@ $@
 
-build-all: build build-tests
-
-run: build
+run: $(BUILD)/$(ELF_NAME)
 	@echo "Ctrl-Q C for QEMU console, then quit to exit"
-	$(QEMU) -kernel build/$(MACHINE).elf
+	$(QEMU) -kernel $<
 
-test: build-test
+debug: $(BUILD)/$(ELF_NAME)
 	@echo "Ctrl-Q C for QEMU console, then quit to exit"
-	$(QEMU) -kernel build/test_$(TEST_NAME).elf
+	$(QEMU) -s -S -kernel $<
 
-debug: build-test
-	@echo "Ctrl-Q C for QEMU console, then quit to exit"
-	$(QEMU) -s -S -kernel build/test_$(TEST_NAME).elf
+release: clean $(BUILD)/$(MACHINE).bin
 
-debug-main: build
-	@echo "Ctrl-Q C for QEMU console, then quit to exit"
-	$(QEMU) -s -S -kernel build/$(MACHINE).elf
+gdb:
+	gdb -ex 'target remote localhost:1234' $(BUILD)/$(ELF_NAME)
 
-gdb: build-test
-	gdb -ex 'target remote localhost:1234' ./build/test_$(TEST_NAME).elf
-
-gdb-main:
-	gdb -ex 'target remote localhost:1234' ./build/$(MACHINE).elf
+platforms/%.dts: %.dtb
+	dtc -I dtb -O dts $< > $@
 
 clean:
-	rm -rf build/*
+	rm -rf build
 

@@ -46,4 +46,4 @@
 
 # System
 
-.equ SYSTEM_TIMER_INTERVAL, 1666666
+.equ CPU_FREQUENCY, 1000000            # 1MHz

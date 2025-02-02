@@ -43,7 +43,7 @@ void test_get_date(u32 secs, u32 expected) {
     assert_eq(date, expected);
 }
 
-int test_main(void) {
+int main(void) {
 
     u32 test_data[][3] = {
         { 1736026615, time_to_u32(21, 36, 55), date_to_u32(2025, 1, 4, 6) },

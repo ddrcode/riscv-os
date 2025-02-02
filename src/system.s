@@ -15,6 +15,7 @@
 .global check_stack
 .global panic
 .global idle
+.global sleep
 
 #------------------------------------------------------------------------------
 
@@ -137,15 +138,15 @@ endfn
 # Arguments:
 #     a0 - return adress (PC)
 fn idle
+    csrs mstatus, 0x8                  # enable global interrupts by setting the MIE field (bit 3)
     li t1, 0x80000000
     li t2, 0x80000007
-    li a3, 0x00000008
 1:
     wfi
         csrr t0, mcause
         beq t0, t2, 1b                 # loop in case of timer interrupt
         bgtu t0, t1, 2f                # finish if any other IRQ
-        bne t0, a3, 1b                 # if exception is different than syscall go back
+        j 1b
 
 2:
     csrw mepc, a0                      # set the return address
@@ -155,6 +156,35 @@ fn idle
     csrc mstatus, t0
 
     mret                               # return to user mode
+endfn
+
+
+# Oh how ugly solution it is (FIXME!). It assumes that the timer IRQ
+# accours every 16ms (as defined in irq.s), so it simply waits for
+# sleep_time / 16 timer interrupts to occur
+fn sleep
+    csrs mstatus, 0x8                  # enable global interrupts by setting the MIE field (bit 3)
+    stack_alloc
+    push a0, 8
+
+    li t0, 16                          # compute how many timer IRQs to wait
+    divu t0, a1, t0                    # assuming the frequency is 16ms
+
+    li t2, 0x80000007                  # timer IRQ code
+1:
+    wfi
+        csrr t1, mcause
+        bne t1, t2, 1b                 # if it's not time IRQ, go back
+        dec t0
+        bnez t0, 1b
+
+    pop a0, 8
+    csrw mepc, a0                      # set the return address
+
+    li t0, 0b11                        # set PCP field of mstatus to 00 (User mode)
+    slli t0, t0, 11
+    csrc mstatus, t0
+    mret
 endfn
 
 #------------------------------------------------------------------------------

@@ -1,11 +1,11 @@
 .include "config.s"
 .include "macros.s"
 
-.global test_main
+.global main
 
 .section .text
 
-test_main:
+main:
     stack_alloc
 
     call sysinit

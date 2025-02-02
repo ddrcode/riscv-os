@@ -26,7 +26,7 @@ void test_rem32(char* test_case, i32 x, i32 y, i32 q) {
     assert_eq_signed(res, q);
 }
 
-int test_main() {
+int main() {
     eol();
     test_udiv32("16/8", 16, 8, 2);
     test_udiv32("333/9", 333, 9, 37);
