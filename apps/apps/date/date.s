@@ -17,8 +17,17 @@ main:
     mv a0, sp
     call println
 
-    setz a0
+    j 2f
 1:
+    la a0, rtc_error
+    call println
+2:
+    setz a0
     stack_free 32
     ret
+
+
+.section .rodata
+
+rtc_error: .string "Couldn't obtain RTC data"
 

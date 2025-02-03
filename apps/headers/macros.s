@@ -62,7 +62,7 @@
 
 
 .macro fn, name
-    .section .text.\name
+    .section .text.fn_\name
     .type \name, @function
     .align 2
     \name:

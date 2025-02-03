@@ -27,7 +27,7 @@
 # Returns
 #     a0 - low bits
 #     a1 - high bits
-fn rtc_read_time
+fn goldfish_rtc_read_time
     mv t0, a0
     lw a0, (t0)
     lw a1, 4(t0)
@@ -44,9 +44,9 @@ endfn
 #     a0 - base address
 # Returns
 #     a0 - 32-bit unsigned number with seconds
-fn rtc_time_in_sec
+fn goldfish_rtc_time_in_sec
     stack_alloc
-    call rtc_read_time
+    call goldfish_rtc_read_time
     li a2, NSEC_PER_SEC
     setz a3
     call udiv64
@@ -55,14 +55,25 @@ fn rtc_time_in_sec
 endfn
 
 
+# noting to configure, but the function must exist
+# to follow the HAL conventoin
+fn goldfish_rtc_config
+    li a0, 1                           # Device enabled
+    ret
+endfn
+
+
 # Arguments
 #     a0 - pointer to rtc driver structure
 #     a1 - base address
 fn goldfish_rtc_init
-    sw a1, (a0)
+    sw a1, 0(a0)
 
-    la t0, rtc_time_in_sec
+    la t0, goldfish_rtc_config
     sw t0, 4(a0)
+
+    la t0, goldfish_rtc_time_in_sec
+    sw t0, 8(a0)
 
     ret
 endfn
