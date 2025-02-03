@@ -155,13 +155,16 @@ fn handle_timer
     irq_stack_alloc
 
     li a0, SYSTEM_TIMER_INTERVAL
-    call _set_mtimecmp                  # set the next tick
+    call _set_mtimecmp                 # set the next tick
 
 .if OUTPUT_DEV & 0b100
     call video_repaint                 # Refresh the screen (TODO handle with event)
 .endif
 
-    # call check_stack                 # check wether the stack is healthy
+    csrrw sp, mscratch, sp             # exchange sp with mscratch
+    call check_stack                   # check wether the stack is healthy
+    csrrw sp, mscratch, sp             # exchange sp with mscratch
+
     irq_stack_free
     mret
 endfn

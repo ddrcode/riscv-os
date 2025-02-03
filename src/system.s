@@ -126,8 +126,13 @@ endfn
 
 fn panic
     stack_alloc 4
-    la a0, kernel_panic
+
+    csrc mstatus, 0x8                  # Disable interrupts
+
+    la a0, kernel_panic                # Display kernel panic msg
     call println
+1:
+    j 1b                               # Enter infinite loop
     stack_free 4
     ret
 endfn

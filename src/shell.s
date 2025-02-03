@@ -55,7 +55,6 @@ fn shell_command_loop
             call exec_cmd
         j 1b
 
-    call panic                         # the loop should never end
     stack_free 64
     ret
 endfn
