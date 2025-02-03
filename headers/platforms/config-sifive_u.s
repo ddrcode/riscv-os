@@ -20,6 +20,7 @@
 .equ MTIME, 0x0200BFF8
 .equ MTIMECMP, 0x02004000
 
+.set FLASH1_BASE, 0x20000000
 
 # Output
 
