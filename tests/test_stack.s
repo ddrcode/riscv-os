@@ -53,6 +53,9 @@ stackinfo:
         la a0, out_str
         call prints
 
+        li a0, '\n'
+        call printc
+
     stack_free
     ret
 
@@ -64,10 +67,6 @@ test_overflow:
     sub sp, sp, t0
 
     call check_stack
-
-
-    la a0, tname_overflow
-    call prints
 
     li a0, 1
     li a1, 1
