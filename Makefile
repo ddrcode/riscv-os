@@ -43,9 +43,6 @@ QEMU := qemu-system-riscv32 -machine $(MACHINE) -bios none \
 		-cpu rv32,pmp=true,$(QEMU_EXTENSIONS) -nographic -echr 17 \
         -serial mon:stdio -serial file:riscv-os.log
 
-ifdef DRIVE
-    QEMU += -drive file=$(DRIVE),format=raw,if=pflash,unit=1
-endif
 
 # Can be defined in machine-specific mk file (see platforms folder)
 ifdef QEMU_MACHINE_CONFIG
