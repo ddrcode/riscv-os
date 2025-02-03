@@ -35,7 +35,7 @@
 
 .section .text
 
-scr_init:
+fn scr_init
     stack_alloc 16
     mv a0, zero
     mv a1, sp
@@ -44,8 +44,10 @@ scr_init:
     sw a0, (t0)
     stack_free 16
     ret
+endfn
 
-clear_screen:
+
+fn clear_screen
     stack_alloc 4
     screen_addr a0
     li a1, SCREEN_WIDTH*SCREEN_HEIGHT
@@ -59,6 +61,7 @@ clear_screen:
     setz a5                            # set exit code
     stack_free 4
     ret
+endfn
 
 
 # Copies string to screen memory at the cursor position
@@ -67,7 +70,7 @@ clear_screen:
 # Returns:
 #     a0 - x position of the cursor
 #     a1 - y position of the cursor
-scr_print:
+fn scr_print
     stack_alloc                     # prepare the stack
     push a0, 8
     push a1, 4
@@ -112,6 +115,7 @@ scr_print:
 
     stack_free
     ret
+endfn
 
 
 # Copies string to screen memory and sets cursor to a new line
@@ -121,7 +125,7 @@ scr_print:
 #     a0 - x position of the cursor
 #     a1 - y position of the cursor
 #     a5 - error code
-scr_println:
+fn scr_println
     stack_alloc
     beqz a0, 1f                        # handle null pointer
 
@@ -146,6 +150,7 @@ scr_println:
     call get_cursor_pos                # and get it (for return)
     stack_free
     ret
+endfn
 
 
 # Sets cursor position
@@ -153,7 +158,7 @@ scr_println:
 # a1 - cursor y position (remains unchanged)
 # returns cursor 16-bit number representing cursor in a0
 # TODO check screen boundaries
-set_cursor_pos:
+fn set_cursor_pos
     stack_alloc
     mv a2, a1
     mv a1, a0
@@ -161,9 +166,10 @@ set_cursor_pos:
     set_cursor
     stack_free
     ret
+endfn
 
 
-set_cursor_pos_from_offset:
+fn set_cursor_pos_from_offset
     stack_alloc
     li t0, SCREEN_WIDTH
     divu a2, a0, t0
@@ -174,6 +180,7 @@ set_cursor_pos_from_offset:
     andi a0, a0, 0xff
     stack_free
     ret
+endfn
 
 
 # Returns cursor position
@@ -181,7 +188,7 @@ set_cursor_pos_from_offset:
 # Returns:
 #    a0 - x position
 #    a1 - y position
-get_cursor_pos:
+fn get_cursor_pos
     stack_alloc
     mv a0, zero
     get_cursor
@@ -189,6 +196,7 @@ get_cursor_pos:
     andi a0, a0, 0xff
     stack_free
     ret
+endfn
 
 
 # Computes cursor offset - how many bytes it's away from the
@@ -197,7 +205,7 @@ get_cursor_pos:
 # Arguments: none
 # Returns:
 #     a0: offset
-get_cursor_offset:
+fn get_cursor_offset
     stack_alloc 4
     call get_cursor_pos             # get cursor position as x,y coords
 
@@ -207,17 +215,20 @@ get_cursor_offset:
     add a0, a0, t0                  # x+y
     stack_free 4
     ret
+endfn
 
-get_cursor_address:
+
+fn get_cursor_address
     stack_alloc 4
     call get_cursor_offset
     screen_addr t0
     add a0, a0, t0
     stack_free 4
     ret
+endfn
 
 
-show_cursor:
+fn show_cursor
     stack_alloc 4
     call get_cursor_offset
     screen_addr t0
@@ -226,12 +237,13 @@ show_cursor:
     sb t1, (t0)
     stack_free 4
     ret
+endfn
 
 
 # Scrolls screen up by one line
 # Arguments: a0 - number of lines to scroll (ignored)
 # TODO make it respect a0 argument
-scroll:
+fn scroll
     # copy screen memory one line up
     stack_alloc 4
     screen_addr a0
@@ -253,10 +265,10 @@ scroll:
 1:
     stack_free 4
     ret
+endfn
 
 
-.type scr_backspace, @function
-scr_backspace:
+fn scr_backspace
     stack_alloc 4
     call get_cursor_pos
     beqz a0, 1f                        # do nothing if cursor_x is 0
@@ -267,8 +279,7 @@ scr_backspace:
     sb t0, (a0)
 1:  stack_free 4
     ret
-
-
+endfn
 
 
 #--------------------------------------

@@ -12,18 +12,19 @@ RISC_V_EXTENSIONS := emzicsr
 ARCH := rv32$(RISC_V_EXTENSIONS)
 ABI := ilp32e
 export ASFLAGS := -march=$(ARCH) -mabi=$(ABI) -I headers --defsym OUTPUT_DEV=2 --defsym m_$(MACHINE)=1
-export CFLAGS := -march=$(ARCH) -mabi=$(ABI)  -nostdlib -static -I $(ROOT)/headers -T $(ROOT)/platforms/virt.ld
+export CFLAGS := -march=$(ARCH) -mabi=$(ABI)  -nostdlib -static -I $(ROOT)/headers -T $(ROOT)/platforms/virt.ld \
+                 -ffunction-sections -fdata-sections
 
 CARGO_FLAGS := -Zbuild-std=core --target ./riscv32im-unknown-none-elf.json --release
 
-ifneq ($(filter release, $(MAKECMDGOALS)),)
-CFLAGS += -Os
-LDFLAGS += --gc-sections
-else
-ASFLAGS += -g
-CFLAGS += -g -O0
-LDFLAGS += -g --no-gc-sections
-endif
+# ifneq ($(filter release, $(MAKECMDGOALS)),)
+    CFLAGS += -Os -Wl,--gc-sections
+    LDFLAGS += --gc-sections
+# else
+#     ASFLAGS += -g
+#     CFLAGS += -g -O0
+#     LDFLAGS += -g --no-gc-sections
+# endif
 
 VPATH := common
 OUT := build

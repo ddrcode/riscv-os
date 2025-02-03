@@ -24,8 +24,7 @@
 #     a0 - dst address where copying has finished
 #     a1 - src address where copying has finished
 # TODO add check for address boundaries
-.type memcpy, @function
-memcpy:
+fn memcpy
 1:                                  # copy words
     addi t0, a2, -4                 # compute next index
     bltz t0, 2f                     # if less than zero jump to 2
@@ -45,6 +44,7 @@ memcpy:
     j 2b
 3:                                  # finish
     ret
+endfn
 
 
 # Fills memory with a given value
@@ -54,8 +54,7 @@ memcpy:
 #     a2 - value (byte)
 # TODO respect memory boundaries
 # TODO optimize it with 32-bit operations
-.type memfill, @function
-memfill:
+fn memfill
 1:
     beqz a1, 2f
     sb a2, (a0)
@@ -64,6 +63,7 @@ memfill:
     j 1b
 2:
     ret
+endfn
 
 
 # reverses bytes in memory range
@@ -72,8 +72,7 @@ memfill:
 #    a1 - number of bytes to reverse
 # Returns:
 #    a0 - pointer
-.type mem_reverse, @function
-mem_reverse:
+fn mem_reverse
     mv t0, a0
     add t1, a0, a1                      # Compute the end addr...
     dec t1                              # end=start+len-1
@@ -88,3 +87,4 @@ mem_reverse:
     j 1b
 2:
     ret
+endfn

@@ -26,8 +26,7 @@
 #          2      hours
 #          1      minutes
 #          0      seconds
-.type get_time, @function
-get_time:
+fn get_time
     li t0, SECS_PER_DAY
     remu a0, a0, t0                    # seconds of today (secs)
 
@@ -50,7 +49,7 @@ get_time:
     or a0, a0, a3
 
     ret
-
+endfn
 
 # Converts number of seconds from 1970.01.01 into a date structure.
 # Because the input is 32-bit unsigned number, the maximum possible date
@@ -68,8 +67,7 @@ get_time:
 #          2      year-1900
 #          1      month (0-11)
 #          0      day of month (1-31)
-.type get_date, @function
-get_date:
+fn get_date
     li t2, 4                           # 4 is used for number of divs and muls below
 
     li t0, SECS_PER_DAY
@@ -130,6 +128,7 @@ get_date:
     or a0, a0, t0
 
     ret
+endfn
 
 
 # Converts time structure into a string
@@ -138,8 +137,7 @@ get_date:
 #     a1 - string pointer
 # Returns
 #     a0 - string pointer (same as a1 input)
-.type time_to_str, @function
-time_to_str:
+fn time_to_str
     li a2, 6                           # string offset
     li a3, 10
 1:
@@ -165,6 +163,7 @@ time_to_str:
     sb zero, 8(a1)                     # close the string
     mv a0, a1                          # return string address
     ret
+endfn
 
 
 # Converts date structure into a string
@@ -173,8 +172,7 @@ time_to_str:
 #     a1 - string pointer
 # Returns
 #     a0 - string pointer (same as a1 input)
-.type date_to_str, @function
-date_to_str:
+fn date_to_str
     stack_alloc
     push a0, 8
     push a1, 4
@@ -222,7 +220,7 @@ date_to_str:
     mv a0, a1
     stack_free
     ret
-
+endfn
 
 # Converts 32-bit number containing number of seconds
 # since 1970-01-01 into a date-time string
@@ -231,8 +229,7 @@ date_to_str:
 #     a1 - string pointer
 # Returns
 #     a0 - string pointer (same as a1 argument)
-.type date_time_to_str, @function
-date_time_to_str:
+fn date_time_to_str
     stack_alloc
     push a0, 8
     push a1, 4
@@ -253,4 +250,5 @@ date_time_to_str:
     pop a0, 4
     stack_free
     ret
+endfn
 

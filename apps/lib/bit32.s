@@ -13,8 +13,7 @@
 .global setbit
 
 # returns number of bits in 32-bit number
-.type bitlen32, @function
-bitlen32:
+fn bitlen32
     not t0, zero
     setz t1
 1:
@@ -27,27 +26,29 @@ bitlen32:
 2:
     mv a0, t1
     ret
+endfn
+
 
 # Get n-th bit from word
 # Arguments:
 #     a0 - word
 #     a1 - bit
 # Returns: 0 or 1
-.type getbit, @function
-getbit:
+fn getbit
     li t0, 1
     sll t0, t0, a1
     and t0, a0, t0
     snez a0, t0
     ret
+endfn
+
 
 # Set n-th bit from word
 # Arguments:
 #     a0 - word
 #     a1 - bit
 #     a2 - value
-.type setbit, @function
-setbit:
+fn setbit
     li t0, 1
     sll t0, t0, a1
     bnez a2, 1f
@@ -56,5 +57,5 @@ setbit:
         j 2f
 1:  or a0, a0, t0                      # set bit
 2:  ret
-
+endfn
 
