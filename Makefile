@@ -35,7 +35,8 @@ ARCH := rv32$(RISC_V_EXTENSIONS)
 ABI := ilp32e
 HEADERS := -I headers -I apps/headers
 ASFLAGS := -march=$(ARCH) -mabi=$(ABI) $(HEADERS) --defsym OUTPUT_DEV=$(OUTPUT_DEV) --defsym m_$(MACHINE)=1
-CFLAGS := -march=$(ARCH) -mabi=$(ABI)  -nostdlib -static $(HEADERS) -T platforms/$(MACHINE).ld
+CFLAGS := -march=$(ARCH) -mabi=$(ABI)  -nostdlib -static $(HEADERS) -T platforms/$(MACHINE).ld \
+          -ffunction-sections -fdata-sections
 LDFLAGS := -Arv32$(RISC_V_EXTENSIONS) -melf32lriscv -T platforms/$(MACHINE).ld -static -nostdlib
 
 QEMU_EXTENSIONS := e=on,m=on,i=off,h=off,f=off,d=off,a=off,f=off,c=off,zawrs=off,sstc=off,zicntr=off,zihpm=off,zicboz=off,zicbom=off,svadu=off,zicsr=on,zfa=off,zmmul=off
@@ -50,7 +51,7 @@ ifdef QEMU_MACHINE_CONFIG
 endif
 
 ifneq ($(filter release, $(MAKECMDGOALS)),)
-    CFLAGS += -Os
+    CFLAGS += -Os -Wl,--gc-sections
     LDFLAGS += --gc-sections
 else
     ASFLAGS += -g

@@ -17,8 +17,7 @@
 # Arguments:
 #     a0 - least significant word
 #     a1 - most significant word
-.type bitlen64, @function
-bitlen64:
+fn bitlen64
     stack_alloc
     pushb zero, 8                      # set adder to 0
     beqz a1, 1f                        # jump if most significant word is zero
@@ -30,6 +29,7 @@ bitlen64:
     add a0, a0, t0                     # increase the result by the adder
     stack_free
     ret
+endfn
 
 
 # 64-bit left shift by 1
@@ -37,8 +37,7 @@ bitlen64:
 #     a0 - least significant word
 #     a1 - most significant word
 # Returns: same as above
-.type lshift64, @function
-lshift64:
+fn lshift64
     # .set BIT19, 1 << 19
     # lui t0, BIT19                      # set bit 31 to 1
     li t0, 1
@@ -49,14 +48,14 @@ lshift64:
     slli a1, a1, 1
     or a1, a1, t0                      # and OR the most significant word with the carry flag
     ret
+endfn
 
 
 # Arguments:
 #     a0 - lo-word
 #     a1 - hi-word
 #     a2 - bit no
-.type getbit64, @function
-getbit64:
+fn getbit64
     stack_alloc
     slti t0, a2, 32
     bnez t0, 1f
@@ -69,14 +68,15 @@ getbit64:
     call getbit
     stack_free
     ret
+endfn
+
 
 # Arguments:
 #     a0 - lo-word
 #     a1 - hi-word
 #     a2 - bit no
 #     a3 - value
-.type setbit64, @function
-setbit64:
+fn setbit64
     stack_alloc
     push a0, 8
     push a1, 4
@@ -98,4 +98,4 @@ setbit64:
 2:
     stack_free
     ret
-
+endfn

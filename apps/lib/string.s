@@ -29,7 +29,7 @@
 #     a2 - base
 # Returns:
 #     a0 - string length
-_num_to_reversed_str:
+fn _num_to_reversed_str
     mv t0, a1
     bnez a0, 1f                        # jump if number is not zero
         li t1, '0'                     # generate "0\0" string and jump to the end
@@ -58,6 +58,7 @@ _num_to_reversed_str:
     sub a0, t0, a1                     # compute string length
 6:
     ret
+endfn
 
 
 # Converts a signed number  into a string
@@ -69,8 +70,7 @@ _num_to_reversed_str:
 #     a2 - base
 # Returns:
 #     a0 - string pointer
-.type itoa, @function
-itoa:
+fn itoa
     stack_alloc
     push a1, 8
     pushb zero, 4
@@ -103,6 +103,8 @@ itoa:
     pop a0, 8                          # return string pointer
     stack_free
     ret
+endfn
+
 
 # Converts an unsigned number into a string
 # Inspired by this implementation in C:
@@ -113,8 +115,7 @@ itoa:
 #     a2 - base
 # Returns:
 #     a0 - string pointer
-.type utoa, @function
-utoa:
+fn utoa
     stack_alloc
     push a1, 8                         # preserve the string pointer on the stack
     call _num_to_reversed_str          # convert number to RTL string
@@ -128,6 +129,7 @@ utoa:
 1:
     stack_free
     ret
+endfn
 
 
 # Converts string to a number (if possible)
@@ -139,8 +141,7 @@ utoa:
 #     a5: Error code
 # TODO Handle negative numbers
 # TODO Hanlde base (a1) > 10
-.type atoi, @function
-atoi:
+fn atoi
     stack_alloc
     pushb   a1, 8
     push    a0, 4
@@ -180,6 +181,7 @@ atoi:
 4:
     stack_free
     ret
+endfn
 
 
 # Computes length of a string
@@ -187,8 +189,7 @@ atoi:
 #     a0 - string pointer
 # Returns:
 #     a0 - length
-.type strlen, @function
-strlen:
+fn strlen
     setz t0
 1:
     lbu t1, (a0)
@@ -199,14 +200,14 @@ strlen:
 2:
     mv a0, t0
     ret
+endfn
 
 
 # Compare two strings
 # Arguments
 #     a0 - pointer to string 1
 #     a1 - pointer to string 2
-.type strcmp, @function
-strcmp:
+fn strcmp
     setz t2                            # default result (strings not equal)
 1:                                     # do
         lbu t0, (a0)
@@ -221,6 +222,7 @@ strcmp:
 3:
     mv a0, t2                          # set the result
     ret
+endfn
 
 
 # Find position of a char inside a string
@@ -229,8 +231,7 @@ strcmp:
 #     a1 - char to find
 # Returns
 #     a0 - position of a char (or -1 if not found)
-.type str_find_char, @function
-str_find_char:
+fn str_find_char
     li t0, -1                          # set default result
     mv t1, a0
 1:
@@ -244,10 +245,10 @@ str_find_char:
 3:
     mv a0, t0
     ret
+endfn
 
 
-.type strcpy, @function
-strcpy:
+fn strcpy
     stack_alloc
     push a0, 8
     push a1, 4
@@ -260,6 +261,7 @@ strcpy:
     pop a0, 8
     stack_free
     ret
+endfn
 
 
 # If a string is shorter than it's memory region
