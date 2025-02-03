@@ -30,7 +30,7 @@ LD := $(TOOL)-ld
 
 # use im and -mabi=ilp32 if planning to not use reduced base integer extension
 
-RISC_V_EXTENSIONS := emzicsr
+RISC_V_EXTENSIONS := em_zicsr
 ARCH := rv32$(RISC_V_EXTENSIONS)
 ABI := ilp32e
 HEADERS := -I headers -I apps/headers
@@ -39,7 +39,7 @@ CFLAGS := -march=$(ARCH) -mabi=$(ABI)  -nostdlib -static $(HEADERS) -T platforms
           -ffunction-sections -fdata-sections
 LDFLAGS := -Arv32$(RISC_V_EXTENSIONS) -melf32lriscv -T platforms/$(MACHINE).ld -static -nostdlib
 
-QEMU_EXTENSIONS := e=on,m=on,i=off,h=off,f=off,d=off,a=off,f=off,c=off,zawrs=off,sstc=off,zicntr=off,zihpm=off,zicboz=off,zicbom=off,svadu=off,zicsr=on,zfa=off,zmmul=off
+QEMU_EXTENSIONS := e=on,m=on,i=off,h=off,f=off,d=off,a=off,f=off,c=off,zawrs=off,sstc=off,zicntr=off,zihpm=off,zicboz=off,zicbom=off,svadu=off,zicsr=on,zfa=off,zmmul=off,zbb=on
 QEMU := qemu-system-riscv32 -machine $(MACHINE) -bios none \
 		-cpu rv32,pmp=true,$(QEMU_EXTENSIONS) -nographic -echr 17 \
         -serial mon:stdio -serial file:riscv-os.log
