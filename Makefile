@@ -30,7 +30,7 @@ LD := $(TOOL)-ld
 
 # use im and -mabi=ilp32 if planning to not use reduced base integer extension
 
-RISC_V_EXTENSIONS := emzicsr
+RISC_V_EXTENSIONS := em_zicsr
 ARCH := rv32$(RISC_V_EXTENSIONS)
 ABI := ilp32e
 HEADERS := -I headers -I apps/headers

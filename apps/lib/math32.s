@@ -66,30 +66,32 @@ fn udiv32
     push a0, 8
     push a1, 4
 
-    call bitlen32
+    call bitlen32                      # returns how many bits the number occupies
     mv t0, a0
     pop a0, 8
     pop a1, 4
     setz a2
     setz a3
 
-    li t2, 1                           # t2 = 2
-    sll t2, t2, t0                     # t2 = t2 << i
+    addi t1, t0, -1
+    li t2, 1                           # t2 = 1
+    sll t2, t2, t1                     # t2 = t2 << (i-1)
 
 1:
     dec t0
-    bltz t0, 2f
-        srli t2, t2, 1                 # t2 >>= 1
+    bltz t0, 3f
         and t1, a0, t2                 # t1 = t2 & N
         snez t1, t1                    # t1 = t1 != 0 ? 1 : 0
         slli a3, a3, 1                 # R = R << 1
         or a3, a3, t1                  # R(0) = N(i)
-        blt a3, a1, 1b                 # branch if R < D
+        bltu a3, a1, 2f                 # branch if R < D
             sub a3, a3, a1             # R = R - D
             or a2, a2, t2              # Q(i) = 1
+2:
+        srli t2, t2, 1                 # t2 >>= 1
     j 1b
 
-2:
+3:
     mv a0, a2
     mv a1, a3
 
