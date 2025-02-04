@@ -48,27 +48,27 @@ _fill_canvas:
     li s1, SCREEN_OVER_SERIAL_HBORDER
     slli s1, s1, 1
     addi s1, s1, SCREEN_WIDTH
-    addi s1, s1, 16
+    addi s1, s1, 16                    # 16 is a lenght of terminal codes)
 
-    mv a0, sp
+    mv a0, sp                          # prepare a single line of space characters on the stack
     mv a1, s1
     li a2, ' '
     call memfill
 
-    mv a0, sp
+    mv a0, sp                          # copy inversion terminal code at the beginning of the line
     la a1, SC_REVERSED_START
     call strcpy
-    li t0, ' '
+    li t0, ' '                         # and replace \0 with space
     sb t0, 8(sp)
 
-    mv a0, sp
-    add a0, a0, s1
+    mv a0, sp                          # copy end of inversed characters terminal code
+    add a0, a0, s1                     # at the end of the string
     addi a0, a0, -8
     la a1, SC_REVERSED_END
     call strcpy
 
-    add t0, s1, sp
-    sb zero, (t0)
+    # add t0, s1, sp                     # close line string
+    # sb zero, (t0)
 
     # addi a0, zero, 1
     # mv a1, a0
@@ -149,10 +149,22 @@ video_repaint:
 
     j 2b
 4:
-    call get_cursor_pos
+    mv a0, zero
+    call fb_get_cursor
+    srai a1, a0, 8
+    andi a0, a0, 0xff
     li a2, 0
     call _print_char
 
+    # mv a0, zero
+    # syscall SYSFN_FB_GET_CURSOR
+    # # call get_cursor_pos
+    # mv a1, sp
+    # li a2, 16
+    # call utoa
+    # call debug_prints
+    # li a0, ' '
+    # call debug_printc
 5:
     pop s0, Y
     pop s1, X
