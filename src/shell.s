@@ -33,11 +33,12 @@ fn shell_init
     la a0, prompt
     call prints
 
-.if OUTPUT_DEV & 1
+.if OUTPUT_DEV & 0b101 == 1
     call show_cursor
 .endif
 
     call shell_command_loop
+
     stack_free
     ret
 endfn

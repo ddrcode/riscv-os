@@ -14,12 +14,19 @@ fn main
     li a0, INFO_OUTPUT_DEV             # get active output device(s)
     syscall SYSFN_GET_CFG
     andi t0, a0, 1
-    bnez t0, 2f
+    bnez t0, 1f
+
+        la a0, msg_no_frame_buffer
+        call println
+        j 3f
 
 1:
-    la a0, MSG_NO_FRAME_BUFFER
-    call println
-    j 3f
+    andi t0, a0, 0b100
+    beqz t0, 2f
+
+        la a0, msg_terminal
+        call println
+        j 3f
 
 2:
     mv a0, sp
@@ -30,7 +37,6 @@ fn main
         call fb_dump
 
 3:
-
     mv a0, zero
     stack_free
     ret
@@ -115,4 +121,5 @@ endfn
 
 .section .rodata
 
-MSG_NO_FRAME_BUFFER: .string "Frame buffer not enabled"
+msg_no_frame_buffer: .string "Frame buffer not enabled"
+msg_terminal: .string "What you see now is a framebuffer"

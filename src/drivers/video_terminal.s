@@ -3,7 +3,7 @@
 # author: David de Rosier
 # https://github.com/ddrcode/riscv-os
 #
-# See LICENSE for license details.
+# See LICENSE file for license details.
 
 .macro print_code, str
     li a0, CFG_STD_OUT
@@ -21,24 +21,27 @@
 
 .section .text
 
-.type video_init, @function
-video_init:
+
+fn video_init
     stack_alloc
     call video_cls
     call _fill_canvas
 
     stack_free
     ret
+endfn
 
-video_cls:
+
+fn video_cls
     stack_alloc
     print_code SC_CLS
     print_code SC_HOME
     stack_free
     ret
+endfn
 
 
-_fill_canvas:
+fn _fill_canvas
     stack_alloc 128
     push s1, 120
     push s0, 116
@@ -48,32 +51,24 @@ _fill_canvas:
     li s1, SCREEN_OVER_SERIAL_HBORDER
     slli s1, s1, 1
     addi s1, s1, SCREEN_WIDTH
-    addi s1, s1, 16
+    addi s1, s1, 16                    # 16 is a lenght of terminal codes)
 
-    mv a0, sp
+    mv a0, sp                          # prepare a single line of space characters on the stack
     mv a1, s1
     li a2, ' '
     call memfill
 
-    mv a0, sp
+    mv a0, sp                          # copy inversion terminal code at the beginning of the line
     la a1, SC_REVERSED_START
     call strcpy
-    li t0, ' '
+    li t0, ' '                         # and replace \0 with space
     sb t0, 8(sp)
 
-    mv a0, sp
-    add a0, a0, s1
+    mv a0, sp                          # copy end of inversed characters terminal code
+    add a0, a0, s1                     # at the end of the string
     addi a0, a0, -8
     la a1, SC_REVERSED_END
     call strcpy
-
-    add t0, s1, sp
-    sb zero, (t0)
-
-    # addi a0, zero, 1
-    # mv a1, a0
-    # mv a2, zero
-    # call _print_char
 
     li s1, SCREEN_OVER_SERIAL_VBORDER
     slli s1, s1, 1
@@ -94,11 +89,10 @@ _fill_canvas:
     pop s1, 120
     stack_free 128
     ret
+endfn
 
 
-
-.type video_repaint, @function
-video_repaint:
+fn video_repaint
     .set Y, 24
     .set X, 20
     .set SCREEN_PTR, 16
@@ -149,7 +143,10 @@ video_repaint:
 
     j 2b
 4:
-    call get_cursor_pos
+    mv a0, zero
+    call fb_get_cursor
+    srai a1, a0, 8
+    andi a0, a0, 0xff
     li a2, 0
     call _print_char
 
@@ -158,6 +155,7 @@ video_repaint:
     pop s1, X
     stack_free 32
     ret
+endfn
 
 
 # Arguments:
@@ -165,7 +163,7 @@ video_repaint:
 #     a1 - y
 #     a2 - charcode
 # TODO Fix that ugliness :-)
-_print_char:
+fn _print_char
     stack_alloc 64
 
     li t0, SCREEN_OVER_SERIAL_HBORDER
@@ -244,6 +242,8 @@ _print_char:
 
     stack_free 64
     ret
+endfn
+
 
 
 #----------------------------------------
@@ -256,6 +256,7 @@ SC_HOME:     .asciz  "\033[H"
 SC_REVERSED_START: .asciz  "\x1b[0;100mw"
 SC_REVERSED_END: .asciz  "\x1b[0m"
 SC_CURSOR_AND_CHAR:   .asciz  "\33[000;000H\0"
+
 
 #---------------------------------------
 
