@@ -1,8 +1,8 @@
 .ifndef __CONFIG_S__
-.equ __CONFIG_S__, 1
+.equ __CONFIG_S__, 0
 
 # Generi
-.equ DEBUG, 0
+.equ DEBUG, 1
 
 .weak ENABLE_IRQ
 .weak ENABLE_PLIC

@@ -63,13 +63,11 @@
     csrrw sp, mscratch, sp             # exchange sp with mscratch
 .endm
 
-.section .text
-
-
 
 .global irq_init
 
 
+.section .text
 
 #----------------------------------------
 # IRQ system initialization
@@ -334,7 +332,7 @@ fn handle_exception
 .if DEBUG==1
     stack_alloc 32
     la a0, exception_message
-    call prints
+    call debug_prints
 
     csrr a0, mcause
     mv a1, sp
@@ -455,6 +453,10 @@ fn handle_brk
 endfn
 
 
+fn handle_M_syscall
+    debug ecall_from_mmode
+    ret
+endfn
 
 
 #----------------------------------------
@@ -485,7 +487,7 @@ exceptions_vector:
     .word    handle_syscall            #  8: Environment call from U-mode
     .word    0                         #  9: Environment call from S-mode
     .word    0                         # 10: Reserved
-    .word    0                         # 11: Environment call from M-mode
+    .word    handle_M_syscall          # 11: Environment call from M-mode
     .word    handle_exception          # 12: Instruction page fault
     .word    handle_exception          # 13: Load page fault
     .word    0                         # 14: Reserved
@@ -510,12 +512,13 @@ m_extension_fallbacks_vector:
 .section .rodata
 .align 4
 
-.if DEBUG==1
+.if DEBUG > 0
     software_irq_msg: .string "Software IRQ detected: "
     exception_message: .string "A system level exception occured. Error code: "
     unhandled_irq_msg: .string "Unhandled IRQ"
     unhandled_ext_irq: .string "Unhandled external IRQ"
     irq_in_exception_handler: .string "Exception handler executed for IRQ"
+    ecall_from_mmode: .string "ECall from M-mode"
 .endif
 
 
