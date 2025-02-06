@@ -42,12 +42,12 @@ _start:
 
     stack_free
 
+    la ra, loop
+
     mret                               # Return to user mode
 
-    call panic                         # In case when user mode initialization failed
-                                       # it may ignore mret and step here
 loop:
-    wfi
+    # wfi
     j loop
 
 

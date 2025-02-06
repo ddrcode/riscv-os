@@ -5,6 +5,7 @@
 # See LICENSE for license details.
 
 .include "macros.s"
+.include "consts.s"
 
 .equ SECS_PER_DAY, 86400
 
@@ -13,6 +14,7 @@
 .global time_to_str
 .global date_to_str
 .global date_time_to_str
+.global time_now
 
 .section .text
 
@@ -252,3 +254,10 @@ fn date_time_to_str
     ret
 endfn
 
+
+fn time_now
+    stack_alloc
+    syscall SYSFN_GET_SECS_FROM_EPOCH
+    stack_free
+    ret
+endfn
