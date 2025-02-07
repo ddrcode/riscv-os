@@ -1,11 +1,9 @@
-#ifndef SYSTEM_H
-#define SYSTEM_H
+#ifndef _STDLIB_H_
+#define _STDLIB_H_
 
 #include "types.h"
 
-i32 sysinit(void);
-i32 syscall(i32 fnid, char* args);
-i32 checkstack(void);
-i32 panic(void);
+int syscall(u32, u32, u32, u32, u32, u32);
+
 
 #endif

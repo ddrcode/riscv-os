@@ -1,5 +1,8 @@
 #!make
 
+MACHINE=virt
+
+
 TOOL := riscv64-none-elf
 
 AS := $(TOOL)-as
@@ -11,9 +14,10 @@ export ROOT := ../..
 RISC_V_EXTENSIONS := emzicsr
 ARCH := rv32$(RISC_V_EXTENSIONS)
 ABI := ilp32e
-export ASFLAGS := -march=$(ARCH) -mabi=$(ABI) -I headers --defsym OUTPUT_DEV=2 --defsym m_$(MACHINE)=1
-export CFLAGS := -march=$(ARCH) -mabi=$(ABI)  -nostdlib -static -I $(ROOT)/headers -T $(ROOT)/platforms/virt.ld \
-                 -ffunction-sections -fdata-sections
+HEADERS := -I ../headers
+export ASFLAGS := -march=$(ARCH) -mabi=$(ABI) $(HEADERS) --defsym OUTPUT_DEV=2 --defsym m_$(MACHINE)=1
+export CFLAGS := -march=$(ARCH) -mabi=$(ABI)  -nostdlib -static -I $(ROOT)/../headers -T $(ROOT)/platforms/virt.ld \
+                 -ffunction-sections -fdata-sections -flto
 
 CARGO_FLAGS := -Zbuild-std=core --target ./riscv32im-unknown-none-elf.json --release
 
@@ -50,8 +54,8 @@ $(OUT):
 $(RELEASE):
 	mkdir -p $(RELEASE)
 
-$(OUT)/common.o: $(OUT) lib/*.s common/*.s
-	$(AS) $(ASFLAGS) -o $(OUT)/common.o common/*.s lib/*.s
+$(OUT)/common.o: $(OUT) ../lib/*.s common/*.s
+	$(AS) $(ASFLAGS) -o $(OUT)/common.o common/*.s ../lib/*.s
 
 $(OUT)/%.elf: apps/%/* $(OUT)/common.o
 	$(MAKE) -C ./apps/$(patsubst %.elf,%,$(@F)) -f $(patsubst %.elf,%,$(@F)).mk $(ROOT)/$@

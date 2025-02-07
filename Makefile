@@ -33,7 +33,7 @@ LD := $(TOOL)-ld
 RISC_V_EXTENSIONS := em_zicsr
 ARCH := rv32$(RISC_V_EXTENSIONS)
 ABI := ilp32e
-HEADERS := -I headers -I apps/headers
+HEADERS := -I headers
 ASFLAGS := -march=$(ARCH) -mabi=$(ABI) $(HEADERS) --defsym OUTPUT_DEV=$(OUTPUT_DEV) --defsym m_$(MACHINE)=1
 CFLAGS := -march=$(ARCH) -mabi=$(ABI)  -nostdlib -static $(HEADERS) -T platforms/$(MACHINE).ld \
           -ffunction-sections -fdata-sections
@@ -69,11 +69,11 @@ endif
 #----------------------------------------
 # Project files
 
-VPATH = src src/drivers src/platforms src/hal tests apps/lib
+VPATH = src src/drivers src/platforms src/hal tests lib
 
 SRC := $(wildcard src/*.s)
 SRC += $(wildcard src/hal/*.s)
-SRC += $(wildcard apps/lib/*.s)
+SRC += $(wildcard lib/*.s)
 SRC += $(DRIVERS)
 SRC += src/platforms/$(MACHINE).s
 

@@ -4,28 +4,26 @@
 #include "bit64.h"
 
 void test_uadd64(char* test_case, u32 xlo, u32 xhi, u32 ylo, u32 yhi, u32 rlo, u32 rhi) {
-    u32 hi, res, regs[6];
+    U64 res;
     char str[32];
     res = uadd64(xlo, xhi, ylo, yhi);
-    regarr(regs);
 
     print_test_name("uadd64", test_case);
 
     u32 ex[] = { rlo, rhi };
-    u32 val[] = { res, regs[0] };
+    u32 val[] = { res.low, res.high };
     assert_arr(val, ex, 2);
 }
 
 void test_usub64(char* test_case, u32 xlo, u32 xhi, u32 ylo, u32 yhi, u32 rlo, u32 rhi) {
-    u32 hi, res, regs[6];
+    U64 res;
     char str[32];
     res = usub64(xlo, xhi, ylo, yhi);
-    regarr(regs);
 
     print_test_name("usub64", test_case);
 
     u32 ex[] = { rlo, rhi };
-    u32 val[] = { res, regs[0] };
+    u32 val[] = { res.low, res.high };
     assert_arr(val, ex, 2);
 }
 
@@ -62,12 +60,13 @@ void test_ucmp64(char* test_case, u32 xlo, u32 xhi, u32 ylo, u32 yhi, i32 expect
 }
 
 void test_udiv64(char* test_case, u32 nlo, u32 nhi, u32 dlo, u32 dhi, u32 qlo, u32 qhi, u32 rlo, u32 rhi) {
-    u32 res, regs[6];
+    u32 regs[6];
+    U64 res;
     res = udiv64(nlo, nhi, dlo, dhi);
     regarr(regs);
     print_test_name("udiv64", test_case);
     u32 ex[] = { qlo, qhi, rlo, rhi };
-    u32 val[] = { res, regs[0], regs[1], regs[2] };
+    u32 val[] = { res.low, res.high, regs[1], regs[2] };
     assert_arr(val, ex, 4);
 }
 
