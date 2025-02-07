@@ -6,15 +6,30 @@ This guide provides information for developers who want to understand, modify, o
 
 ```
 riscv-os/
-├── apps/           # External applications repository
+├── apps/           # External applications
 ├── build/          # Build artifacts
-├── headers/        # Assembly include files
-├── platforms/      # Platform-specific code
-├── src/           # Source code
-│   ├── drivers/   # Device drivers
-│   ├── hal/       # Hardware Abstraction Layer
+├── headers/        # Header files
+│   ├── drivers/   # Device driver headers
+│   ├── hal/       # Hardware abstraction headers
+│   ├── platforms/ # Platform-specific headers
+│   ├── sys/       # System-specific headers
+│   ├── config.s   # Configuration macros
+│   ├── consts.s   # Common constants
+│   ├── macros.s   # Common macros
+│   ├── math32.h   # 32-bit math operations
+│   ├── math64.h   # 64-bit math operations
+│   ├── string.h   # String operations
+│   └── types.h    # Common type definitions
+├── lib/           # Shared library functions
+│   ├── math32.s   # 32-bit math operations
+│   ├── math64.s   # 64-bit math operations
+│   └── string.s   # String manipulation functions
+├── platforms/     # Platform-specific code
+├── src/          # Source code
+│   ├── drivers/  # Device drivers
+│   ├── hal/      # Hardware Abstraction Layer
 │   └── platforms/ # Platform implementations
-└── tests/         # Test files
+└── tests/        # Test files
 ```
 
 ### Key Files
@@ -24,6 +39,14 @@ riscv-os/
 - `src/shell.s`: Shell implementation
 - `src/system.s`: Core system functions
 - `src/sysfn.s`: System call implementations
+- `headers/sys/system.h`: System interface
+- `headers/config.s`: Configuration macros
+- `headers/consts.s`: Common constants
+- `headers/macros.s`: Common macros
+- `headers/types.h`: Common type definitions
+- `lib/math32.s`: 32-bit math operations
+- `lib/math64.s`: 64-bit math operations
+- `lib/string.s`: String manipulation functions
 
 ## Coding Standards
 

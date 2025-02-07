@@ -117,7 +117,7 @@ Let's walk through some common first contributions:
 
 ### 1. Adding a Math Function
 
-Let's implement 64-bit multiplication in `apps/lib/math64.s`:
+Let's implement 64-bit multiplication in `lib/math64.s`:
 
 ```assembly
 # Function: umul64
