@@ -42,14 +42,10 @@ _start:
 
     stack_free
 
-    la ra, loop
+    la ra, loop                        # Set the return address from main
 
     mret                               # Return to user mode
 
 loop:
-    # wfi
     j loop
-
-
-.section .data
 
