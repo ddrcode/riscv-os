@@ -9,7 +9,7 @@
 #define GAME_HEIGHT 20
 #define MAX_SNAKE_LENGTH 100
 #define INITIAL_SNAKE_LENGTH 4
-#define GAME_SPEED 200  // ms between moves
+#define GAME_SPEED 100  // ms between moves
 
 // Game characters
 #define SNAKE_HEAD '@'
@@ -178,7 +178,7 @@ void update_game(GameState* game) {
 // Get and process user input
 Direction get_input(Direction current) {
     i32 ch = getc();
-    
+
     if (ch == 0) {
         return current;
     }
@@ -190,7 +190,7 @@ Direction get_input(Direction current) {
         case 'a': new_dir = (current != RIGHT) ? LEFT : current; break;
         case 'd': new_dir = (current != LEFT) ? RIGHT : current; break;
     }
-    
+
     return new_dir;
 }
 
@@ -230,11 +230,15 @@ int main(void) {
 
     // Final draw and wait for input
     draw_game(&game);
-    prints("\nPress any key to exit...");
 
+    set_cursor_pos(GAME_WIDTH/2 - 12, GAME_HEIGHT/2 + 3);
+    prints("Press any key to exit...");
+
+    sleep(5000);
     while(!getc());
 
     clear_screen();
     term_show_cursor();
+
     return 0;
 }

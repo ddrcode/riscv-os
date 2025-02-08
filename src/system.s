@@ -165,21 +165,34 @@ endfn
 
 
 # Sleep function
+# Arguments
+#    a0 - return address
+#    a1 - sleep time in ms
 fn sys_sleep
     csrs mstatus, 0x8                  # enable global interrupts by setting the MIE field (bit 3)
     stack_alloc
     push a0, 8
 
-    li t0, 16                          # compute how many timer IRQs to wait
-    divu t0, a1, t0                    # assuming the frequency is 16ms
+    li t0, CPU_FREQUENCY
+    li t1, 2
+    mul t0, t0, a1
+    div t0, t0, t1
 
-    li t2, 0x80000007                  # timer IRQ code
 1:
-    wfi
-        csrr t1, mcause
-        bne t1, t2, 1b                 # if it's not time IRQ, go back
-        dec t0
-        bnez t0, 1b
+    nop
+    dec t0
+    bnez t0, 1b
+
+#     li t0, 16                          # compute how many timer IRQs to wait
+#     divu t0, a1, t0                    # assuming the frequency is 16ms
+#
+#     li t2, 0x80000007                  # timer IRQ code
+# 1:
+#     wfi
+#         csrr t1, mcause
+#         bne t1, t2, 1b                 # if it's not time IRQ, go back
+#         dec t0
+#         bnez t0, 1b
 
     pop a0, 8
     csrw mepc, a0                      # set the return address
@@ -187,6 +200,7 @@ fn sys_sleep
     li t0, 0b11                        # set PCP field of mstatus to 00 (User mode)
     slli t0, t0, 11
     csrc mstatus, t0
+    stack_free
     mret
 endfn
 
