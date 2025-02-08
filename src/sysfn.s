@@ -71,7 +71,7 @@ fn sysfn_sleep
     addi a0, a0, 4
     mv a5, zero                        # and no error code
 
-    la t0, sleep                       # return from the trap to pause function
+    la t0, sys_sleep                   # return from the trap to pause function
     addi t0, t0, -4
     csrw mepc, t0
 
@@ -179,12 +179,12 @@ endfn
 
 fn sysfn_getc
     stack_alloc
-    push a0, 8
+    # push a0, 8
 
     li a0, CFG_STD_IN
     call cfg_get
 
-    pop a1, 8
+    # pop a1, 8
     call uart_getc
 
     stack_free

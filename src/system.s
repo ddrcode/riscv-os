@@ -15,7 +15,7 @@
 .global check_stack
 .global panic
 .global idle
-.global sleep
+.global sys_sleep
 
 #------------------------------------------------------------------------------
 
@@ -164,10 +164,8 @@ fn idle
 endfn
 
 
-# Oh how ugly solution it is (FIXME!). It assumes that the timer IRQ
-# accours every 16ms (as defined in irq.s), so it simply waits for
-# sleep_time / 16 timer interrupts to occur
-fn sleep
+# Sleep function
+fn sys_sleep
     csrs mstatus, 0x8                  # enable global interrupts by setting the MIE field (bit 3)
     stack_alloc
     push a0, 8
@@ -197,4 +195,3 @@ endfn
 .section .rodata
 
 kernel_panic: .string "Kernel panic!"
-

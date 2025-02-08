@@ -10,6 +10,11 @@ typedef unsigned char u8;
 
 typedef unsigned char byte;
 
+// Boolean type and values
+typedef u8 bool;
+#define true 1
+#define false 0
+
 typedef struct {
     u32 low;
     u32 high;

@@ -38,9 +38,9 @@
 fn ns16550a_init
 
     .set BASE, 0
-    .set GETC, 8
-    .set PUTC, 12
     .set CONFIG_FN, 4
+    .set PUTC, 8
+    .set GETC, 12
 
     stack_alloc
     push a2, 8
@@ -52,10 +52,10 @@ fn ns16550a_init
     sw a1, BASE(a0)                    # save device id (that is base addr)
 
     la t0, ns16550a_putc               # pointer to putc
-    sw t0, GETC(a0)
+    sw t0, PUTC(a0)
 
     la t0, ns16550a_getc               # pointer to getc
-    sw t0, PUTC(a0)
+    sw t0, GETC(a0)
 
     la t0, ns16550a_config             # pointer to config
     sw t0, CONFIG_FN(a0)
