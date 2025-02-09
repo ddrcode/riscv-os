@@ -25,7 +25,7 @@ fn platform_start
     la a0, drv_uart_0                  # Configure UART0
     mv s1, a0
     li a1, UART0_BASE
-    li a2, 0b01
+    li a2, 0b11
     li a3, UART0_IRQ
     call ns16550a_init
 
