@@ -21,6 +21,16 @@ fn platform_start
     call irq_init
     call plic_init
 
+    la a0, uart_0_buffer
+    li a1, 8
+    la a2, uart_0_buffer_data
+    call buff_init
+
+    la a0, uart_1_buffer
+    li a1, 8
+    la a2, uart_1_buffer_data
+    call buff_init
+
     la a0, drv_uart_0                  # Configure UART0
     li a1, UART_0_BASE
     li a2, 0b11                        # Enable device and IRQ
@@ -81,9 +91,14 @@ external_irq_vector:
     .word    0                         # IRQ 15
 
 
-drv_uart_0: .space DRV_UART_STRUCT_SIZE, 0
-drv_uart_1: .space DRV_UART_STRUCT_SIZE, 0
+drv_uart_0:          .space DRV_UART_STRUCT_SIZE, 0
+drv_uart_1:          .space DRV_UART_STRUCT_SIZE, 0
 
+uart_0_buffer:       .space 12, 0
+uart_0_buffer_data:  .space 8, 0
+
+uart_1_buffer:       .space 12, 0
+uart_1_buffer_data:  .space 8, 0
 
 #----------------------------------------
 
