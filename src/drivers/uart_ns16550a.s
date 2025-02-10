@@ -113,10 +113,11 @@ endfn
 
 # Signature: void ns16550a_putc(u32 id, char c)
 # Arguments
-#     a0 - base address
+#     a0 - self (UARTDriver structure)
 #     a1 - character to print
 # Returns: same as input
 fn ns16550a_putc
+    lw a0, (a0)
 1:
     lbu t1, LSR(a0)                    # Loop until the line is idle and THR empty
         andi t1, t1, UART_LSR_RI
@@ -173,7 +174,7 @@ endfn
 
 # Signature: byte ns16550a_config(u32 id, byte mask, byte config)
 # Arguments
-#     a0 - base addr
+#     a0 - self (UARTDriver structure)
 #     a1 - mask
 #     a2 - config
 # Returns:
@@ -182,7 +183,7 @@ endfn
 # TODO Handle IRQs for outgoing data (bit 0b100)
 # TODO handle enabling/disabling device (bit 1)
 fn ns16550a_config
-    mv a3, a0                          # load UART's base address
+    lw a3, (a0)                        # load UART's base address
     beqz a1, 1f                        # just return the config if mask is 0
 
 .ifdef PLIC_BASE                       # no point enabling IRQ if PLIC is not present
@@ -210,7 +211,7 @@ endfn
 
 
 # Arguments
-#     a0 - self
+#     a0 - self (UARTDriver structure)
 fn ns16550a_irq_handler
     stack_alloc
 

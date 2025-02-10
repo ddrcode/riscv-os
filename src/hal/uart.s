@@ -27,9 +27,7 @@
 
 fn uart_putc
     stack_alloc
-    mv t0, a0
-    lw a0, (t0)
-    lw t1, 8(t0)
+    lw t1, 8(a0)
     jalr t1
     stack_free
     ret
@@ -52,7 +50,6 @@ fn uart_puts
     mv a0, s0
     lbu a1, (s1)                       # Get byte at current string pos
     beqz a1, 3f                        # Is null?
-        # lw t1, 8(s0)
         mv a0, s0
         call uart_putc                 # No, write byte to port
         inc s1                         # Inc string pos

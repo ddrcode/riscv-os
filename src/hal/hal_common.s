@@ -13,11 +13,9 @@
 
 fn hal_get_config
     stack_alloc
-    mv t0, a0
-    lw a0, (t0)
     mv a1, zero
     mv a2, zero
-    lw t1, 4(t0)
+    lw t1, 4(a0)
     jalr t1
     stack_free
     ret
@@ -37,9 +35,7 @@ endfn
 # Returns: a0 - new configuration
 fn hal_set_config
     stack_alloc
-    mv t0, a0
-    lw a0, (t0)
-    lw t1, 4(t0)
+    lw t1, 4(a0)
     jalr t1
     stack_free
     ret
