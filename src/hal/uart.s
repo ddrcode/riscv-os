@@ -4,6 +4,7 @@
 #    4       4    byte config(u32 base_addr, byte mask, byte val)
 #    8       4    u32 putc(u32 base_addr, char c)
 #   12       4    byte getc(u32 base_addr)
+#   16       1    buffer
 #
 # Configuration
 #  bit     name
@@ -33,6 +34,7 @@ fn uart_putc
     stack_free
     ret
 endfn
+
 
 # Arguments:
 #     a0 - pointer to uart structure
@@ -65,11 +67,10 @@ fn uart_puts
     ret
 endfn
 
+
 fn uart_getc
     stack_alloc
-    mv t0, a0
-    lw a0, (t0)
-    lw t1, 12(t0)
+    lw t1, 12(a0)
     jalr t1
     stack_free
     ret

@@ -35,12 +35,15 @@
 #     a1 - base address
 #     a2 - initial config
 #     a3 - IRQ id
+#     a4 - buffer address
 fn ns16550a_init
 
     .set BASE, 0
     .set CONFIG_FN, 4
     .set PUTC, 8
     .set GETC, 12
+    .set IRQ_FN, 16
+    .set BUFF_ADDR, 20
 
     stack_alloc
     push a2, 8
@@ -50,6 +53,7 @@ fn ns16550a_init
     # UART record
 
     sw a1, BASE(a0)                    # save device id (that is base addr)
+    sw a4, BUFF_ADDR(a0)               # save UART's buffeer address
 
     la t0, ns16550a_putc               # pointer to putc
     sw t0, PUTC(a0)
@@ -59,6 +63,9 @@ fn ns16550a_init
 
     la t0, ns16550a_config             # pointer to config
     sw t0, CONFIG_FN(a0)
+
+    la t0, ns16550a_irq_handler
+    sw t0, IRQ_FN(t0)
 
     mv a0, a1
     mv a1, a3
@@ -123,12 +130,13 @@ endfn
 
 # Signature: char ns16550a_getc(u32 id)
 # Arguments
-#     a0 - base address
+#     a0 - self (UARTDriver structure)
 # Returns:
-#     a0 - char (zero if none)
+#     a0 - character/byte (-1 if none)
 fn ns16550a_getc
-    mv t0, a0
-    mv a0, zero                        # set the default result
+    stack_alloc
+
+    lw t0, (a0)                        # load BASE_ADDR
 
     lbu t1, IER(t0)                    # check whether interupts are on
     bnez t1, 1f                        # jump if so
@@ -139,19 +147,26 @@ fn ns16550a_getc
     andi t1, t1, UART_LSR_DA           # and check "data available" flag
 
     bnez t1, 2f                        # jump if UART is ready to read from
-        j 3f                           # finish otherwise
+        li a0, -1                      # set EOF value and finish
+        j 3f
 
 1:  # reading from IRQ buffer
 
-    li t2, 4                           # 4 = Received Data Available
-    lbu t1, IIR(t0)                    # Read UART IIR to check interrupt type
-    andi t1, t1, 0x0f                  # Mask interrupt ID
-    bne t1, t2, 3f                     # Exit if no data
+#     li t2, 4                           # 4 = Received Data Available
+#     lbu t1, IIR(t0)                    # Read UART IIR to check interrupt type
+#     andi t1, t1, 0x0f                  # Mask interrupt ID
+#     bne t1, t2, 3f                     # Exit if no data
+#
+    lw a0, 20(a0)
+    call buff_read
+    j 3f
+
 
 2:
     lbu a0, (t0)                       # read byte from UART
 
 3:
+    stack_free
     ret
 endfn
 
@@ -193,3 +208,24 @@ fn ns16550a_config
     ret
 endfn
 
+
+# Arguments
+#     a0 - self
+fn ns16550a_irq_handler
+    stack_alloc
+
+    lw t0, (a0)                        # BASE_ADDR
+    lbu t1, IIR(t0)                    # Read UART IIR to check interrupt type
+    andi t1, t1, 0x0f                  # Mask interrupt ID
+
+    li t2, 4                           # 0x4 = Received Data Available
+    bne t1, t2, 1f
+        lbu a1, 0(t0)                  # Read received byte to clear the interrupt
+        addi a0, a0, 20
+        call buff_write                # store byte in a buffer
+
+    # beq t1, 0x2, tx_ready # 0x2 = Transmitter Empty
+1:
+    stack_free
+    ret
+endfn
