@@ -15,9 +15,11 @@
 # Arguments:
 #    a0 - address
 #    a1 - length
+#    a2 - data address
 fn buff_init
     sw zero, (a0)
     sw a1, 4(a0)
+    sw a2, 8(a0)
     ret
 endfn
 
@@ -31,8 +33,8 @@ fn buff_read
     beq t0, t1, 2f                     # start==end, empty buffer
 
     lhu t1, 4(t2)                      # load buff length
-    addi a2, t2, 8
-    add a2, a2, t0
+    lw a2, 8(t2)                       # load data addr
+    add a2, a2, t0                     # and compute start pos
     lbu a0, (a2)                       # load byte from start pos
 
     inc t0                             # compute new start
@@ -63,14 +65,14 @@ fn buff_write
     dec t0
     beq t0, t2, 3f                     # buffer is full
 
-    addi a2, a0, 8
+    lw a2, 8(a0)
     add a2, a2, t1
     sb a1, (a2)
     blt t1, t0, 2f                     # end pointer at the end of buffer
         li t1, -1
 2:
     inc t1
-    sh t1, -6(a0)
+    sh t1, 2(a0)
     li a0, 1
     j 4f
 3:

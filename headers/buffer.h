@@ -7,10 +7,10 @@ typedef struct {
     byte start[2];
     byte end[2];
     u32 length;
-    byte data[];
+    byte* data;
 } Buffer;
 
-void buff_init(Buffer* buff, u8 length);
+void buff_init(Buffer* buff, u8 length, byte* data);
 int buff_read(Buffer* buff);
 int buff_write(Buffer* buff, byte data);
 

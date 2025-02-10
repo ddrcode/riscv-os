@@ -29,7 +29,7 @@ fn platform_start
     la a0, drv_uart_0                  # Configure UART0
     mv s1, a0
     li a1, UART0_BASE
-    li a2, 0b01
+    li a2, 0b11
     li a3, UART0_IRQ
     la a4, uart_0_buffer
     call ns16550a_init
@@ -99,7 +99,8 @@ external_irq_vector:
 drv_uart_0:    .space DRV_UART_STRUCT_SIZE, 0
 drv_rtc_0:     .space DRV_RTC_STRUCT_SIZE, 0
 
-uart_0_buffer: .space 16, 0
+uart_0_buffer:       .space 12, 0
+uart_0_buffer_data:  .space 16, 0
 
 #----------------------------------------
 

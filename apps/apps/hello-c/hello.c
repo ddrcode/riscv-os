@@ -6,6 +6,5 @@ int main(int argc, char* argv[]) {
     char* msg = "Running C program";
     prints("Hello, ");
     println(argc > 1 ? argv[1] : "RISCV-OS");
-    sleep(1);
     return 0;
 }
