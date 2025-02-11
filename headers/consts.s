@@ -61,7 +61,7 @@
 # HAL
 
 .equ DRV_UART_STRUCT_SIZE, 24
-.equ DRV_RTC_STRUCT_SIZE, 8
+.equ DRV_RTC_STRUCT_SIZE, 16
 
 
 #----------------------------------------

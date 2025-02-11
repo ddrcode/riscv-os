@@ -261,3 +261,4 @@ fn time_now
     stack_free
     ret
 endfn
+
