@@ -11,7 +11,8 @@ and Zicsr extensions.
 
 ## Features
 
-<img src="./screenshots/riscvos-screenshot.png" width="300"/>
+<!-- <img src="./screenshots/screen-recording.gif" /> -->
+![recording](./screenshots/screen-recording.gif)
 
 
 The OS has riched the MVP state, that means it is complete enough that it allows for loadaing
@@ -46,6 +47,15 @@ and currently conceptually is closer to C64's
 I strongly recommend using [nix](https://nixos.org/download/#download-nix) for handling this project, as it configures all the necessary dependencies.
 In such case just enter the project's folder and type `nix-shell`, or - if you use
 [nix direnv](https://github.com/nix-community/nix-direnv) - `direnv allow`.
+Otherwise you would need to manually install binutils and QEMU for RISC-V. 
+
+To have a full experience of the system try these:
+```bash
+cd apps
+make clean disc
+cd ..
+make run MACHINE=virt OUTPUT_DEV=5 DRIVE=apps/disc.tar
+```
 
 Most important Makefile options:
 - `make run` - runs the system in QEMU (see notes below on building apps disc image)
