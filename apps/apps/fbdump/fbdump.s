@@ -43,19 +43,20 @@ fn main
 endfn
 
 # Prints the content of screen memory to uart
-# TODO use uart_putc function rather than direct access to NS16550A
 fn fb_dump
-    stack_alloc
-    push s0, 4
-    push s1, 8
+    stack_alloc 32
+    push s0, 20
+    push s1, 24
     mv s1, a0
 
     call _print_frame
 
-#     li a1, UART_BASE
-    li s0, SCREEN_WIDTH                # s0 is a  char counter within line
-    li t2, SCREEN_HEIGHT               # t2 is a line counter
-    push t2, 0
+    call scr_get_size
+    mv s0, a0
+    mv t2, a1
+    push t2, 16
+    push s0, 12
+
     li a4, 32                          # space character
 #     li t0, '|'
 #     sb t0, (a1)
@@ -77,10 +78,10 @@ fn fb_dump
     syscall SYSFN_PRINT_CHAR
     li a0, '\n'                        # EOL character
     syscall SYSFN_PRINT_CHAR
-    li s0, SCREEN_WIDTH                # reset s0 to 40
-    pop t2, 0
+    pop s0, 12
+    pop t2, 16
     dec t2                             # decrement t2
-    push t2, 0
+    push t2, 16
     beqz t2, 4f                        # if t2 is zero jump to 3:
     li a0, '|'
     syscall SYSFN_PRINT_CHAR
@@ -91,9 +92,9 @@ fn fb_dump
     call set_cursor_pos
     call _print_frame
 
-    pop s0, 4
-    pop s1, 8
-    stack_free
+    pop s0, 20
+    pop s1, 24
+    stack_free 32
     ret
 endfn
 

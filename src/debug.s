@@ -7,8 +7,6 @@
 # See LICENSE file for license details.
 
 .include "config.s"
-
-
 .include "macros.s"
 .include "consts.s"
 

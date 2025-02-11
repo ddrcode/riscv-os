@@ -23,12 +23,12 @@
 # a number of nanoseconds since 01.01.1970.
 # This is a row data - as provided by the RTC itself
 # Arguments
-#     a0 - base address
+#     a0 - self (pointer to RTCDriver structure)
 # Returns
 #     a0 - low bits
 #     a1 - high bits
 fn goldfish_rtc_read_time
-    mv t0, a0
+    lw t0, (a0)
     lw a0, (t0)
     lw a1, 4(t0)
     ret
@@ -40,8 +40,8 @@ endfn
 # It outputs two 32-bit numbers (a0-low, a1-high)
 # but a1 can be ignored, as it'll be 0 for dates
 # before 2106-02-07 06:28:15
-# Arguments
-#     a0 - base address
+# Arguments:
+#     a0 - self (pointer to RTCDriver structure)
 # Returns
 #     a0 - 32-bit unsigned number with seconds
 fn goldfish_rtc_time_in_sec
@@ -55,8 +55,10 @@ fn goldfish_rtc_time_in_sec
 endfn
 
 
-# noting to configure, but the function must exist
+# Noting to configure, but the function must exist
 # to follow the HAL conventoin
+# Arguments:
+#     a0 - self (pointer to RTCDriver structure)
 fn goldfish_rtc_config
     li a0, 1                           # Device enabled
     ret
@@ -74,6 +76,9 @@ fn goldfish_rtc_init
 
     la t0, goldfish_rtc_time_in_sec
     sw t0, 8(a0)
+
+    la t0, goldfish_rtc_read_time
+    sw t0, 12(a0)
 
     ret
 endfn

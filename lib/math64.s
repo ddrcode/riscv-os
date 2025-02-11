@@ -42,8 +42,7 @@
 #     a1 (qhi) - most significant word of the result
 #     a2 (rlo) - least significant word of the remainder
 #     a3 (rhi) - most significant word of the remainder
-.type udiv64, @function
-udiv64:
+fn udiv64
     .set nlo, 40
     .set nhi, 36
     .set dlo, 32
@@ -117,6 +116,8 @@ udiv64:
 4:  pop s1, idx                        # retrieve s1
     stack_free 48
     ret
+endfn
+
 
 # Adds two 64-bit numbers (x+y)
 # Arguments:
@@ -128,8 +129,7 @@ udiv64:
 #     a0 - least significant word of the result
 #     a1 - most significant word of the result
 #     a2 - carry bit if overflow
-.type uadd64, @function
-uadd64:
+fn uadd64
     add t0, a0, a2                     # add the least significant words
     sltu t2, t0, a2                    # carry bit from previous addition
                                        # t2 = 1 if (a0+a2) < a2
@@ -139,6 +139,8 @@ uadd64:
     mv a0, t0
     mv a1, t1
     ret
+endfn
+
 
 # 64-bit unsigned subtraction
 # It uses 64-bit add based on principle that
@@ -151,8 +153,7 @@ uadd64:
 # Returns
 #     a0 - least significant word of the result
 #     a1 - most significant word of the result
-.type usub64, @function
-usub64:
+fn usub64
     stack_alloc
     not a2, a2
     not a3, a3
@@ -162,10 +163,10 @@ usub64:
     call uadd64
     stack_free
     ret
+endfn
 
 
-.type ucmp64, @function
-ucmp64:
+fn ucmp64
     bgtu a1, a3, 2f                    # xhi > yhi
     bltu a1, a3, 3f                    # xhi < yhi
     bgtu a0, a2, 2f                    # xlo > ylo
@@ -176,4 +177,4 @@ ucmp64:
     j 4f
 3:  li a0, -1                          # x < y
 4:  ret
-
+endfn

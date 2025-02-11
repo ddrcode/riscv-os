@@ -22,11 +22,17 @@ fn platform_start
     call irq_init
     call plic_init
 
+    la a0, uart_0_buffer
+    li a1, 8
+    la a2, uart_0_buffer_data
+    call buff_init
+
     la a0, drv_uart_0                  # Configure UART0
     mv s1, a0
     li a1, UART_0_BASE
-    li a2, 0b01                        # IRQ enabled
+    li a2, 0b11                        # IRQ enabled
     li a3, UART_0_IRQ
+    la a4, uart_0_buffer
     call sifive_uart_init
 
     call_cfg_set CFG_STD_OUT, s1
@@ -38,6 +44,7 @@ fn platform_start
     li a1, UART_1_BASE
     li a2, 0b01
     li a3, UART_1_IRQ
+    mv a4, zero                        # create buffer if planning to enable IRQs for UART 1
     call sifive_uart_init
 
     call_cfg_set CFG_STD_DEBUG, s1
@@ -133,6 +140,8 @@ external_irq_vector:
 drv_uart_0: .space DRV_UART_STRUCT_SIZE, 0
 drv_uart_1: .space DRV_UART_STRUCT_SIZE, 0
 
+uart_0_buffer:       .space 12, 0
+uart_0_buffer_data:  .space 8, 0
 
 #----------------------------------------
 

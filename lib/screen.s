@@ -17,6 +17,7 @@
 .global set_cursor_pos
 .global print_screen
 .global scr_backspace
+.global scr_get_size
 
 .global screen
 
@@ -60,6 +61,13 @@ fn clear_screen
 
     setz a5                            # set exit code
     stack_free 4
+    ret
+endfn
+
+
+fn scr_get_size
+    li a0, SCREEN_WIDTH
+    li a1, SCREEN_HEIGHT
     ret
 endfn
 

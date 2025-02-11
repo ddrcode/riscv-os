@@ -1,27 +1,27 @@
-#include "drivers/uart.h"
+#include "io.h"
 #include "types.h"
 
 int main() {
-    uart_puts("Start typing (press ~ for clear screen)...\n");
-
+    prints("Start typing (press ~ for clear screen)...\n");
+    int c;
     while (1) {
-        char c = uart_getc();
+        while((c = getc()) <= 0);
         switch (c) {
             case 10:
             case 13:
-                uart_putc('\n');
+                printc('\n');
                 break;
             case '~':
-                uart_puts("\033[2J");
-                uart_puts("\033[H");
+                prints("\033[2J");
+                prints("\033[H");
                 break;
             case 127:
-                uart_putc('\b');
-                uart_putc(' ');
-                uart_putc('\b');
+                printc('\b');
+                printc(' ');
+                printc('\b');
                 break;
             default:
-                uart_putc(c);
+                printc(c);
         }
     }
 }

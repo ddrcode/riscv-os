@@ -22,11 +22,16 @@ fn platform_start
     call irq_init
     call plic_init
 
+    la a0, uart_0_buffer
+    li a1, 8
+    call buff_init
+
     la a0, drv_uart_0                  # Configure UART0
     mv s1, a0
     li a1, UART0_BASE
     li a2, 0b11
     li a3, UART0_IRQ
+    la a4, uart_0_buffer
     call ns16550a_init
 
     call_cfg_set CFG_STD_OUT, s1
@@ -53,6 +58,18 @@ fn platform_start
 endfn
 
 
+fn _virt_uart_0_irq_handler
+    stack_alloc
+
+    la a0, drv_uart_0
+    lw t0, 16(a0)
+    jalr t0
+
+    stack_free
+    ret
+endfn
+
+
 #----------------------------------------
 
 .section .data
@@ -71,7 +88,7 @@ external_irq_vector:
     .word    0 /* console device */    # IRQ  7
     .word    0 /* RNG - random nums */ # IRQ  8
     .word    0 /* balloon device */    # IRQ  9
-    .word    uart_handle_irq           # IRQ 10 (UART 0)
+    .word    _virt_uart_0_irq_handler  # IRQ 10 (UART 0)
     .word    0 /* ? */                 # IRQ 11
     .word    0 /* PCIE Root Port */    # IRQ 12
     .word    0 /* RTC */               # IRQ 13
@@ -82,6 +99,8 @@ external_irq_vector:
 drv_uart_0:    .space DRV_UART_STRUCT_SIZE, 0
 drv_rtc_0:     .space DRV_RTC_STRUCT_SIZE, 0
 
+uart_0_buffer:       .space 12, 0
+uart_0_buffer_data:  .space 16, 0
 
 #----------------------------------------
 

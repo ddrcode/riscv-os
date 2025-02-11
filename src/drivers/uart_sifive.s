@@ -24,11 +24,14 @@
 #     a1 - base address
 #     a2 - initial config
 #     a3 - IRQ id
+#     a4 - buffer pointer
 fn sifive_uart_init
     .set BASE, 0
-    .set GETC, 8
-    .set PUTC, 12
     .set CONFIG_FN, 4
+    .set PUTC, 8
+    .set GETC, 12
+    .set IRQ_FN, 16
+    .set BUFF_ADDR, 20
 
     stack_alloc
     push a2, 8
@@ -38,15 +41,19 @@ fn sifive_uart_init
     # UART record
 
     sw a1, BASE(a0)                    # save device id (that is base addr)
+    sw a4, BUFF_ADDR(a0)               # save UART's buffeer address
 
     la t0, sifive_uart_putc            # pointer to putc
-    sw t0, GETC(a0)
+    sw t0, PUTC(a0)
 
     la t0, sifive_uart_getc            # pointer to getc
-    sw t0, PUTC(a0)
+    sw t0, GETC(a0)
 
     la t0, sifive_uart_config          # pointer to config
     sw t0, CONFIG_FN(a0)
+
+    la t0, sifive_uart_irq_handler
+    sw t0, IRQ_FN(t0)
 
     mv a0, a1
     mv a1, a3
@@ -97,17 +104,18 @@ endfn
 
 # Outputs single character to the device
 # Arguments
-#     a0 - base address
+#     a0 - self (UARTDriver structure)
 #     a1 - character to print
 # Returns: same as input
 fn sifive_uart_putc
+    lw a0, (a0)                        # Load BASE_ADDR
 1:
     lw t1, UART_REG_TXFIFO(a0)
     li t2, UART_TXFIFO_FULL
     and t2, t1, t2
     bnez t2, 1b
 
-    # andi t1, a1, 0xff                  # Ensure the parameter is a byte
+    # andi t1, a1, 0xff                # Ensure the parameter is a byte
     mv t1, a1
     sw t1, UART_REG_TXFIFO(a0)
 
@@ -118,33 +126,44 @@ endfn
 
 # Reads a single byte from the device
 # Arguments
-#     a0 - base address
+#     a0 - self (UARTDriver structure)
 # Returns:
 #     a0 - char (zero if none)
 fn sifive_uart_getc
-    mv t0, a0
+    stack_alloc
+    lw t0, (a0)
+
+    lw t1, UART_REG_IE(t0)             # check if irq is enabled
+    bgtz t1, 2f                        # jump is so
 
 1:
-    mv a0, zero
+    li a0, -1
     lw t1, UART_REG_RXFIFO(t0)
     li t2, UART_RXFIFO_EMPTY
     and t2, t1, t2
-    bnez t2, 2f
+    bnez t2, 3f
         li t2, UART_RXFIFO_DATA
         and a0, t1, t2
+    j 3f
 
 2:
+    lw a0, 20(t0)
+    call buff_read
+
+3:
+    stack_free
     ret
 endfn
 
 
 # Arguments
-#     a0 - base addr
+#     a0 - self (UARTDriver structure)
 #     a1 - mask
 #     a2 - config
 # Returns:
 #     a0 - new config
 fn sifive_uart_config
+    lw a0, (a0)                        # load BASE_ADDR
     beqz a1, 1f                        # if mask is 0, then just read the config
 
     # set the config
@@ -172,4 +191,47 @@ fn sifive_uart_config
 endfn
 
 
+# Arguments
+#     a0 - self (UARTDriver structure)
+fn sifive_uart_irq_handler
+    stack_alloc
+    lw t0, (a0)                        # UART_BASE
 
+    # Read the ip register to check interrupt cause
+    lw t1, 0x14(t0)          # Load ip register
+
+    # Check for RX interrupt (bit 1)
+    andi t2, t1, 0x2         # Mask RX interrupt bit
+    bnez t2, rx_interrupt    # Jump if RX interrupt is pending
+
+    # Check for TX interrupt (bit 0)
+    andi t2, t1, 0x1         # Mask TX interrupt bit
+    bnez t2, tx_interrupt    # Jump if TX interrupt is pending
+
+    # No UART interrupt
+    j done
+
+rx_interrupt:
+    # Read received data from rxdata register
+    addi a0, a0, 20                    # Load buffer address
+    lw a1, 0x04(t0)                    # Load rxdata register
+    andi a1, t1, 0xff                  # Mask to extract received byte (8 bits)
+    call buff_write                    # Write to buffer
+
+    j done
+
+tx_interrupt:
+    # Handle TX interrupt (e.g., load next byte to send)
+    # For simplicity, we'll send a test character ('A')
+    # li t5, 'A'               # Load ASCII value of 'A'
+    # sw t5, 0x00(t0)          # Write to txdata register to send
+    # la t1, sifive_uart_buffer
+    # li t2, 'S'
+    # sb t2, (t1)
+
+    j done
+
+done:
+    stack_free
+    ret
+endfn
