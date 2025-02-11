@@ -35,6 +35,7 @@ fn platform_start
     li a1, UART_0_BASE
     li a2, 0b11                        # Enable device and IRQ
     li a3, UART_0_IRQ
+    la a4, uart_0_buffer
     call sifive_uart_init
     mv s1, a0
 
@@ -47,6 +48,7 @@ fn platform_start
     li a1, UART_1_BASE
     li a2, 0b01                        # Enable device without IRQs
     li a3, UART_1_IRQ
+    la a4, uart_1_buffer
     call sifive_uart_init
     mv s1, a0
 
