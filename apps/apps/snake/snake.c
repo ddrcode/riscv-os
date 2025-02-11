@@ -9,7 +9,7 @@
 #define GAME_HEIGHT 20
 #define MAX_SNAKE_LENGTH 100
 #define INITIAL_SNAKE_LENGTH 4
-#define GAME_SPEED 100  // ms between moves
+#define GAME_SPEED 200  // ms between moves
 
 // Game characters
 #define SNAKE_HEAD '@'
@@ -234,7 +234,7 @@ int main(void) {
     set_cursor_pos(GAME_WIDTH/2 - 12, GAME_HEIGHT/2 + 3);
     prints("Press any key to exit...");
 
-    sleep(5000);
+    sleep(4000);
     while(!getc());
 
     clear_screen();

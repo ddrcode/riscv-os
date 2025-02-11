@@ -1,6 +1,6 @@
 # riscv-os
-An attempt to create a tiny OS for 32-bit RISC-V implemented entirely in assembly
-(the C files you find in the repo are tests only).
+RISCV-OS is a tiny OS for 32-bit RISC-V platform implemented entirely in assembly
+(although applications for the system can be implemented in other languages).
 
 Currently, the OS runs on [virt](https://www.qemu.org/docs/master/system/riscv/virt.html)
 and [SiFive](https://www.qemu.org/docs/master/system/riscv/sifive_u.html)
@@ -13,30 +13,33 @@ and Zicsr extensions.
 
 <img src="./screenshots/riscvos-screenshot.png" width="300"/>
 
-The RISC-V OS is in very early stage of development, and currently conceptually is closer to C64's
-[Kernal](https://en.wikipedia.org/wiki/KERNAL) rather than
-Linux or any RTOS.
+
+The OS has riched the MVP state, that means it is complete enough that it allows for loadaing
+and running external programs. It's still in the early stage of development, though, 
+and currently conceptually is closer to C64's
+[Kernal](https://en.wikipedia.org/wiki/KERNAL) rather than Linux or any RTOS.
 
 ### Implemented features
 
 - framebuffer (40x25 characters text screen, configurable),
-- trivial [shell](https://github.com/ddrcode/riscv-os/wiki/Shell-commands)
+- trivial shell 
 - drivers for UART, RTC and PLIC
 - driver/hardware abstraction layer (HAL)
 - keyboard input (UART, interrupts)
 - [system functions](https://github.com/ddrcode/riscv-os/wiki/System-functions) callable via `ecall`
 - interrupt/exception handlers
-- User Mode (for running shell) and Machine Mode (for the system)
-- various math and string functions
+- User Mode (for running shell and programs) and Machine Mode (for the system)
+- standard library containing simple string, math and file functions
 - fallbacks for missing M-extension
 - trivial, read-only file system
-- external [programs](https://github.com/ddrcode/riscv-os-apps) (implemented in Assembly, C and Rust), loadable to the system
+- external programs (implemented in Assembly, C and Rust), loadable to the system
 
 ### Planned features
 
 - system events
 - supervisor mode (currently everything executes in either user or machine mode)
-- HAL
+- dynamic memory / heap
+- running on physical devices 
 
 ## Building and dependencies
 
@@ -44,19 +47,14 @@ I strongly recommend using [nix](https://nixos.org/download/#download-nix) for h
 In such case just enter the project's folder and type `nix-shell`, or - if you use
 [nix direnv](https://github.com/nix-community/nix-direnv) - `direnv allow`.
 
-The project requires a [riscv-os-apps](https://github.com/ddrcode/riscv-os) repo that contains
-common libraries and applications. The `apps` folder after cloning this repo is a sub-tree pointing to
-the apps repo.
-
 Most important Makefile options:
 - `make run` - runs the system in QEMU (see notes below on building apps disc image)
-- `make test TEST_NAME=shell` - runs a specific test and outputs results to stdout
-- `make debug TEST_NAME=shell` - loads test to QEMU and waits for connection from GDB
-- `make gdb TEST_NAME=shell` - connects GDB with QEMU
-Other available tests (among others): `math32`, `math64`, `string`, `rtc`
+- `make run TEST_NAME=math64` - runs a specific test and outputs results to stdout
+- `make debug TEST_NAME=math64` - loads test to QEMU and waits for connection from GDB
+- `make gdb TEST_NAME=math64` - connects GDB with QEMU
 
-To have fully-functional system, you should run it with a disc image contaiing the apps.
-To build it, just `cd` the apps folder and run `make disc`. The start QEMU with the following command
+To have fully-functional system, you should run it with a disc image containing the apps.
+To build it, just `cd` the apps folder and run `make disc`. Then start QEMU with the following command
 (from system repo, not the `apps` folder):
 
 ```
@@ -65,11 +63,7 @@ make run DRIVE=apps/disc.tar
 
 Optionally each command can be provided with `MACHINE` attribute, i.e.
 `make run start MACHINE=sifive_u`. Currently, the available machines are
-`virt` (default) and `sifive_e` and `sifive_u`.
-
-The QEMU-related targets (like `make run`) accept optional `DRIVE` argument,
-that can be loaded to `flash1.rom` on virt device. If done so then the `run` command
-in the shell executes the binary at the beginning of the drive.
+`virt` (default), `sifive_u` and `sifive_e` (no drive support on the last one).
 
 ### Output options
 
@@ -82,7 +76,7 @@ Where the options are:
 - `1` - outputs to framebuffer only (can be inspected with GDB)
 - `2` - outputs to serial console
 - `3` - both: framebuffer and the console. In this mode the framebuffer content can be
-        dumped to the serial output with `fbdump` command
+        dumped to the serial output with `fbdump` program
 - `5` - it emulates text screen of the system with terminal's action codes
 
 ## Credits
