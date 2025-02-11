@@ -21,25 +21,13 @@ Welcome to the RISC-V OS documentation! This documentation provides detailed inf
    - Running in QEMU
    - Debugging Guide
 
-4. [System Features](features.md)
-   - Shell Commands
-   - System Calls
-   - File System
-   - Device Drivers
-
-5. [Development Guide](development.md)
+4. [Development Guide](development.md)
    - Project Structure
    - Coding Standards
    - Adding New Features
    - Testing Guidelines
 
-6. [Hardware Support](hardware.md)
+5. [Hardware Support](hardware.md)
    - Supported Platforms
    - Hardware Requirements
    - Adding New Hardware Support
-
-7. [API Reference](api.md)
-   - System Functions
-   - Driver Interfaces
-   - Shell Commands
-   - Error Codes

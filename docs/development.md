@@ -9,27 +9,27 @@ riscv-os/
 ├── apps/           # External applications
 ├── build/          # Build artifacts
 ├── headers/        # Header files
-│   ├── drivers/   # Device driver headers
-│   ├── hal/       # Hardware abstraction headers
-│   ├── platforms/ # Platform-specific headers
-│   ├── sys/       # System-specific headers
-│   ├── config.s   # Configuration macros
-│   ├── consts.s   # Common constants
-│   ├── macros.s   # Common macros
-│   ├── math32.h   # 32-bit math operations
-│   ├── math64.h   # 64-bit math operations
-│   ├── string.h   # String operations
-│   └── types.h    # Common type definitions
-├── lib/           # Shared library functions
-│   ├── math32.s   # 32-bit math operations
-│   ├── math64.s   # 64-bit math operations
-│   └── string.s   # String manipulation functions
-├── platforms/     # Platform-specific code
-├── src/          # Source code
-│   ├── drivers/  # Device drivers
-│   ├── hal/      # Hardware Abstraction Layer
-│   └── platforms/ # Platform implementations
-└── tests/        # Test files
+│   ├── drivers/    # Device driver headers
+│   ├── hal/        # Hardware abstraction headers
+│   ├── platforms/  # Platform-specific headers
+│   ├── sys/        # System-specific headers
+│   ├── config.s    # Configuration macros
+│   ├── consts.s    # Common constants
+│   ├── macros.s    # Common macros
+│   ├── math32.h    # 32-bit math operations
+│   ├── math64.h    # 64-bit math operations
+│   ├── string.h    # String operations
+│   └── types.h     # Common type definitions
+├── lib/            # Shared library functions
+│   ├── math32.s    # 32-bit math operations
+│   ├── math64.s    # 64-bit math operations
+│   └── string.s    # String manipulation functions
+├── platforms/      # Platform-specific linker and make files
+├── src/            # Source code
+│   ├── drivers/    # Device drivers
+│   ├── hal/        # Hardware Abstraction Layer
+│   └── platforms/  # Platform implementations
+└── tests/          # Test files
 ```
 
 ### Key Files
@@ -39,14 +39,14 @@ riscv-os/
 - `src/shell.s`: Shell implementation
 - `src/system.s`: Core system functions
 - `src/sysfn.s`: System call implementations
-- `headers/sys/system.h`: System interface
-- `headers/config.s`: Configuration macros
+- `headers/config.s`: System configuration
 - `headers/consts.s`: Common constants
 - `headers/macros.s`: Common macros
 - `headers/types.h`: Common type definitions
 - `lib/math32.s`: 32-bit math operations
 - `lib/math64.s`: 64-bit math operations
 - `lib/string.s`: String manipulation functions
+- `lib/io.s`: Input/Output to UART and/or framebuffer
 
 ## Coding Standards
 
@@ -62,7 +62,6 @@ riscv-os/
    - Begin files with header comment (author, license)
    - Document function parameters and return values
    - Explain complex algorithms
-   - Use meaningful label names
 
 3. **Code Organization**
    - Group related functions together
@@ -104,7 +103,7 @@ endfn
 
 ### Adding a New System Call
 
-1. Define the system call number in `headers/syscalls.s`
+1. Define the system call number in `headers/consts.s`
 2. Implement the handler in `src/sysfn.s`
 3. Add error handling
 4. Update documentation
@@ -121,11 +120,10 @@ endfn
 ### Adding Platform Support
 
 1. Create platform file in `src/platforms/`
-2. Define hardware configuration
+2. Define hardware configuration in `headers/platforms`
 3. Implement platform initialization
-4. Add interrupt routing
-5. Update build system
-6. Add documentation
+4. Update build system in `platforms`
+5. Add documentation
 
 ## Testing Guidelines
 

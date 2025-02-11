@@ -13,11 +13,9 @@ RISC-V OS is a minimalistic operating system implemented primarily in assembly l
   - User Mode (U-Mode): Used for running shell and user applications
   
 - **Memory Layout**
-  - Total RAM: 4MB
-  - Text Section: Contains executable code
-  - Data Section: Static data and system variables
-  - Stack: User and system stacks
-  - Device Memory: Memory-mapped I/O regions
+  - Currently configured with 4MB of RAM, but intended to work with much smaller RAM
+  - System: below 32kB
+  - Application space: 64kB (starting from address `0x81000000`)
 
 ### 2. Interrupt Handling
 
@@ -43,7 +41,6 @@ The HAL provides a uniform interface to hardware components:
 - **UART Driver**
   - Character I/O
   - Interrupt-driven input
-  - Configurable baud rate
 
 - **RTC Driver**
   - Real-time clock access
@@ -60,7 +57,7 @@ A basic read-only file system implementation:
 
 - TAR-based file system structure
 - Basic file operations (read, seek)
-- Directory listing support
+- File listing support
 
 ### 5. Shell Interface
 
@@ -102,7 +99,7 @@ System calls are implemented through the `ecall` instruction, providing:
 ## Future Architecture Considerations
 
 Areas planned for architectural enhancement:
-1. Supervisor mode implementation
+1. Supervisor mode implementation (TBD)
 2. Virtual memory support
 3. Process scheduling
 4. Enhanced security features

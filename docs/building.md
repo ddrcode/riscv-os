@@ -33,14 +33,8 @@ This guide provides detailed instructions for building and running the RISC-V OS
    direnv allow
    ```
 
-### Building Applications
+### Building Applications disc image
 
-1. Clone the applications repository:
-   ```bash
-   git clone https://github.com/ddrcode/riscv-os-apps apps
-   ```
-
-2. Build the applications disc:
    ```bash
    cd apps
    make disc
@@ -111,41 +105,5 @@ Output options:
 
 Execute specific test:
 ```bash
-make test TEST_NAME=test_name
+make run TEST_NAME=test_name
 ```
-
-Available tests:
-- `shell`
-- `math32`
-- `math64`
-- `string`
-- `rtc`
-
-## Common Issues
-
-### Build Failures
-- Ensure all prerequisites are installed
-- Check Nix environment is properly loaded
-- Verify RISC-V toolchain is in PATH
-
-### QEMU Issues
-- Verify QEMU RISC-V support is installed
-- Check machine type compatibility
-- Verify memory settings
-
-### Application Loading
-- Ensure apps disc is properly built
-- Verify disc.tar path is correct
-- Check file permissions
-
-## Performance Optimization
-
-### Build Optimization
-- Use appropriate optimization flags
-- Consider platform-specific optimizations
-- Enable relevant RISC-V extensions
-
-### Debug vs Release
-- Debug builds include additional information
-- Release builds optimize for performance
-- Use appropriate build for your needs

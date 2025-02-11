@@ -50,61 +50,39 @@ direnv allow
 
 1. **Function Definition**
 ```assembly
-# Function Name: my_function
-# Description: What the function does
-#
-# Arguments:
-#     a0 - first argument description
-#     a1 - second argument description
-# Returns:
-#     a0 - return value description
-#     a5 - error code (0 if successful)
 fn my_function
-    stack_alloc              # Allocate stack frame
-    push ra, 0              # Save return address
-    
+    stack_alloc 16             # Allocate 16-bytes stack frame
+    push s0, 8                 # Push registry value to the stack (word starting at byte 8)
+
     # Function body here
     
-    pop ra, 0               # Restore return address
-    stack_free              # Free stack frame
+    pop s0, 8                  # Pop word from stack, starting from byte 8 of the frame
+    stack_free 16              # Free stack frame
     ret
 endfn
 ```
 
 2. **System Call**
+Make a system call (`ecall`). The list of all syscall names can be found in the
+[consts.s](../headers/consts.s) file. 
 ```assembly
-# Make a system call
-syscall SYSCALL_NAME        # Expands to proper ecall sequence
+syscall SYSCALL_NAME           # Expands to proper ecall sequence
 ```
 
-3. **Stack Operations**
-```assembly
-stack_alloc                 # Allocate stack frame
-push reg, offset           # Save register to stack
-pop reg, offset           # Restore register from stack
-stack_free                # Free stack frame
-```
-
-4. **64-bit Operations**
-```assembly
-# Load 64-bit value
-ldw reg_lo, reg_hi, addr   # Load 64-bit word
-stw reg_lo, reg_hi, addr   # Store 64-bit word
-```
 
 ### Coding Conventions
 
 1. **Naming**
-   - Functions: lowercase with underscores (e.g., `add64`)
-   - Labels: descriptive, prefixed with function name
-   - Constants: uppercase with underscores
-   - Local labels: numbered (1:, 2:, etc.)
+   - Functions: lowercase with underscores (e.g., `get_status`)
+   - Labels: descriptive, lower-case (e.g., `uart_0_buffer:`)
+   - Constants: uppercase with underscores (e.g., `SYSCALL_SLEEP`)
+   - Local labels: numbered (`1:`, `2:`, etc.)
 
 2. **Documentation**
    - Every function must have a header comment
    - Document arguments and return values
    - Explain complex algorithms
-   - Use meaningful label names
+   - For structures create table-like comment explaining starting byte, length and name/meaning
 
 3. **Code Organization**
    - Group related functions together
