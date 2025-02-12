@@ -8,6 +8,7 @@
 #define BOARD_WIDTH 12
 #define BOARD_HEIGHT 18
 #define LEFT_MARGIN 4
+#define RIGHT_MARGIN 4
 #define GAME_SPEED_INITIAL 400
 #define GAME_SPEED_MIN 50
 #define SPEED_INCREASE 30
@@ -439,30 +440,6 @@ void clear_lines(Game* game) {
 void draw_game(Game* game) {
     clear_screen();
 
-    // Draw score and game information
-    for(i32 i = 0; i < LEFT_MARGIN; i++) printc(' ');
-    prints("=== TETRIS ===\n");
-
-    for(i32 i = 0; i < LEFT_MARGIN; i++) printc(' ');
-    prints("Score: ");
-    printnum(game->score);
-    printc('\n');
-
-    for(i32 i = 0; i < LEFT_MARGIN; i++) printc(' ');
-    prints("Level: ");
-    printnum(game->level);
-    printc('\n');
-
-    for(i32 i = 0; i < LEFT_MARGIN; i++) printc(' ');
-    prints("Lines: ");
-    printnum(game->lines);
-    printc('\n');
-
-    for(i32 i = 0; i < LEFT_MARGIN; i++) printc(' ');
-    prints("Speed: ");
-    printnum((GAME_SPEED_INITIAL - game->speed) / SPEED_INCREASE + 1);
-    printc('\n');
-
     // Draw top border
     for(i32 i = 0; i < LEFT_MARGIN; i++) printc(' ');
     printc(CHAR_TOP_LEFT_CORNER);
@@ -493,6 +470,34 @@ void draw_game(Game* game) {
         }
 
         printc(CHAR_BORDER);
+
+        // Draw game information on the right side
+        if (y == 0) {
+            for(i32 i = 0; i < RIGHT_MARGIN; i++) printc(' ');
+            prints("=== TETRIS ===");
+        } else if (y == 2) {
+            for(i32 i = 0; i < RIGHT_MARGIN; i++) printc(' ');
+            prints("Score: ");
+            printnum(game->score);
+        } else if (y == 4) {
+            for(i32 i = 0; i < RIGHT_MARGIN; i++) printc(' ');
+            prints("Level: ");
+            printnum(game->level);
+        } else if (y == 6) {
+            for(i32 i = 0; i < RIGHT_MARGIN; i++) printc(' ');
+            prints("Lines: ");
+            printnum(game->lines);
+        } else if (y == 8) {
+            for(i32 i = 0; i < RIGHT_MARGIN; i++) printc(' ');
+            prints("Next piece:");
+        } else if (y >= 10 && y < 14) {
+            for(i32 i = 0; i < RIGHT_MARGIN; i++) printc(' ');
+            const char (*next)[4] = PIECES[game->next_piece][ROT_0];
+            for(i32 x = 0; x < 4; x++) {
+                printc(next[y - 10][x] ? CHAR_BLOCK : ' ');
+            }
+        }
+
         printc('\n');
     }
 
@@ -502,18 +507,6 @@ void draw_game(Game* game) {
     for(i32 x = 0; x < BOARD_WIDTH; x++) printc(CHAR_BOTTOM);
     printc(CHAR_BOTTOM_RIGHT_CORNER);
     printc('\n');
-
-    // Draw next piece preview
-    for(i32 i = 0; i < LEFT_MARGIN; i++) printc(' ');
-    prints("Next piece:\n");
-    const char (*next)[4] = PIECES[game->next_piece][ROT_0];
-    for(i32 y = 0; y < 4; y++) {
-        for(i32 i = 0; i < LEFT_MARGIN; i++) printc(' ');
-        for(i32 x = 0; x < 4; x++) {
-            printc(next[y][x] ? CHAR_BLOCK : ' ');
-        }
-        printc('\n');
-    }
 
     if(game->state == GAME_OVER) {
         for(i32 i = 0; i < LEFT_MARGIN; i++) printc(' ');
@@ -541,6 +534,11 @@ void handle_input(Game* game) {
 
     if(ch == 'p') {
         game->state = (game->state == PLAYING) ? PAUSED : PLAYING;
+        return;
+    }
+
+    if(ch == 'q') {
+        game->state = GAME_OVER;
         return;
     }
 
