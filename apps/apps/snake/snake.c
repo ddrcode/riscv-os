@@ -20,7 +20,7 @@
 #define BORDER_BOTTOM_LEFT '+'
 #define BORDER_BOTTOM_RIGHT '+'
 #define BORDER_HORIZONTAL '-'
-#define BORDER_VERTICAL ''
+#define BORDER_VERTICAL '|'
 
 // Direction vectors
 typedef enum {

@@ -10,6 +10,8 @@
 
 .global term_show_cursor
 .global term_hide_cursor
+.global term_reset
+.global term_set_screencode
 
 .section .text
 
@@ -26,6 +28,22 @@ fn term_hide_cursor
     stack_alloc
     la a0, sc_hide_cursor
     syscall SYSFN_PRINT_STR
+    stack_free
+    ret
+endfn
+
+
+fn term_reset
+    stack_alloc
+    syscall SYSFN_VIDEO_RESET
+    stack_free
+    ret
+endfn
+
+
+fn term_set_screencode
+    stack_alloc
+    syscall SYSFN_SET_SCREENCODE
     stack_free
     ret
 endfn

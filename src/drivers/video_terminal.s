@@ -18,6 +18,8 @@
 
 .global video_init
 .global video_repaint
+.global video_reset
+.global video_set_screencode
 
 .section .text
 
@@ -26,8 +28,21 @@ fn video_init
     stack_alloc
     call video_cls
     call _fill_canvas
-
+    call video_reset
     stack_free
+    ret
+endfn
+
+
+fn video_reset
+    li t0, 256
+    la t1, screencodes
+1:
+        dec t0
+        slli t2, t0, 2
+        add t2, t2, t1
+        sw t0, (t2)
+        bnez t0, 1b
     ret
 endfn
 
@@ -232,8 +247,12 @@ fn _print_char
     sb t0, 4(sp)
 
     pop t0, 48
-    sb t0, 10(sp)
-    sb zero, 11(sp)
+    slli t0, t0, 2
+    la t1, screencodes
+    add t1, t1, t0
+    lw t0, (t1)
+    sw t0, 10(sp)
+    sb zero, 14(sp)
 
     li a0, CFG_STD_OUT
     call cfg_get
@@ -241,6 +260,28 @@ fn _print_char
     call uart_puts
 
     stack_free 64
+    ret
+endfn
+
+
+# Arguments
+#     a0 - code (0-255)
+#     a1 - unicode value
+fn video_set_screencode
+    stack_alloc
+    push a0, 8
+
+    mv a0, a1
+    mv a1, sp
+    call utf_encode
+
+    pop a0, 8
+    la t0, screencodes
+    slli t1, a0, 2
+    add t0, t0, t1
+    lw a1, (sp)
+    sw a1, (t0)
+    stack_free
     ret
 endfn
 
@@ -264,3 +305,4 @@ SC_CURSOR_AND_CHAR:   .asciz  "\33[000;000H\0"
 
 prev_screen: .space SCREEN_WIDTH*SCREEN_HEIGHT
 
+screencodes: .space 1024
