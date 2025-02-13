@@ -5,7 +5,7 @@
 # make build/tetris.elf
 
 ELF := tetris.elf
-SRC := tetris.c
+SRC := tetris.c draw.c game.c input.c
 
 $(OUT):
 	mkdir -p $(OUT)

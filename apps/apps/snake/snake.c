@@ -1,3 +1,19 @@
+/*
+ * Snake Game
+ * 
+ * Created by GitHub Copilot
+ * 
+ * This is a simple implementation of the classic Snake game.
+ * The game is played in a terminal and uses Unicode characters
+ * for a visually appealing experience.
+ * 
+ * Controls:
+ * - Use 'w', 'a', 's', 'd' to move the snake up, left, down, and right.
+ * - Press 'p' to pause or resume the game.
+ * - Press 'q' to quit the game.
+ * - On game over, press 'r' to restart or 'q' to quit.
+ */
+
 #include "io.h"
 #include "screen.h"
 #include "sys_utils.h"
