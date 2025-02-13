@@ -64,21 +64,21 @@ fn utf_encode
 
         srli t0, a0, 18
         ori t0, t0, 0xf0
-        sb t0, 3(a1)
+        sb t0, 0(a1)
 
         srli t0, a0, 12
         andi t0, t0, 0x3f
         ori t0, t0, 0x80
-        sb t0, 2(a1)
+        sb t0, 1(a1)
 
         srli t0, a0, 6
         and t0, t0, 0x3f
         ori t0, t0, 0x80
-        sb t0, 1(a1)
+        sb t0, 2(a1)
 
         andi t0, a0, 0x3f
         ori t0, t0, 0x80
-        sb t0, 0(a1)
+        sb t0, 3(a1)
 
         li a0, 4
         j 5f

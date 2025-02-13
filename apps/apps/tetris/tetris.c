@@ -284,7 +284,7 @@ PieceType random_piece(void);
 
 // Initialize the game state
 void init_game(Game* game) {
-    term_set_screencode(CHAR_BLOCK, 0x2588); // Full block
+    term_set_screencode(CHAR_BLOCK, 0x1f7E9); // Full block
     term_set_screencode(CHAR_BORDER, 0x2502); // Vertical line
     term_set_screencode(CHAR_BOTTOM, 0x2500); // Horizontal line
     term_set_screencode(CHAR_TOP_LEFT_CORNER, 0x256D); // Top left corner

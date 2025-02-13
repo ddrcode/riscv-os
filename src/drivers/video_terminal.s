@@ -35,6 +35,8 @@ endfn
 
 
 fn video_reset
+    stack_alloc
+
     li t0, 256
     la t1, screencodes
 1:
@@ -43,6 +45,29 @@ fn video_reset
         add t2, t2, t1
         sw t0, (t2)
         bnez t0, 1b
+
+    li a0, ' '
+    li a1, 0xff00
+    li t2, '~'
+    push t2, 0
+2:
+        inc a0
+        inc a1
+        push a0, 8
+        push a1, 4
+
+        call video_set_screencode
+
+        pop a0, 8
+        pop a1, 4
+        pop t2, 0
+        bne a0, t2, 2b
+
+    li a0, ' '
+    li a1, 0x3000
+    call video_set_screencode
+
+    stack_free
     ret
 endfn
 
@@ -65,6 +90,7 @@ fn _fill_canvas
 
     li s1, SCREEN_OVER_SERIAL_HBORDER
     slli s1, s1, 1
+    addi s1, s1, SCREEN_WIDTH
     addi s1, s1, SCREEN_WIDTH
     addi s1, s1, 16                    # 16 is a lenght of terminal codes)
 
@@ -182,6 +208,7 @@ fn _print_char
     stack_alloc 64
 
     li t0, SCREEN_OVER_SERIAL_HBORDER
+    slli a0, a0, 1
     add a0, a0, t0
 
     li t0, SCREEN_OVER_SERIAL_VBORDER
