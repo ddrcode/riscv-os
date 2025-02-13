@@ -5,7 +5,8 @@
 #include "terminal.h"
 
 // Game constants
-#define GAME_WIDTH 36
+#define LEFT_MARGIN 4
+#define GAME_WIDTH 32 // Reduced width to accommodate the left margin
 #define GAME_HEIGHT 20
 #define MAX_SNAKE_LENGTH 100
 #define INITIAL_SNAKE_LENGTH 4
@@ -31,6 +32,12 @@ typedef enum {
     LEFT = 3
 } Direction;
 
+typedef enum {
+    PLAYING,
+    PAUSED,
+    GAME_OVER
+} GameStateType;
+
 // Snake segment structure
 typedef struct {
     i32 x;
@@ -45,6 +52,7 @@ typedef struct {
     Point food;
     u32 score;
     bool game_over;
+    GameStateType state;
 } GameState;
 
 // Function declarations
@@ -53,7 +61,7 @@ void draw_border(void);
 void spawn_food(GameState* game);
 void draw_game(GameState* game);
 void update_game(GameState* game);
-Direction get_input(Direction current);
+Direction get_input(GameState* game);
 bool check_collision(GameState* game);
 
 // Initialize game state
@@ -72,6 +80,7 @@ void init_game(GameState* game) {
     game->direction = RIGHT;
     game->score = 0;
     game->game_over = false;
+    game->state = PLAYING;
 
     // Initialize snake in the middle of the screen
     i32 start_x = GAME_WIDTH / 4;
@@ -88,7 +97,7 @@ void init_game(GameState* game) {
 // Draw game border
 void draw_border(void) {
     // Top border
-    set_cursor_pos(0, 1);
+    set_cursor_pos(LEFT_MARGIN, 1);
     printc(BORDER_TOP_LEFT);
     for(i32 i = 0; i < GAME_WIDTH; i++) printc(BORDER_HORIZONTAL);
     printc(BORDER_TOP_RIGHT);
@@ -96,13 +105,15 @@ void draw_border(void) {
 
     // Side borders
     for(i32 i = 0; i < GAME_HEIGHT; i++) {
+        set_cursor_pos(LEFT_MARGIN, i + 2);
         printc(BORDER_VERTICAL);
-        set_cursor_pos(GAME_WIDTH + 1, i + 2);
+        set_cursor_pos(LEFT_MARGIN + GAME_WIDTH + 1, i + 2);
         printc(BORDER_VERTICAL);
         printc('\n');
     }
 
     // Bottom border
+    set_cursor_pos(LEFT_MARGIN, GAME_HEIGHT + 2);
     printc(BORDER_BOTTOM_LEFT);
     for(i32 i = 0; i < GAME_WIDTH; i++) printc(BORDER_HORIZONTAL);
     printc(BORDER_BOTTOM_RIGHT);
@@ -123,32 +134,45 @@ void draw_game(GameState* game) {
     clear_screen();
 
     // Draw score on top
+    set_cursor_pos(LEFT_MARGIN, 0);
     prints("Score: ");
     printnum(game->score);
+
+    // Draw length aligned to the right
+    set_cursor_pos(LEFT_MARGIN + GAME_WIDTH - 9, 0);
+    prints("Length: ");
+    printnum(game->length);
     printc('\n');
 
     draw_border();
 
     // Draw food
-    set_cursor_pos(game->food.x, game->food.y + 1);
+    set_cursor_pos(LEFT_MARGIN + game->food.x, game->food.y + 1);
     printc(FOOD);
 
     // Draw snake
     for(i32 i = game->length - 1; i >= 0; i--) {
-        set_cursor_pos(game->snake[i].x, game->snake[i].y + 1);
+        set_cursor_pos(LEFT_MARGIN + game->snake[i].x, game->snake[i].y + 1);
         printc(i == 0 ? SNAKE_HEAD : SNAKE_BODY);
     }
 
     // Draw game over message
     if(game->game_over) {
-        set_cursor_pos(GAME_WIDTH/2 - 5, GAME_HEIGHT/2 + 1);
+        set_cursor_pos(LEFT_MARGIN + GAME_WIDTH/2 - 5, GAME_HEIGHT/2 + 1);
         prints("GAME OVER!");
+        set_cursor_pos(LEFT_MARGIN + GAME_WIDTH/2 - 8, GAME_HEIGHT/2 + 3);
+        prints("Press 'r' to restart");
+        set_cursor_pos(LEFT_MARGIN + GAME_WIDTH/2 - 8, GAME_HEIGHT/2 + 4);
+        prints("or 'q' to quit...");
+    } else if(game->state == PAUSED) {
+        set_cursor_pos(LEFT_MARGIN + GAME_WIDTH/2 - 5, GAME_HEIGHT/2 + 1);
+        prints("PAUSED");
     }
 }
 
 // Update game state
 void update_game(GameState* game) {
-    if(game->game_over) return;
+    if(game->game_over || game->state == PAUSED) return;
 
     // Store previous head position
     Point prev = game->snake[0];
@@ -187,19 +211,29 @@ void update_game(GameState* game) {
 }
 
 // Get and process user input
-Direction get_input(Direction current) {
+Direction get_input(GameState* game) {
     i32 ch = getc();
 
     if (ch == 0) {
-        return current;
+        return game->direction;
     }
 
-    Direction new_dir = current;
+    if (ch == 'p') {
+        game->state = (game->state == PLAYING) ? PAUSED : PLAYING;
+        return game->direction;
+    }
+
+    if (ch == 'q') {
+        game->game_over = true;
+        return game->direction;
+    }
+
+    Direction new_dir = game->direction;
     switch(ch) {
-        case 'w': new_dir = (current != DOWN) ? UP : current; break;
-        case 's': new_dir = (current != UP) ? DOWN : current; break;
-        case 'a': new_dir = (current != RIGHT) ? LEFT : current; break;
-        case 'd': new_dir = (current != LEFT) ? RIGHT : current; break;
+        case 'w': new_dir = (game->direction != DOWN) ? UP : game->direction; break;
+        case 's': new_dir = (game->direction != UP) ? DOWN : game->direction; break;
+        case 'a': new_dir = (game->direction != RIGHT) ? LEFT : game->direction; break;
+        case 'd': new_dir = (game->direction != LEFT) ? RIGHT : game->direction; break;
     }
 
     return new_dir;
@@ -231,26 +265,29 @@ int main(void) {
     term_hide_cursor();
 
     // Main game loop
-    while(!game.game_over) {
+    while(true) {
+        while(!game.game_over) {
+            draw_game(&game);
+            Direction new_dir = get_input(&game);
+            game.direction = new_dir;
+            update_game(&game);
+            sleep(GAME_SPEED);
+        }
+
+        // Final draw and wait for 'r' or 'q' key press
         draw_game(&game);
-        Direction new_dir = get_input(game.direction);
-        game.direction = new_dir;
-        update_game(&game);
-        sleep(GAME_SPEED);
+
+        while(true) {
+            i32 ch = getc();
+            if (ch == 'r') {
+                init_game(&game);
+                break;
+            } else if (ch == 'q') {
+                clear_screen();
+                term_show_cursor();
+                term_reset();
+                return 0;
+            }
+        }
     }
-
-    // Final draw and wait for input
-    draw_game(&game);
-
-    set_cursor_pos(GAME_WIDTH/2 - 12, GAME_HEIGHT/2 + 3);
-    prints("Press any key to exit...");
-
-    sleep(4000);
-    while(!getc());
-
-    clear_screen();
-    term_show_cursor();
-    term_reset();
-
-    return 0;
 }
