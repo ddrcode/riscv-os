@@ -13,14 +13,15 @@
 
 // Game characters
 #define SNAKE_HEAD '@'
-#define SNAKE_BODY 'o'
+#define SNAKE_BODY '^'
 #define FOOD '*'
-#define BORDER_TOP_LEFT '+'
-#define BORDER_TOP_RIGHT '+'
-#define BORDER_BOTTOM_LEFT '+'
-#define BORDER_BOTTOM_RIGHT '+'
+#define BORDER_TOP_LEFT '('
+#define BORDER_TOP_RIGHT ')'
+#define BORDER_BOTTOM_LEFT '['
+#define BORDER_BOTTOM_RIGHT ']'
 #define BORDER_HORIZONTAL '-'
 #define BORDER_VERTICAL '|'
+#define BORDER_HORIZONTAL_WIDE 'E'
 
 // Direction vectors
 typedef enum {
@@ -57,6 +58,16 @@ bool check_collision(GameState* game);
 
 // Initialize game state
 void init_game(GameState* game) {
+    term_set_screencode(SNAKE_HEAD, 0x26AA); // Snake head (large circle)
+    term_set_screencode(SNAKE_BODY, 0x25CF); // Snake body (black circle)
+    term_set_screencode(FOOD, 0x1F34E); // Food (red apple)
+    term_set_screencode(BORDER_TOP_LEFT, 0x256D); // Top left corner
+    term_set_screencode(BORDER_TOP_RIGHT, 0x256E); // Top right corner
+    term_set_screencode(BORDER_BOTTOM_LEFT, 0x2570); // Bottom left corner
+    term_set_screencode(BORDER_BOTTOM_RIGHT, 0x256F); // Bottom right corner
+    term_set_screencode(BORDER_HORIZONTAL, 0x2501); // Wide horizontal line
+    term_set_screencode(BORDER_VERTICAL, 0x2502); // Vertical line
+
     game->length = INITIAL_SNAKE_LENGTH;
     game->direction = RIGHT;
     game->score = 0;
@@ -239,6 +250,7 @@ int main(void) {
 
     clear_screen();
     term_show_cursor();
+    term_reset();
 
     return 0;
 }
