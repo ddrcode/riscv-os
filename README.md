@@ -12,7 +12,7 @@ and Zicsr extensions.
 ## Features
 
 <!-- <img src="./screenshots/screen-recording.gif" /> -->
-![recording](./screenshots/screen-recording.gif)
+![recording](./screenshots/riscv-os.gif)
 
 
 The OS has riched the MVP state, that means it is complete enough that it allows for loadaing
