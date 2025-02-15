@@ -63,11 +63,14 @@ $(DEBUG):
 $(OUT)/common.o: $(OUT) ../lib/*.s common/*.s
 	$(AS) $(ASFLAGS) -o $(OUT)/common.o common/*.s ../lib/*.s
 
+$(OUT)/common.a: $(OUT)/common.o
+	$(TOOL)-ar -rcs $(OUT)/common.a $(OUT)/common.o
+
 $(OUT)/%.elf: apps/%/* $(OUT)/common.o
 	$(MAKE) -C ./apps/$(patsubst %.elf,%,$(@F)) -f $(patsubst %.elf,%,$(@F)).mk $(ROOT)/$@
 
-build-rust: $(OUT)
-	cargo build -Zbuild-std=core --target platforms/riscv32im-unknown-none-elf.json --release
+build-rust: $(OUT)/common.a
+	cargo build -Zbuild-std=core --target platforms/riscv32im-unknown-none-elf.json --release --verbose
 	cp target/riscv32im-unknown-none-elf/release/hello-rust $(OUT)/hello-rust.elf
 
 build-all: $(APP_TARGETS) build-rust
