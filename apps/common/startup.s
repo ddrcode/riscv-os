@@ -4,7 +4,7 @@
 
 _start:
 
-    # call scr_init                      # initialize the framebuffer for app (FIXME)
+    call scr_init                      # initialize the framebuffer for app (FIXME)
 
     lbu a0, 0(sp)                      # argc | Program arguments are on caller's stack
     addi a1, sp, 1                     # argv | (that is run_prog function in shell.s)

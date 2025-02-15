@@ -7,9 +7,9 @@ in
   pkgs.pkgsCross.riscv64-embedded.mkShell {
     nativeBuildInputs = with pkgs.buildPackages; [
       qemu
-      minicom
       ccls
       rustup
+      rust-bindgen
     ] ++ optionals isLinux [
       gdb
     ];

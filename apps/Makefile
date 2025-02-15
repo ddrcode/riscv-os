@@ -63,14 +63,17 @@ $(DEBUG):
 $(OUT)/common.o: $(OUT) ../lib/*.s common/*.s
 	$(AS) $(ASFLAGS) -o $(OUT)/common.o common/*.s ../lib/*.s
 
-$(OUT)/common.a: $(OUT)/common.o
-	$(TOOL)-ar -rcs $(OUT)/common.a $(OUT)/common.o
+$(OUT)/libcommon.a: $(OUT)/common.o
+	$(TOOL)-ar -rcs $@ $<
+
+$(OUT)/bindings.rs: ../headers/bindings.h $(OUT)
+	bindgen $< -o $@ --ctypes-prefix=cty --use-core
 
 $(OUT)/%.elf: apps/%/* $(OUT)/common.o
 	$(MAKE) -C ./apps/$(patsubst %.elf,%,$(@F)) -f $(patsubst %.elf,%,$(@F)).mk $(ROOT)/$@
 
-build-rust: $(OUT)/common.a
-	cargo build -Zbuild-std=core --target platforms/riscv32im-unknown-none-elf.json --release --verbose
+build-rust: $(OUT)/libcommon.a $(OUT)/bindings.rs
+	OUT=$(OUT) cargo build -Zbuild-std=core --target platforms/riscv32im-unknown-none-elf.json --release --verbose
 	cp target/riscv32im-unknown-none-elf/release/hello-rust $(OUT)/hello-rust.elf
 
 build-all: $(APP_TARGETS) build-rust
@@ -79,7 +82,12 @@ $(RELEASE)/%: $(OUT)/%.elf | $(RELEASE)
 	$(TOOL)-strip --strip-all $<
 	$(TOOL)-objcopy -O binary $< $@
 
-release-all: $(APP_RELEASES)
+release-rust: build-rust
+	$(TOOL)-strip --strip-all $(OUT)/hello-rust.elf
+	$(TOOL)-objcopy -O binary $(OUT)/hello-rust.elf $(RELEASE)/hello-rust
+
+
+release-all: $(APP_RELEASES) release-rust
 
 $(DEBUG)/%: $(OUT)/%.elf | $(DEBUG)
 	cp $< $@

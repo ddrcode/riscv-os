@@ -5,7 +5,12 @@ use core::arch::global_asm;
 use core::ptr;
 use core::panic::PanicInfo;
 
-global_asm!(include_str!("../../../common/startup.s"));
+#[path = "../../../build/bindings.rs"]
+mod bindings;
+
+// include!("../../../build/bindings.rs"));
+
+// global_asm!(include_str!("../../../common/startup.s"));
 
 fn uart_print(message: &str) {
    const UART: *mut u8 = 0x10000000 as *mut u8;
