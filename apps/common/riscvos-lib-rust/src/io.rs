@@ -1,4 +1,3 @@
-// mod bindings;
 use crate::bindings;
 
 pub fn println(s: &str) {

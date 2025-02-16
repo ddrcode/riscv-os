@@ -10,7 +10,9 @@ use core::panic::PanicInfo;
 #[allow(non_upper_case_globals)]
 mod bindings;
 
+pub mod errors;
 pub mod io;
+pub mod string;
 
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {

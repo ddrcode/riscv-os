@@ -86,7 +86,6 @@ release-rust: build-rust
 	$(TOOL)-strip --strip-all $(OUT)/hello-rust.elf
 	$(TOOL)-objcopy -O binary $(OUT)/hello-rust.elf $(RELEASE)/hello-rust
 
-
 release-all: $(APP_RELEASES) release-rust
 
 $(DEBUG)/%: $(OUT)/%.elf | $(DEBUG)
