@@ -1,4 +1,9 @@
 [workspace]
-members = ["apps/hello-rust"]
+
+members = [
+    "common/riscvos-lib-rust",
+    "apps/hello-rust"
+]
+
 resolver = "2"
 

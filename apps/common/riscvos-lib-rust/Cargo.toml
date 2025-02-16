@@ -1,9 +1,11 @@
 [package]
-name = "hello-rust"
+name = "riscvos"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 cty = "0.2.2"
-riscvos = { path="../../common/riscvos-lib-rust" }
 
+[lib]
+name = "riscvos"
+path = "src/lib.rs"

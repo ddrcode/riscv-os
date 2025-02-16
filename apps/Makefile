@@ -73,8 +73,7 @@ $(OUT)/%.elf: apps/%/* $(OUT)/common.o
 	$(MAKE) -C ./apps/$(patsubst %.elf,%,$(@F)) -f $(patsubst %.elf,%,$(@F)).mk $(ROOT)/$@
 
 build-rust: $(OUT)/libcommon.a $(OUT)/bindings.rs
-	OUT=$(OUT) cargo build -Zbuild-std=core --target platforms/riscv32im-unknown-none-elf.json --release --verbose
-	cp target/riscv32im-unknown-none-elf/release/hello-rust $(OUT)/hello-rust.elf
+	OUT=$(OUT) cargo build -Zbuild-std=core --target platforms/riscv32im-unknown-none-elf.json --release
 
 build-all: $(APP_TARGETS) build-rust
 
@@ -83,6 +82,7 @@ $(RELEASE)/%: $(OUT)/%.elf | $(RELEASE)
 	$(TOOL)-objcopy -O binary $< $@
 
 release-rust: build-rust
+	cp target/riscv32im-unknown-none-elf/release/hello-rust $(OUT)/hello-rust.elf
 	$(TOOL)-strip --strip-all $(OUT)/hello-rust.elf
 	$(TOOL)-objcopy -O binary $(OUT)/hello-rust.elf $(RELEASE)/hello-rust
 
