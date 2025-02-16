@@ -12,7 +12,9 @@ mod bindings;
 
 pub mod errors;
 pub mod io;
+pub mod screen;
 pub mod string;
+pub mod terminal;
 
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
