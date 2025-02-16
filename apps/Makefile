@@ -19,16 +19,18 @@ export ASFLAGS := -march=$(ARCH) -mabi=$(ABI) $(HEADERS) --defsym OUTPUT_DEV=2 -
 export CFLAGS := -march=$(ARCH) -mabi=$(ABI)  -nostdlib -static \
                  -I $(ROOT)/../headers -T $(ROOT)/platforms/virt.ld \
                  -ffunction-sections -fdata-sections -flto
+export LDFLAGS := -nostdlib -static
 
 CARGO_FLAGS := -Zbuild-std=core --target ./riscv32im-unknown-none-elf.json --release
 
 # ifneq ($(filter release, $(MAKECMDGOALS)),)
     # CFLAGS += -Os -Wl,--gc-sections
+    CFLAGS += -Wl,--gc-sections
     # LDFLAGS += --gc-sections
 # else
-    ASFLAGS += -g
-    CFLAGS += -g -O0
-    LDFLAGS += -g --no-gc-sections
+    # ASFLAGS += -g
+    # CFLAGS += -g -O0
+    # LDFLAGS += -g --no-gc-sections
 # endif
 
 VPATH := common

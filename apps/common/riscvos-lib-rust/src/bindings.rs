@@ -84,19 +84,19 @@ unsafe extern "C" {
     pub fn file_find(fname: *mut cty::c_char) -> cty::c_int;
 }
 unsafe extern "C" {
-    pub fn printc(ch: cty::c_char) -> i32_;
+    pub fn printc(ch: cty::c_char);
 }
 unsafe extern "C" {
-    pub fn printw(bytes: u32_) -> i32_;
+    pub fn printw(bytes: u32_);
 }
 unsafe extern "C" {
-    pub fn prints(str_: *const cty::c_char) -> i32_;
+    pub fn prints(str_: *const cty::c_char);
 }
 unsafe extern "C" {
-    pub fn println(str_: *const cty::c_char) -> i32_;
+    pub fn println(str_: *const cty::c_char);
 }
 unsafe extern "C" {
-    pub fn printnum(num: u32_) -> i32_;
+    pub fn printnum(num: u32_);
 }
 unsafe extern "C" {
     pub fn getc() -> i32_;

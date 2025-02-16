@@ -1,6 +1,7 @@
+use cty::c_char;
 use crate::bindings;
 
-pub fn println(s: &str) {
+fn print(s: &str, f: unsafe extern "C" fn(*const c_char)) {
     let bytes = s.as_bytes();
     let mut buffer = [0u8; 256];
     let len = bytes.len();
@@ -9,5 +10,18 @@ pub fn println(s: &str) {
     buffer[..len].copy_from_slice(bytes);
     buffer[len] = 0;
 
-    unsafe { bindings::println(buffer.as_ptr() as *const cty::c_char); }
+    unsafe { f(buffer.as_ptr() as *const cty::c_char); }
+}
+
+pub fn println(s: &str) {
+    print(s, bindings::println);
+}
+
+pub fn prints(s: &str) {
+    print(s, bindings::prints);
+}
+
+
+pub fn printnum(num: u32) {
+    unsafe { bindings::printnum(num.into()); }
 }
