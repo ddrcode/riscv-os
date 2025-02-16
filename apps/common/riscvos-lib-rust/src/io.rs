@@ -5,7 +5,7 @@ pub fn println(s: &str) {
     let bytes = s.as_bytes();
     let mut buffer = [0u8; 256];
     let len = bytes.len();
-    // assert!(len + 1 <= buffer.len(), "String too long for buffer");
+    assert!(len + 1 <= buffer.len(), "String too long for buffer");
 
     buffer[..len].copy_from_slice(bytes);
     buffer[len] = 0;
