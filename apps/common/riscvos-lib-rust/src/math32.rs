@@ -27,3 +27,7 @@ pub fn rem(x: i32, y: i32) -> i32 {
 pub fn pow(x: i32, y: i32) -> i32 {
     unsafe { bindings::pow32(x.into(), y.into()).into() }
 }
+
+pub fn mul(x: i32, y: i32) -> i64 {
+    unsafe { bindings::mul32(x.into(), y.into()).into() }
+}

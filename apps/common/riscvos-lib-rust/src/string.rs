@@ -66,4 +66,7 @@ pub fn strcpy<'a, 'b>(buf: &'a mut [u8], src: &'b str) -> Result<&'a str, Conver
     str::from_utf8(&buf[..len]).map_err(|_| ConversionError::InvalidUtf8)
 }
 
-
+pub fn buf_to_str(buf: &mut [u8]) -> Result<&str, ConversionError> {
+    let len = buf.iter().position(|&b| b == 0).ok_or(ConversionError::NoNullTerminator)?;
+    str::from_utf8(&buf[..len]).map_err(|_| ConversionError::InvalidUtf8)
+}

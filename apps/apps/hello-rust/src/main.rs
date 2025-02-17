@@ -13,9 +13,7 @@ use riscvos::io::{ println, prints };
 
 #[no_mangle]
 pub extern "C" fn main(argc: u32, argv: *const *const u8) -> i32 {
-    let hello = "Hello, ";
-
-    prints(hello);
+    prints("Hello, ");
 
     unsafe {
         if argc > 1 && !argv.is_null() {

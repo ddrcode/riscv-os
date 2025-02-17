@@ -14,8 +14,11 @@ pub mod bit32;
 pub mod errors;
 pub mod io;
 pub mod math32;
+pub mod math64;
 pub mod screen;
 pub mod string;
+pub mod sysutils;
+pub mod time;
 pub mod terminal;
 
 #[panic_handler]

@@ -87,6 +87,9 @@ release-rust: build-rust
 	cp target/riscv32im-unknown-none-elf/release/hello-rust $(OUT)/hello-rust.elf
 	$(TOOL)-strip --strip-all $(OUT)/hello-rust.elf
 	$(TOOL)-objcopy -O binary $(OUT)/hello-rust.elf $(RELEASE)/hello-rust
+	cp target/riscv32im-unknown-none-elf/release/clock $(OUT)/clock.elf
+	$(TOOL)-strip --strip-all $(OUT)/clock.elf
+	$(TOOL)-objcopy -O binary $(OUT)/clock.elf $(RELEASE)/clock
 
 release-all: $(APP_RELEASES) release-rust
 

@@ -1,0 +1,11 @@
+[package]
+name = "clock"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+riscvos = { path="../../common/riscvos-lib-rust" }
+
+[[bin]]
+name = "clock"
+path = "src/clock.rs"
