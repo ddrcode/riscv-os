@@ -3,9 +3,9 @@
 
 #include "types.h"
 
-i32 bitlen32(u32);
-i32 getbit(u32, i32);
-i32 setbit(u32, i32, i32);
+u8 bitlen32(u32);
+u8 getbit(u32, u8);
+u32 setbit(u32, u8, u8);
 
 #endif
 

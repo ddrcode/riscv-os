@@ -43,7 +43,7 @@ fn getbit
 endfn
 
 
-# Set n-th bit from word
+# Set n-th bit in word
 # Arguments:
 #     a0 - word
 #     a1 - bit

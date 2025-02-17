@@ -37,13 +37,13 @@ const _: () = {
     ["Offset of field: I64::high"][::core::mem::offset_of!(I64, high) - 4usize];
 };
 unsafe extern "C" {
-    pub fn bitlen32(arg1: u32_) -> i32_;
+    pub fn bitlen32(arg1: u32_) -> u8_;
 }
 unsafe extern "C" {
-    pub fn getbit(arg1: u32_, arg2: i32_) -> i32_;
+    pub fn getbit(arg1: u32_, arg2: u8_) -> u8_;
 }
 unsafe extern "C" {
-    pub fn setbit(arg1: u32_, arg2: i32_, arg3: i32_) -> i32_;
+    pub fn setbit(arg1: u32_, arg2: u8_, arg3: u8_) -> u32_;
 }
 unsafe extern "C" {
     pub fn bitlen64(xlo: u32_, xhi: u32_) -> i32_;
@@ -108,7 +108,7 @@ unsafe extern "C" {
     pub fn abs(arg1: cty::c_int) -> cty::c_int;
 }
 unsafe extern "C" {
-    pub fn sign(arg1: i32_) -> i32_;
+    pub fn sign(arg1: i32_) -> i8_;
 }
 unsafe extern "C" {
     pub fn udiv32(arg1: u32_, arg2: u32_) -> u32_;

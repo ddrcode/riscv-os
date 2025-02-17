@@ -21,7 +21,18 @@ pub fn prints(s: &str) {
     print(s, bindings::prints);
 }
 
+pub fn printc(c: u8) {
+    unsafe { bindings::printc(c.into()); }
+}
+
+pub fn printw(w: u32) {
+    unsafe { bindings::printw(w.into()); }
+}
 
 pub fn printnum(num: u32) {
     unsafe { bindings::printnum(num.into()); }
+}
+
+pub fn getc() -> i32 {
+    unsafe { bindings::getc().into() }
 }

@@ -10,8 +10,10 @@ use core::panic::PanicInfo;
 #[allow(non_upper_case_globals)]
 mod bindings;
 
+pub mod bit32;
 pub mod errors;
 pub mod io;
+pub mod math32;
 pub mod screen;
 pub mod string;
 pub mod terminal;
