@@ -7,6 +7,11 @@
 #define SCREEN_WIDTH  40
 #define SCREEN_HEIGHT 25
 
+typedef struct {
+    u32 x;
+    u32 y;
+} ScrPoint;
+
 // Screen initialization
 void scr_init(void);
 
@@ -14,10 +19,10 @@ void scr_init(void);
 void clear_screen(void);
 
 // Get screen dimensions
-void scr_get_size(u32* width, u32* height);
+ScrPoint scr_get_size(void);
 
 // Cursor manipulation
-void get_cursor_pos(u32* x, u32* y);
+ScrPoint get_cursor_pos();
 void set_cursor_pos(u32 x, u32 y);
 void show_cursor(void);
 

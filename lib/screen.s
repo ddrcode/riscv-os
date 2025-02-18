@@ -66,8 +66,11 @@ endfn
 
 
 fn scr_get_size
-    li a0, SCREEN_WIDTH
-    li a1, SCREEN_HEIGHT
+    li a0, CFG_SCREEN_DIMENSIONS
+    syscall SYSFN_GET_CFG
+    li t0, 0xffff
+    srli a1, a0, 16
+    and a0, a0, t0
     ret
 endfn
 

@@ -255,9 +255,13 @@ fn date_time_to_str
 endfn
 
 
+# Returns current time in the form of
+# number of seconds from 1970.01.01 (32-bit number)
+# a1 holds error code - i.e when RTC not present
 fn time_now
     stack_alloc
     syscall SYSFN_GET_SECS_FROM_EPOCH
+    mv a1, a5
     stack_free
     ret
 endfn

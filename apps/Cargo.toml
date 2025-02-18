@@ -1,3 +1,10 @@
 [workspace]
-members = ["apps/hello-rust"]
+
+members = [
+    "common/riscvos-lib-rust",
+    "apps/hello-rust",
+    "apps/clock"
+]
+
 resolver = "2"
+

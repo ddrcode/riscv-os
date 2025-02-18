@@ -41,12 +41,14 @@ endfn
 .section .data
 
 sysinfo:
-output_dev:     .word      0
-std_out:        .word      0
-std_in:         .word      0
-std_err:        .word      0
-std_debug:      .word      0
-platform_name:  .word      default_platform_name
+output_dev:        .word      0
+std_out:           .word      0
+std_in:            .word      0
+std_err:           .word      0
+std_debug:         .word      0
+platform_name:     .word      default_platform_name
+screen_dimensions: .half      SCREEN_WIDTH
+                   .half      SCREEN_HEIGHT
 
 
 #----------------------------------------

@@ -1,30 +1,36 @@
 #![no_std]
 #![no_main]
 
-use core::arch::global_asm;
-use core::ptr;
-use core::panic::PanicInfo;
+use core::slice;
+use core::str;
 
-global_asm!(include_str!("../../../common/startup.s"));
+use riscvos::io::{ println, prints };
 
-fn uart_print(message: &str) {
-   const UART: *mut u8 = 0x10000000 as *mut u8;
+// include!("../../../build/bindings.rs"));
 
-   for c in message.chars() {
-       unsafe {
-       	      ptr::write_volatile(UART, c as u8);
-       }
-   }
-}
+// global_asm!(include_str!("../../../common/startup.s"));
+
 
 #[no_mangle]
-pub extern "C" fn main() -> i32 {
-   uart_print("Hello, world!\n");
+pub extern "C" fn main(argc: u32, argv: *const *const u8) -> i32 {
+    prints("Hello, ");
+
+    unsafe {
+        if argc > 1 && !argv.is_null() {
+            let arg1_ptr = *argv.add(1);
+            if !arg1_ptr.is_null() {
+                let mut len = 0;
+                while *arg1_ptr.add(len) != 0 {
+                    len += 1;
+                }
+                let bytes = slice::from_raw_parts(arg1_ptr as *const u8, len);
+                println(str::from_utf8(bytes).unwrap());
+            }
+        } else {
+            println("Rust");
+        }
+    }
+
     0
 }
 
-#[panic_handler]
-fn panic(_info: &PanicInfo) -> ! {
-   uart_print("Something went wrong.");
-   loop {}
-}
