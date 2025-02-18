@@ -59,6 +59,7 @@
 .equ CFG_STD_ERR, 12
 .equ CFG_STD_DEBUG, 16
 .equ CFG_PLATFORM_NAME, 20
+.equ CFG_SCREEN_DIMENSIONS, 24
 
 
 #----------------------------------------

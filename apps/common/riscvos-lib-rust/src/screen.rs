@@ -17,9 +17,10 @@ impl Point {
 
 impl From<bindings::ScrPoint> for Point {
     fn from(p: bindings::ScrPoint) -> Self {
+        let msg = "Dimension too big for u8";
         Self {
-            x: p.x,
-            y: p.y
+            x: p.x.try_into().expect(msg),
+            y: p.y.try_into().expect(msg)
         }
     }
 }

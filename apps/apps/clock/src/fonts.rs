@@ -1,4 +1,7 @@
-pub const DIGITS: [[u8;8]; 11] = [
+pub const FONT_HEIGHT: usize = 8;
+
+pub const DIGITS: [[u8; FONT_HEIGHT]; 11] = [
+
                                 [ 0b00001110,
                                   0b00010001,
                                   0b00010001,

@@ -11,7 +11,7 @@ use core::panic::PanicInfo;
 mod bindings;
 
 pub mod bit32;
-pub mod errors;
+pub mod error;
 pub mod io;
 pub mod math32;
 pub mod math64;

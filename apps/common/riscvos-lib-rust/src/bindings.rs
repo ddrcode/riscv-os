@@ -36,6 +36,19 @@ const _: () = {
     ["Offset of field: I64::low"][::core::mem::offset_of!(I64, low) - 0usize];
     ["Offset of field: I64::high"][::core::mem::offset_of!(I64, high) - 4usize];
 };
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct Result {
+    pub val: u32_,
+    pub err: u32_,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of Result"][::core::mem::size_of::<Result>() - 8usize];
+    ["Alignment of Result"][::core::mem::align_of::<Result>() - 4usize];
+    ["Offset of field: Result::val"][::core::mem::offset_of!(Result, val) - 0usize];
+    ["Offset of field: Result::err"][::core::mem::offset_of!(Result, err) - 4usize];
+};
 unsafe extern "C" {
     pub fn bitlen32(arg1: u32_) -> u8_;
 }
@@ -152,15 +165,15 @@ unsafe extern "C" {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct ScrPoint {
-    pub x: byte,
-    pub y: byte,
+    pub x: u32_,
+    pub y: u32_,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of ScrPoint"][::core::mem::size_of::<ScrPoint>() - 2usize];
-    ["Alignment of ScrPoint"][::core::mem::align_of::<ScrPoint>() - 1usize];
+    ["Size of ScrPoint"][::core::mem::size_of::<ScrPoint>() - 8usize];
+    ["Alignment of ScrPoint"][::core::mem::align_of::<ScrPoint>() - 4usize];
     ["Offset of field: ScrPoint::x"][::core::mem::offset_of!(ScrPoint, x) - 0usize];
-    ["Offset of field: ScrPoint::y"][::core::mem::offset_of!(ScrPoint, y) - 1usize];
+    ["Offset of field: ScrPoint::y"][::core::mem::offset_of!(ScrPoint, y) - 4usize];
 };
 unsafe extern "C" {
     pub fn scr_init();
@@ -276,7 +289,7 @@ unsafe extern "C" {
     pub fn date_time_to_str(date: u32_, str_: *mut cty::c_char) -> *mut cty::c_char;
 }
 unsafe extern "C" {
-    pub fn time_now() -> u32_;
+    pub fn time_now() -> Result;
 }
 unsafe extern "C" {
     pub fn utf_encode(codepoint: u32_, bytes: *mut u32_) -> byte;

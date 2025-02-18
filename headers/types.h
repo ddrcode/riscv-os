@@ -24,4 +24,9 @@ typedef struct {
     i32 high;
 } I64;
 
+typedef struct {
+    u32 val;
+    u32 err;
+} Result;
+
 #endif

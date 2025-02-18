@@ -8,8 +8,8 @@
 #define SCREEN_HEIGHT 25
 
 typedef struct {
-    byte x;
-    byte y;
+    u32 x;
+    u32 y;
 } ScrPoint;
 
 // Screen initialization

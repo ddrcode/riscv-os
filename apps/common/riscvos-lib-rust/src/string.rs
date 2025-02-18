@@ -2,7 +2,7 @@ use cty::{ c_char };
 use core::str;
 
 use crate::bindings;
-use crate::errors::{ ConversionError };
+use crate::error::{ ConversionError };
 
 trait NumToCStr {
     type Number;
