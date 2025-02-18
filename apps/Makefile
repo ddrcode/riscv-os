@@ -47,6 +47,8 @@ APP_TARGETS := $(addsuffix .elf, $(addprefix $(OUT)/, $(APPS)))
 APP_RELEASES := $(addprefix $(RELEASE)/, $(APPS))
 APP_DEBUGS := $(addprefix $(DEBUG)/, $(APPS))
 
+RUST_APPS := hello-rust clock
+
 
 #----------------------------------------
 
@@ -68,13 +70,13 @@ $(OUT)/common.o: $(OUT) ../lib/*.s common/*.s
 $(OUT)/libcommon.a: $(OUT)/common.o
 	$(TOOL)-ar -rcs $@ $<
 
-$(OUT)/bindings.rs: ../headers/bindings.h $(OUT)
+common/riscvos-lib-rust/src/bindings.rs: ../headers/bindings.h $(OUT)
 	bindgen $< -o $@ --ctypes-prefix=cty --use-core
 
 $(OUT)/%.elf: apps/%/* $(OUT)/common.o
 	$(MAKE) -C ./apps/$(patsubst %.elf,%,$(@F)) -f $(patsubst %.elf,%,$(@F)).mk $(ROOT)/$@
 
-build-rust: $(OUT)/libcommon.a $(OUT)/bindings.rs
+build-rust: $(OUT)/libcommon.a common/riscvos-lib-rust/src/bindings.rs
 	OUT=$(OUT) cargo build -Zbuild-std=core --target platforms/riscv32im-unknown-none-elf.json --release
 
 build-all: $(APP_TARGETS) build-rust
@@ -83,13 +85,12 @@ $(RELEASE)/%: $(OUT)/%.elf | $(RELEASE)
 	$(TOOL)-strip --strip-all $<
 	$(TOOL)-objcopy -O binary $< $@
 
-release-rust: build-rust
-	cp target/riscv32im-unknown-none-elf/release/hello-rust $(OUT)/hello-rust.elf
-	$(TOOL)-strip --strip-all $(OUT)/hello-rust.elf
-	$(TOOL)-objcopy -O binary $(OUT)/hello-rust.elf $(RELEASE)/hello-rust
-	cp target/riscv32im-unknown-none-elf/release/clock $(OUT)/clock.elf
-	$(TOOL)-strip --strip-all $(OUT)/clock.elf
-	$(TOOL)-objcopy -O binary $(OUT)/clock.elf $(RELEASE)/clock
+release-rust: build-rust $(RELEASE)
+	@for app in $(RUST_APPS); do \
+		cp target/riscv32im-unknown-none-elf/release/$$app $(OUT)/$$app.elf; \
+		$(TOOL)-strip --strip-all $(OUT)/$$app.elf; \
+		$(TOOL)-objcopy -O binary $(OUT)/$$app.elf $(RELEASE)/$$app; \
+	done
 
 release-all: $(APP_RELEASES) release-rust
 

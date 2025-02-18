@@ -1,3 +1,7 @@
+// RISCV-OS standard library for Rust
+// author: David de Rosier
+// See LICENCE file for licence details.
+
 #![no_std]
 #![no_main]
 
@@ -20,6 +24,7 @@ pub mod string;
 pub mod sysutils;
 pub mod time;
 pub mod terminal;
+pub mod unicode;
 
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {

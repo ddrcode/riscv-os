@@ -76,10 +76,13 @@ pub fn time_to_str<'a, 'b>(time: &'a Time, buf: &'b mut [u8]) -> Result<&'b str,
     let ptr = unsafe {
         bindings::time_to_str(bindings::Time::from(*time), buf.as_mut_ptr() as *mut c_char)
     };
+    if ptr.is_null() {
+        return Err(ConversionError::BufferTooSmall);
+    }
     buf_to_str(buf)
 }
 
-fn get_date(secs: u32) -> Date {
+pub fn get_date(secs: u32) -> Date {
     unsafe { bindings::get_date(secs.into()).into() }
 }
 
@@ -87,6 +90,9 @@ pub fn date_to_str<'a, 'b>(date: &'a Date, buf: &'b mut [u8]) -> Result<&'b str,
     let ptr = unsafe {
         bindings::date_to_str(bindings::Date::from(*date), buf.as_mut_ptr() as *mut c_char)
     };
+    if ptr.is_null() {
+        return Err(ConversionError::BufferTooSmall);
+    }
     buf_to_str(buf)
 }
 
@@ -94,5 +100,8 @@ pub fn date_time_to_str(secs: u32, buf: &mut [u8]) -> Result<&str, ConversionErr
     let ptr = unsafe {
         bindings::date_time_to_str(secs.into(), buf.as_mut_ptr() as *mut c_char)
     };
+    if ptr.is_null() {
+        return Err(ConversionError::BufferTooSmall);
+    }
     buf_to_str(buf)
 }

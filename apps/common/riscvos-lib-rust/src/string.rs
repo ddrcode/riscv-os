@@ -1,8 +1,8 @@
-use cty::{ c_char };
+use cty::c_char;
 use core::str;
 
 use crate::bindings;
-use crate::error::{ ConversionError };
+use crate::error::ConversionError;
 
 trait NumToCStr {
     type Number;
@@ -62,6 +62,11 @@ pub fn strcpy<'a, 'b>(buf: &'a mut [u8], src: &'b str) -> Result<&'a str, Conver
     let ptr = unsafe {
         bindings::strcpy(buf.as_mut_ptr() as *mut c_char, src.as_ptr() as *const c_char)
     };
+
+    if ptr.is_null() {
+        return Err(ConversionError::BufferTooSmall);
+    }
+
     let len = buf.iter().position(|&b| b == 0).ok_or(ConversionError::NoNullTerminator)?;
     str::from_utf8(&buf[..len]).map_err(|_| ConversionError::InvalidUtf8)
 }
