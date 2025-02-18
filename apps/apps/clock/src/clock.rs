@@ -8,6 +8,8 @@ use riscvos::{ screen::{clear, set_cursor_pos}, io::{ println, getc }, sysutils:
 use fonts::DIGITS;
 
 const CLOCK_BLOCK: u32 = 0x1f7e6;
+const TICK_TIME: u32 = 150;
+
 
 #[no_mangle]
 pub extern "C" fn main(argc: u32, argv: *const *const u8) -> i32 {
@@ -15,13 +17,12 @@ pub extern "C" fn main(argc: u32, argv: *const *const u8) -> i32 {
     terminal::hide_cursor();
     terminal::set_screencode(33, CLOCK_BLOCK);
 
+    let mut buff = [0u8; 9];
     loop {
-        let mut buff = [0u8; 9];
         let time = get_time(now());
         show_time(time_to_str(&time, &mut buff).unwrap());
-        let c = getc();
-        if c > 0 { break; }
-        sleep(200);
+        if getc() > 0 { break; }
+        sleep(TICK_TIME);
     }
 
     clear();
@@ -39,9 +40,9 @@ fn show_time(time: &str) {
         for j in 0..8 {
             let b = bytes[j];
             let d = DIGITS[(b - 48) as usize][i];
-            let len = if j==2 || j==5 { 2 } else { 6 };
-            for k in 0..len {
-                buf[idx] = 32 + ((d >> (len-k-1)) & 1);
+            let width = if j==2 || j==5 { 2 } else { 6 };
+            for k in 0..width {
+                buf[idx] = 32 + ((d >> (width-k-1)) & 1);
                 idx += 1;
             }
         }
