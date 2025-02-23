@@ -33,8 +33,9 @@
 # Video / font functions
 .equ SYSFN_SET_SCREENCODE, 50
 .equ SYSFN_VIDEO_RESET, 51
+.equ SYSFN_VIDEO_SWITCH_MODE, 52
 
-.equ SYSFN_LAST_FN_ID, 52
+.equ SYSFN_LAST_FN_ID, 53
 
 
 #----------------------------------------
@@ -60,6 +61,7 @@
 .equ CFG_STD_DEBUG, 16
 .equ CFG_PLATFORM_NAME, 20
 .equ CFG_SCREEN_DIMENSIONS, 24
+.equ CFG_SCREEN_MODE, 28
 
 
 #----------------------------------------

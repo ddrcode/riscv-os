@@ -88,15 +88,17 @@
     lw \res_reg, (\res_reg)
 .endm
 
-.macro call_cfg_get, cfg, val_reg
+.macro call_cfg_get, cfg, val_reg=0
     li a0, \cfg
     call cfg_get
+.if \val_reg!=0
     mv \val_reg, a0
+.endif
 .endm
 
 .macro call_cfg_set, cfg, val_reg
-    li a0, \cfg
     mv a1, \val_reg
+    li a0, \cfg
     call cfg_set
 .endm
 

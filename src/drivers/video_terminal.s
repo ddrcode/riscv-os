@@ -20,6 +20,7 @@
 .global video_repaint
 .global video_reset
 .global video_set_screencode
+.global video_switch_mode
 
 .section .text
 
@@ -39,12 +40,18 @@ fn video_reset
 
     li t0, 256
     la t1, screencodes
-1:
+
+1: # resets screencodes to ascii
         dec t0
         slli t2, t0, 2
         add t2, t2, t1
         sw t0, (t2)
         bnez t0, 1b
+
+    call_cfg_get CFG_SCREEN_MODE
+    beqz a0, 3f
+
+    # the rest of reset procedure is valid for wide fonts only
 
     li a0, ' '
     li a1, 0xff00
@@ -67,6 +74,7 @@ fn video_reset
     li a1, 0x3000
     call video_set_screencode
 
+3:
     stack_free
     ret
 endfn
@@ -81,17 +89,55 @@ fn video_cls
 endfn
 
 
+
+# Switches between video modes
+# Arguments
+#     a0 - video mode
+fn video_switch_mode
+    stack_alloc
+    push a0, 8
+
+    call_cfg_get CFG_SCREEN_MODE
+    mv t0, a0
+    pop a0, 8
+    beq a0, t0, 1f
+
+    call_cfg_set CFG_SCREEN_MODE, a0
+
+    pop t0, 8
+    li a0, SCREEN_WIDTH
+    srl a0, a0, t0
+    li a1, SCREEN_HEIGHT
+    slli a1, a1, 16
+    or a0, a0, a1
+    call_cfg_set CFG_SCREEN_DIMENSIONS, a0
+
+    call video_reset
+
+1:
+    stack_free
+    ret
+endfn
+
+
 fn _fill_canvas
     stack_alloc 128
     push s1, 120
     push s0, 116
 
+    call_cfg_get CFG_SCREEN_DIMENSIONS
+    li t0, 0xffff
+    and t0, t0, a0
+    push t0, 112                       # screen width
+    srli a0, a0, 16
+    push a0, 108                       # screen height
+
     call_cfg_get CFG_STD_OUT, s0
 
     li s1, SCREEN_OVER_SERIAL_HBORDER
     slli s1, s1, 1
-    addi s1, s1, SCREEN_WIDTH
-    addi s1, s1, SCREEN_WIDTH
+    pop t0, 112
+    add s1, s1, t0
     addi s1, s1, 16                    # 16 is a lenght of terminal codes)
 
     mv a0, sp                          # prepare a single line of space characters on the stack
@@ -113,7 +159,8 @@ fn _fill_canvas
 
     li s1, SCREEN_OVER_SERIAL_VBORDER
     slli s1, s1, 1
-    addi s1, s1, SCREEN_HEIGHT
+    pop t0, 108
+    add s1, s1, t0
 1:
     mv a0, s0
     mv a1, sp
@@ -207,10 +254,7 @@ endfn
 fn _print_char
     stack_alloc 64
 
-    li t0, SCREEN_OVER_SERIAL_HBORDER
-    slli a0, a0, 1
-    add a0, a0, t0
-
+    # Adjust y pos including border
     li t0, SCREEN_OVER_SERIAL_VBORDER
     add a1, a1, t0
 
@@ -218,10 +262,22 @@ fn _print_char
     push a1, 52
     push a2, 48
 
-    la a1, SC_CURSOR_AND_CHAR
+    # Compute x-pos based on screen-mode
+    call_cfg_get CFG_SCREEN_MODE
+    pop t0, 56
+    sll a0, t0, a0
+
+    # Add border to x pos
+    li t0, SCREEN_OVER_SERIAL_HBORDER
+    add a0, a0, t0
+    push a0, 56
+
+    # Copy string containing term-codes to stack
     mv a0, sp
+    la a1, SC_CURSOR_AND_CHAR
     call strcpy
 
+    # first digit of cursor x
     pop a0, 56
     mv t0, a0
     inc t0
@@ -230,6 +286,7 @@ fn _print_char
     addi t0, t0, '0'
     sb t0, 6(sp)
 
+    # second digit of cursor x
     pop a0, 56
     inc a0
     li t1, 100
@@ -239,6 +296,7 @@ fn _print_char
     addi t0, t0, '0'
     sb t0, 7(sp)
 
+    # third digit of cursor x
     pop a0, 56
     inc a0
     li t1, 100
@@ -248,6 +306,7 @@ fn _print_char
     addi t0, t0, '0'
     sb t0, 8(sp)
 
+    # first digit of cursor y
     pop a0, 52
     inc t0
     li t1, 100
@@ -255,6 +314,7 @@ fn _print_char
     addi t0, t0, '0'
     sb t0, 2(sp)
 
+    # second digit of cursor y
     pop a0, 52
     inc a0
     li t1, 100
@@ -264,6 +324,7 @@ fn _print_char
     addi t0, t0, '0'
     sb t0, 3(sp)
 
+    # third digit of cursor y
     pop a0, 52
     inc a0
     li t1, 100
@@ -273,6 +334,7 @@ fn _print_char
     addi t0, t0, '0'
     sb t0, 4(sp)
 
+    # character to be printed
     pop t0, 48
     slli t0, t0, 2
     la t1, screencodes

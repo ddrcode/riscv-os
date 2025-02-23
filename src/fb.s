@@ -32,23 +32,30 @@
 #     a0 base_addr of the active fb or 0 if none
 fn fb_info
 .if OUTPUT_DEV & 1
-    li t0, 1
-    sb t0, 0(a1)                       # fb id
+    stack_alloc
+    push a1, 8
+
+    sb a0, 0(a1)                       # fb id
+
+    call_cfg_get CFG_SCREEN_DIMENSIONS
+
+    pop a1, 8                          # retrive fb_info structure
+
+    srli t0, a0, 16
+    sb t0, 7(a1)                       # screen height
+
+    li t0, 0xffff
+    and a0, a0, t0
+    sb a0, 8(a1)                       # screen width
 
     la t0, cursor
     lhu t0, (t0)
-    sh t0, 5(a1)
+    sh t0, 5(a1)                       # cursor position
 
-    li t0, SCREEN_HEIGHT
-    sb t0, 7(a1)
+    la a0, screen
+    sw a0, 1(a1)                       # screen buffer address
 
-    li t0, SCREEN_WIDTH
-    sb t0, 8(a1)
-
-    la t0, screen
-    sw t0, 1(a1)
-
-    mv a0, t0
+    stack_free
 .else
     mv a0, zero
 .endif

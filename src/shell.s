@@ -211,7 +211,7 @@ fn cmd_set_prompt
     setz a5
     j 2f
 1:
-    li a5, 2                           # set error code
+    li a5, ERR_MISSING_ARGUMENT        # set error code
 2:  ret
 endfn
 
@@ -222,7 +222,9 @@ endfn
 #     a1 - program name
 #     a2 - args address
 fn run_prog
-    stack_alloc 16
+    stack_alloc 32
+    push a0, 24
+
     snez t0, a2                        # has the program been called with args?
     inc t0                             # arg count is always at least 1 (argv[0] is program name)
 
@@ -230,8 +232,18 @@ fn run_prog
     push a1, 1                         # argv[0] - program name
     push a2, 5                         # argv[1] - arguments (TODO split them)
 
+    call term_get_mode
+    push a0, 20
+
+    pop a0, 24
     syscall SYSFN_RUN
-    stack_free 16
+    push a5, 24
+
+    pop a0, 20
+    call term_set_mode
+
+    pop a5, 24
+    stack_free 32
     ret
 endfn
 
@@ -255,6 +267,34 @@ fn cmd_platform
     ret
 endfn
 
+
+fn cmd_screenmode
+    stack_alloc
+    beqz a0, 1f                        # check if argument is provided
+
+    lbu t0, 0(a0)                      # Parse and validate argument
+    li t1, '0'
+    blt t0, t1, 2f
+    li t1, '1'
+    bgt t0, t1, 2f
+    lbu t1, 1(a0)
+    bnez t1, 2f
+
+    addi a0, t0, -'0'
+    call term_set_mode
+
+    setz a5
+    j 3f
+1:
+    li a5, ERR_MISSING_ARGUMENT
+    j 3f
+2:
+    li a5, ERR_INVALID_ARGUMENT
+3:
+    stack_free
+    ret
+endfn
+
 #----------------------------------------
 
 .section .data
@@ -272,6 +312,7 @@ commands: .string "cls"
           .string "prompt"
           .string "print"
           .string "platform"
+          .string "screenmode"
 
 err_unknown: .string "Unknown error"
 err_not_found: .string "Command not found"
@@ -293,4 +334,5 @@ shell_cmd_vector:
         .word cmd_set_prompt
         .word cmd_print
         .word cmd_platform
+        .word cmd_screenmode
         .word 0

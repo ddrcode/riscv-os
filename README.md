@@ -22,7 +22,7 @@ and currently conceptually is closer to C64's
 
 ### Implemented features
 
-- framebuffer (40x25 characters text screen, configurable),
+- framebuffer (80x25 characters text screen, configurable),
 - trivial shell 
 - drivers for UART, RTC and PLIC
 - driver/hardware abstraction layer (HAL)
@@ -34,6 +34,7 @@ and currently conceptually is closer to C64's
 - fallbacks for missing M-extension
 - trivial, read-only file system
 - external programs (implemented in Assembly, C and Rust), loadable to the system
+- unicode support (including wide characters)
 
 ### Planned features
 

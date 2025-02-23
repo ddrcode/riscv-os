@@ -2,8 +2,6 @@
 
 pub const true_: u32 = 1;
 pub const false_: u32 = 0;
-pub const SCREEN_WIDTH: u32 = 40;
-pub const SCREEN_HEIGHT: u32 = 25;
 pub type i32_ = cty::c_int;
 pub type u32_ = cty::c_uint;
 pub type i8_ = cty::c_schar;
@@ -240,6 +238,12 @@ unsafe extern "C" {
 }
 unsafe extern "C" {
     pub fn term_set_screencode(code: byte, unicode: u32_);
+}
+unsafe extern "C" {
+    pub fn term_get_mode() -> byte;
+}
+unsafe extern "C" {
+    pub fn term_set_mode(mode: byte);
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]

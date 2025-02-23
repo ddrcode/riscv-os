@@ -50,8 +50,11 @@ endfn
 
 fn clear_screen
     stack_alloc 4
+
+    call scr_get_size
+    mul a1, a0, a1                     # a1 = width * height
+
     screen_addr a0
-    li a1, SCREEN_WIDTH*SCREEN_HEIGHT
     li a2, ' '
     call memfill
 
@@ -82,11 +85,17 @@ endfn
 #     a0 - x position of the cursor
 #     a1 - y position of the cursor
 fn scr_print
-    stack_alloc                     # prepare the stack
+    stack_alloc 32
+    push s0, 24
+    push s1, 20
     push a0, 8
     push a1, 4
     call strlen                     # get string length
     push a0, 0                      # and push it to the stack
+
+    call scr_get_size
+    mv s0, a0
+    mv s1, a1
 
     call get_cursor_offset          # get cursor offset
     screen_addr a1                  # load screen address..
@@ -96,12 +105,12 @@ fn scr_print
     pop t2, 0                       # retrieve string length
     add t2, t2, a1                  # and compute the end address
 
-    li t0, SCREEN_WIDTH*SCREEN_HEIGHT
+    mul t0, s0, s1                  # number of bytes in the screen buffer (width*height)
     add t0, t0, t1                  # compute the end address of the screen
 
     ble t2, t0, 1f                  # skip if string fits on the screen, scroll otherwise
         sub t0, t2, t0              # compute how many lines to scroll...
-        li a0, SCREEN_WIDTH
+        mv a0, s0                   # a0 = screen buffer width
         mv t0, a0
         divu a0, t0, a0
         mul t0, t0, a0              # and adjust the start address (a1) accordingly
@@ -124,7 +133,9 @@ fn scr_print
     sub a0, a1, t1                  # Compute offset for new cursor position
     call set_cursor_pos_from_offset
 
-    stack_free
+    pop s0, 24
+    pop s1, 20
+    stack_free 32
     ret
 endfn
 
@@ -140,12 +151,18 @@ fn scr_println
     stack_alloc
     beqz a0, 1f                        # handle null pointer
 
+    push a0, 8
+    push s1, 4
+
+    call scr_get_size
+    mv s1, a1
+
+    pop a0, 8
     call scr_print                     # Print text at cursor position
     setz a0                            # Set cursor_x to 0
     inc a1                             # increment cursor_y
 
-    li t0, SCREEN_HEIGHT
-    blt a1, t0, 2f                     # if cursor_y < SCREEN_HEIGHT jump to end
+    blt a1, s1, 2f                     # if cursor_y < SCREEN_HEIGHT jump to end
         dec a1
         push a0, 8
         push a1, 4
@@ -159,6 +176,8 @@ fn scr_println
     setz a5                            # exit code
 3:
     call get_cursor_pos                # and get it (for return)
+
+    pop s1, 4
     stack_free
     ret
 endfn
@@ -180,9 +199,16 @@ fn set_cursor_pos
 endfn
 
 
+# Arguments
+#     a0 - offset
 fn set_cursor_pos_from_offset
     stack_alloc
-    li t0, SCREEN_WIDTH
+    push a0, 8
+
+    call scr_get_size
+    mv t0, a0                          # Screen width
+
+    pop a0, 8
     divu a2, a0, t0
     remu a1, a0, t0
     setz a0
@@ -217,14 +243,17 @@ endfn
 # Returns:
 #     a0: offset
 fn get_cursor_offset
-    stack_alloc 4
+    stack_alloc
+
+    call scr_get_size
+    push a0, 8
+
     call get_cursor_pos             # get cursor position as x,y coords
 
-    slli t0, a1, 5                  # multiply y by 32
-    slli t1, a1, 3                  # multiply y by 8
-    add t0, t0, t1                  # sum the above to get y*40
+    pop t0, 8
+    mul t0, t0, a1
     add a0, a0, t0                  # x+y
-    stack_free 4
+    stack_free
     ret
 endfn
 
@@ -255,16 +284,24 @@ endfn
 # Arguments: a0 - number of lines to scroll (ignored)
 # TODO make it respect a0 argument
 fn scroll
+    stack_alloc
+    push s0, 8
+    push s1, 4
+
+    call scr_get_size
+    mv s0, a0
+    mv s1, a1
+
     # copy screen memory one line up
-    stack_alloc 4
     screen_addr a0
-    addi a1, a0, SCREEN_WIDTH
-    li a2, SCREEN_WIDTH*(SCREEN_HEIGHT-1)
+    add a1, a0, s0
+    addi t0, s1, -1
+    mul a2, s0, t0                     # a2 = width * (height-1)
     call memcpy
 
     # fill the last line with spaces
-    li a1, SCREEN_WIDTH
-    li a2, 32
+    mv a1, s0
+    li a2, ' '
     call memfill
 
     # adjust cursor position (one line up)
@@ -274,7 +311,9 @@ fn scroll
         call set_cursor_pos
 
 1:
-    stack_free 4
+    pop s0, 8
+    pop s1, 4
+    stack_free
     ret
 endfn
 
