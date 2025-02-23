@@ -248,7 +248,8 @@ sysfn_vector:
     .word    0                         # 49
     .word    video_set_screencode      # 50
     .word    video_reset               # 51
-    .word    0                         # 52
+    .word    video_switch_mode         # 52
+    .word    0                         # 53
 
 program_return_address: .word 0
 

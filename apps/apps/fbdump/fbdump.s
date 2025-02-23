@@ -103,7 +103,8 @@ fn _print_frame
     stack_alloc
     push s0, 4
 
-    li s0, 42
+    call scr_get_size
+    addi s0, a0, 2
 1:
     beqz s0, 2f
         li a0, '-'

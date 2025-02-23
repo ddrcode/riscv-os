@@ -8,7 +8,7 @@
 
 
 # Screen
-.equ SCREEN_WIDTH, 40
+.equ SCREEN_WIDTH, 80
 .equ SCREEN_HEIGHT, 25
 
 # Devices

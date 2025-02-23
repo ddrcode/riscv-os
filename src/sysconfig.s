@@ -49,6 +49,7 @@ std_debug:         .word      0
 platform_name:     .word      default_platform_name
 screen_dimensions: .half      SCREEN_WIDTH
                    .half      SCREEN_HEIGHT
+screen_mode:       .word      0
 
 
 #----------------------------------------

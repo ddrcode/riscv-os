@@ -3,10 +3,6 @@
 
 #include "types.h"
 
-// Screen dimensions
-#define SCREEN_WIDTH  40
-#define SCREEN_HEIGHT 25
-
 typedef struct {
     u32 x;
     u32 y;
