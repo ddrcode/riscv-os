@@ -222,7 +222,9 @@ endfn
 #     a1 - program name
 #     a2 - args address
 fn run_prog
-    stack_alloc 16
+    stack_alloc 32
+    push a0, 24
+
     snez t0, a2                        # has the program been called with args?
     inc t0                             # arg count is always at least 1 (argv[0] is program name)
 
@@ -230,8 +232,18 @@ fn run_prog
     push a1, 1                         # argv[0] - program name
     push a2, 5                         # argv[1] - arguments (TODO split them)
 
+    call term_get_mode
+    push a0, 20
+
+    pop a0, 24
     syscall SYSFN_RUN
-    stack_free 16
+    push a5, 24
+
+    pop a0, 20
+    call term_set_mode
+
+    pop a5, 24
+    stack_free 32
     ret
 endfn
 
@@ -270,15 +282,6 @@ fn cmd_screenmode
 
     addi a0, t0, -'0'
     call term_set_mode
-    # push a0, 8
-    #
-    # call clear_screen
-    #
-    # li a0, 50
-    # call sleep                         # Sleep to wait for the screen to refresh
-    #
-    # pop a0, 8
-    # syscall SYSFN_VIDEO_SWITCH_MODE
 
     setz a5
     j 3f

@@ -104,14 +104,13 @@ fn video_switch_mode
 
     call_cfg_set CFG_SCREEN_MODE, a0
 
-    # pop t0, 8
-    # li a0, SCREEN_WIDTH
-    # srl a0, a0, t0
-    # li a1, SCREEN_HEIGHT
-    # srl a1, a1, t0
-    # slli a1, a1, 16
-    # or a0, a0, a1
-    # call_cfg_set CFG_SCREEN_DIMENSIONS, a0
+    pop t0, 8
+    li a0, SCREEN_WIDTH
+    srl a0, a0, t0
+    li a1, SCREEN_HEIGHT
+    slli a1, a1, 16
+    or a0, a0, a1
+    call_cfg_set CFG_SCREEN_DIMENSIONS, a0
 
     call video_reset
 

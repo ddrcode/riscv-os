@@ -64,6 +64,10 @@ fn term_set_mode
     stack_alloc
     push a0, 8
 
+    call term_get_mode
+    pop t0, 8
+    beq a0, t0, 1f
+
     call clear_screen
 
     li a0, 50
@@ -72,6 +76,9 @@ fn term_set_mode
     pop a0, 8
     syscall SYSFN_VIDEO_SWITCH_MODE
 
+    call scr_init
+
+1:
     stack_free
     ret
 endfn

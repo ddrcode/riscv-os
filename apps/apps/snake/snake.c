@@ -277,7 +277,6 @@ bool check_collision(GameState* game) {
 
 int main(void) {
 
-    byte term_mode = term_get_mode();
     term_set_mode(1);
 
     GameState game;
@@ -303,7 +302,6 @@ int main(void) {
                 init_game(&game);
                 break;
             } else if (ch == 'q') {
-                term_set_mode(term_mode);
                 term_show_cursor();
                 return 0;
             }

@@ -18,7 +18,6 @@
 
  int main(void) {
 
-     byte mode = term_get_mode();
      term_set_mode(1);
 
      Game game;
@@ -53,7 +52,6 @@
                  init_game(&game);
                  break;
              } else if (ch == 'q') {
-                 term_set_mode(mode);
                  term_show_cursor();
                  return 0;
              }

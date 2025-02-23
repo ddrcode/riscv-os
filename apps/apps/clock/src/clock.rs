@@ -28,6 +28,7 @@ const LINE_WIDTH: u8 = 39;
 
 #[no_mangle]
 pub extern "C" fn main(_argc: u32, _argv: *const *const u8) -> i32 {
+    terminal::set_mode(terminal::TerminalMode::Wide);
 
     if now().is_err() {
         println("RTC not found on this device");
