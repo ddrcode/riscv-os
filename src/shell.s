@@ -211,7 +211,7 @@ fn cmd_set_prompt
     setz a5
     j 2f
 1:
-    li a5, 2                           # set error code
+    li a5, ERR_MISSING_ARGUMENT        # set error code
 2:  ret
 endfn
 
@@ -255,6 +255,43 @@ fn cmd_platform
     ret
 endfn
 
+
+fn cmd_screenmode
+    stack_alloc
+    beqz a0, 1f                        # check if argument is provided
+
+    lbu t0, 0(a0)                      # Parse and validate argument
+    li t1, '0'
+    blt t0, t1, 2f
+    li t1, '1'
+    bgt t0, t1, 2f
+    lbu t1, 1(a0)
+    bnez t1, 2f
+
+    addi a0, t0, -'0'
+    call term_set_mode
+    # push a0, 8
+    #
+    # call clear_screen
+    #
+    # li a0, 50
+    # call sleep                         # Sleep to wait for the screen to refresh
+    #
+    # pop a0, 8
+    # syscall SYSFN_VIDEO_SWITCH_MODE
+
+    setz a5
+    j 3f
+1:
+    li a5, ERR_MISSING_ARGUMENT
+    j 3f
+2:
+    li a5, ERR_INVALID_ARGUMENT
+3:
+    stack_free
+    ret
+endfn
+
 #----------------------------------------
 
 .section .data
@@ -272,6 +309,7 @@ commands: .string "cls"
           .string "prompt"
           .string "print"
           .string "platform"
+          .string "screenmode"
 
 err_unknown: .string "Unknown error"
 err_not_found: .string "Command not found"
@@ -293,4 +331,5 @@ shell_cmd_vector:
         .word cmd_set_prompt
         .word cmd_print
         .word cmd_platform
+        .word cmd_screenmode
         .word 0

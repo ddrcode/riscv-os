@@ -239,6 +239,12 @@ unsafe extern "C" {
 unsafe extern "C" {
     pub fn term_set_screencode(code: byte, unicode: u32_);
 }
+unsafe extern "C" {
+    pub fn term_get_mode() -> byte;
+}
+unsafe extern "C" {
+    pub fn term_set_mode(mode: byte);
+}
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct Time {

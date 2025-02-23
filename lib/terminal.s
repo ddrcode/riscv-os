@@ -62,7 +62,16 @@ endfn
 
 fn term_set_mode
     stack_alloc
+    push a0, 8
+
+    call clear_screen
+
+    li a0, 50
+    call sleep
+
+    pop a0, 8
     syscall SYSFN_VIDEO_SWITCH_MODE
+
     stack_free
     ret
 endfn

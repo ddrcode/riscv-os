@@ -276,6 +276,10 @@ bool check_collision(GameState* game) {
 }
 
 int main(void) {
+
+    byte term_mode = term_get_mode();
+    term_set_mode(1);
+
     GameState game;
     init_game(&game);
     term_hide_cursor();
@@ -299,9 +303,8 @@ int main(void) {
                 init_game(&game);
                 break;
             } else if (ch == 'q') {
-                clear_screen();
+                term_set_mode(term_mode);
                 term_show_cursor();
-                term_reset();
                 return 0;
             }
         }

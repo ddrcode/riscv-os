@@ -89,11 +89,33 @@ fn video_cls
 endfn
 
 
+
+# Switches between video modes
+# Arguments
+#     a0 - video mode
 fn video_switch_mode
     stack_alloc
+    push a0, 8
+
+    call_cfg_get CFG_SCREEN_MODE
+    mv t0, a0
+    pop a0, 8
+    beq a0, t0, 1f
+
     call_cfg_set CFG_SCREEN_MODE, a0
+
+    # pop t0, 8
+    # li a0, SCREEN_WIDTH
+    # srl a0, a0, t0
+    # li a1, SCREEN_HEIGHT
+    # srl a1, a1, t0
+    # slli a1, a1, 16
+    # or a0, a0, a1
+    # call_cfg_set CFG_SCREEN_DIMENSIONS, a0
+
     call video_reset
-    call video_cls
+
+1:
     stack_free
     ret
 endfn
@@ -117,7 +139,6 @@ fn _fill_canvas
     slli s1, s1, 1
     pop t0, 112
     add s1, s1, t0
-    # addi s1, s1, SCREEN_WIDTH
     addi s1, s1, 16                    # 16 is a lenght of terminal codes)
 
     mv a0, sp                          # prepare a single line of space characters on the stack
