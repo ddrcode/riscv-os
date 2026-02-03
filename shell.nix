@@ -10,6 +10,8 @@ in
       minicom
       ccls
       dtc
+      openocd
+      bazelisk
     ] ++ optionals isLinux [
       gdb
     ];
