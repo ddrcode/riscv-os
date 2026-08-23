@@ -80,7 +80,7 @@ if (a5) { /* error */ }
 | 41 | [`fb_get_cursor`](#41-fb_get_cursor) | `SYSFN_FB_GET_CURSOR` | framebuffer cursor position |
 | 42 | [`fb_set_cursor`](#42-fb_set_cursor) | `SYSFN_FB_SET_CURSOR` | moves the framebuffer cursor |
 | 50 | [`set_screencode`](#50-set_screencode) | `SYSFN_SET_SCREENCODE` | maps a screen code to a Unicode glyph |
-| 51 | [`video_reset`](#51-video_reset) | `SYSFN_VIDEO_RESET` | resets screen codes and clears the terminal |
+| 51 | [`video_reset`](#51-video_reset) | `SYSFN_VIDEO_RESET` | restores the default screen code table |
 | 52 | [`video_switch_mode`](#52-video_switch_mode) | `SYSFN_VIDEO_SWITCH_MODE` | switches between normal and wide screen mode |
 
 Ids 12 (`set_date`) and 14 (`set_time`) are reserved but not implemented.
@@ -307,8 +307,9 @@ Maps a screen code to a Unicode character, e.g. to draw with block or emoji glyp
   ([`terminal.h`](../headers/terminal.h)), `riscvos::terminal::set_screencode`
 
 #### 51: `video_reset`
-Restores the default screen code table (ASCII; in wide mode the full-width
-forms `U+FF01`-`U+FF5E`) and clears the terminal.
+Restores the default screen code table: ASCII, or in wide mode the full-width
+forms `U+FF01`-`U+FF5E` and `U+3000` for space. It does not clear the screen
+(use `clear_screen` from the library for that).
 - **Arguments**: none
 - **Returns**: nothing
 - **Errors**: none
