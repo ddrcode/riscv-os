@@ -1,106 +1,90 @@
-# RISC-V OS Architecture
+# Architecture
 
-## System Overview
+RISC-V OS is a minimalistic operating system for 32-bit RISC-V, written in
+assembly. It resembles C64's Kernal: a single program runs at a time, on top of
+a small set of system services. There is no scheduler, no MMU and no dynamic
+memory (yet - see [#101](https://github.com/ddrcode/riscv-os/issues/101)).
 
-RISC-V OS is a minimalistic operating system implemented primarily in assembly language, designed to run on 32-bit RISC-V processors. The system is conceptually similar to the C64's Kernal, providing basic system services while maintaining a small footprint.
+## Boot sequence
 
-## Key Components
+1. `src/startup.s` (`_start`): sets `gp` and `sp`, parks all harts except hart 0
+2. `platform_start` (`src/platforms/<machine>.s`): initializes interrupts and the
+   PLIC, configures the drivers, registers devices, fills the system config
+3. `sysinit` (`src/system.s`): sets up PMP and the output devices
+4. `mret` drops to User Mode into `main`, which starts the shell
 
-### 1. Core System
+## Memory layout (virt)
 
-- **Execution Modes**
-  - Machine Mode (M-Mode): Highest privilege level, handles critical system functions
-  - User Mode (U-Mode): Used for running shell and user applications
-  
-- **Memory Layout**
-  - Currently configured with 4MB of RAM, but intended to work with much smaller RAM
-  - System: below 32kB
-  - Application space: 256kB (starting from address `0x80100000`, see `PROGRAM_RAM` in `headers/config.s`)
+| Address       | Content                                             |
+|---------------|-----------------------------------------------------|
+| `0x0010_1000` | Goldfish RTC                                        |
+| `0x0C00_0000` | PLIC                                                |
+| `0x1000_0000` | UART0 (NS16550A)                                    |
+| `0x2200_0000` | FLASH1 - the disc image (TAR)                       |
+| `0x8000_0000` | RAM start; kernel code and data (~24 KB)            |
+| `0x8010_0000` | program area, 256 KB (`PROGRAM_RAM` in `headers/config.s`) |
+| `0x8040_0000` | RAM end; the stack grows down from here             |
 
-### 2. Interrupt Handling
+There is one 4 KB stack shared by the kernel, the shell and the running program
+(its health is verified by `check_stack` on every timer tick), plus a separate
+4 KB stack for interrupt handlers.
 
-The system implements a comprehensive interrupt handling system in `irq.s`:
+## Privilege modes and memory protection
 
-- **Exception Types**
-  - Instruction address misaligned
-  - Instruction access fault
-  - Illegal instruction
-  - Breakpoint
-  - External interrupts
-  - System calls
+- **Machine Mode** - trap handlers, system functions, drivers
+- **User Mode** - the shell and the programs
+- **PMP** - RAM is readable/writable/executable for User Mode; everything outside
+  RAM (devices, flash) is machine-only, so hardware is reachable only through
+  system calls. Supervisor mode is not used
+  ([#42](https://github.com/ddrcode/riscv-os/issues/42)).
 
-- **Interrupt Processing**
-  - Context saving/restoration
-  - Vectored interrupt handling
-  - Priority-based interrupt management (via PLIC)
+## Interrupts and exceptions (`src/irq.s`)
 
-### 3. Hardware Abstraction Layer (HAL)
+- vectored `mtvec`; handled interrupts: machine timer (16 ms tick), machine
+  external (PLIC) and machine software
+- external interrupts are routed through a per-platform `external_irq_vector`
+- exceptions go through `exceptions_vector`: `ecall` from User Mode is the system
+  call entry; illegal M-extension instructions (div, rem, ...) are emulated in
+  software when the hardware lacks the extension (`HAS_EXTENSION_M=0`)
+- the timer tick also drives the terminal repaint (with `OUTPUT_DEV=5`)
 
-The HAL provides a uniform interface to hardware components:
+## System calls
 
-- **UART Driver**
-  - Character I/O
-  - Interrupt-driven input
+`ecall` with the function id in `a5`, arguments in `a0`-`a4`, result in `a0` and
+the error code in `a5`. The complete reference is in [api.md](api.md).
 
-- **RTC Driver**
-  - Real-time clock access
-  - Time/date functions
+## Hardware abstraction layer
 
-- **PLIC (Platform-Level Interrupt Controller)**
-  - Interrupt priority management
-  - Device interrupt routing
-  - Platform-specific configurations
+A driver is a structure: base address plus function pointers, registered in the
+device manager under a well-known id (`DEV_UART_0`, `DEV_RTC_0`, ...). The system
+configuration (`cfg_get`/`cfg_set`) stores pointers to the standard input/output
+devices, the platform name and the screen settings. Details in
+[api.md](api.md#device-manager-and-hal).
 
-### 4. File System
+## File system
 
-A basic read-only file system implementation:
+A read-only TAR archive ("TarFS") mapped at `FLASH1_BASE`; a file id is the
+offset of the file's tar header. `run` copies a program to `PROGRAM_RAM` and
+executes it in User Mode; `exit` returns to the shell.
 
-- TAR-based file system structure
-- Basic file operations (read, seek)
-- File listing support
+## Video pipeline
 
-### 5. Shell Interface
+Programs print into a text framebuffer (one byte per character cell). With
+`OUTPUT_DEV=5` the video driver compares the framebuffer with its previous state
+on every timer tick and sends only the changed cells to the terminal as escape
+codes. A 256-entry screen-code table maps cell values to Unicode glyphs; the wide
+mode (40x25) renders every cell as a double-width glyph.
 
-Interactive command shell providing:
+## Platforms
 
-- Command parsing and execution
-- Built-in system commands
-- Error reporting
-- User input handling
+|            | virt      | sifive_u  | sifive_e                  |
+|------------|-----------|-----------|---------------------------|
+| RAM        | 4 MB      | 4 MB      | 16 KB (code runs from flash) |
+| Screen     | 80x25     | 40x25     | 40x25                     |
+| UART       | NS16550A  | SiFive x2 | SiFive x2                 |
+| RTC        | Goldfish  | -         | -                         |
+| Disc       | pflash    | loader    | -                         |
 
-## Hardware Support
-
-Currently supported platforms:
-1. QEMU virt machine
-2. SiFive U-series
-3. SiFive E-series
-
-Each platform has specific configurations for:
-- Memory layout
-- Interrupt routing
-- Device mappings
-- Platform initialization
-
-## RISC-V Extensions
-
-The system utilizes minimal RISC-V extensions:
-- E (Embedded): Base integer instruction set
-- M (Multiplication/Division): Integer multiplication/division operations
-- Zicsr: Control and Status Register access
-
-## System Call Interface
-
-System calls are implemented through the `ecall` instruction, providing:
-- Process control
-- I/O operations
-- System information
-- Device management
-
-## Future Architecture Considerations
-
-Areas planned for architectural enhancement:
-1. Supervisor mode implementation (TBD)
-2. Virtual memory support
-3. Process scheduling
-4. Enhanced security features
-5. Dynamic memory management
+Per-machine code and configuration: `src/platforms/<machine>.s`,
+`headers/platforms/config-<machine>.s`, `platforms/<machine>.ld` and
+`platforms/<machine>.mk`.

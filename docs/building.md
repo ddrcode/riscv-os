@@ -1,109 +1,63 @@
-# Building and Running RISC-V OS
-
-This guide provides detailed instructions for building and running the RISC-V OS.
+# Building and Running
 
 ## Prerequisites
 
-### Required Tools
-- [Nix](https://nixos.org/download.html) package manager (recommended)
-- RISC-V GNU Toolchain
-- QEMU with RISC-V support
-- Git
+The nix shell provides everything: RISC-V binutils and gcc, QEMU, rustup,
+bindgen, minicom, dtc and ccls. Run `nix-shell` (or `direnv allow`) in the
+repository root - it covers `apps/` too. The nixpkgs revision is pinned in
+`nixpkgs.nix`; GDB is included on Linux.
 
-### Optional Tools
-- GDB for debugging
-- direnv for automatic environment loading
+Without nix: install RISC-V binutils/gcc and qemu-system-riscv32 manually,
+plus rustup for the Rust programs (the toolchain is pinned in
+`apps/rust-toolchain.toml` and installed by rustup automatically).
 
-## Building the System
+## Building
 
-### Using Nix (Recommended)
-
-1. Enter the project directory:
-   ```bash
-   cd riscv-os
-   ```
-
-2. Start the Nix shell:
-   ```bash
-   nix-shell
-   ```
-   
-   Or if using direnv:
-   ```bash
-   direnv allow
-   ```
-
-### Building Applications disc image
-
-   ```bash
-   cd apps
-   make disc
-   cd ..
-   ```
-
-### Building the OS
-
-1. Build the system:
-   ```bash
-   make
-   ```
-
-## Running the System
-
-### Basic Execution
-
-Run with default configuration (virt machine):
 ```bash
-make run
+make                    # OS binary for the default machine (virt)
+cd apps && make disc    # applications disc image (apps/disc.tar)
 ```
 
-Run with applications disc:
+## Running
+
 ```bash
-make run DRIVE=apps/disc.tar
+make run                            # just the OS
+make run DRIVE=apps/disc.tar        # with the applications disc
+make run MACHINE=sifive_u DRIVE=apps/disc.tar
 ```
 
-### Platform Selection
+Machines: `virt` (default), `sifive_u`, `sifive_e` (no disc support).
+Inside QEMU press `Ctrl-Q C` for the QEMU console; `quit` exits.
 
-Run on specific machine:
+The `OUTPUT_DEV` option selects the output device(s) - see the
+[README](../README.md#output-options). The default is `5` (screen rendered on
+the terminal); tests use `3` (plain text on the serial console).
+
+Build artifacts land in `build/`, with object files separated per machine and
+output device, so switching `MACHINE` or `OUTPUT_DEV` needs no `make clean`.
+
+## Tests
+
 ```bash
-make run MACHINE=sifive_u
+make test                           # all self-terminating tests
+make test TESTS="math64 string"     # a subset
+make run TEST_NAME=math64           # a single test, output on the console
 ```
 
-Available machines:
-- `virt` (default)
-- `sifive_e`
-- `sifive_u`
-
-### Output Options
-
-Control system output with OUTPUT_DEV:
-```bash
-make run OUTPUT_DEV=5
-```
-
-Output options:
-- `1`: Framebuffer only
-- `2`: Serial console only
-- `3`: Both framebuffer and console
-- `5`: Terminal emulation mode
+The remaining tests (`uart`, `terminal`, `shell`, `stack`) are interactive -
+run them with `make run TEST_NAME=...`.
 
 ## Debugging
 
-### Starting Debug Session
-
-1. Start QEMU in debug mode:
-   ```bash
-   make debug TEST_NAME=shell
-   ```
-
-2. In another terminal, connect GDB:
-   ```bash
-   make gdb TEST_NAME=shell
-   ```
-
-### Running Tests
-
-Execute specific test:
 ```bash
-make run TEST_NAME=test_name
+make debug TEST_NAME=math64         # terminal 1: QEMU waits for GDB
+make gdb TEST_NAME=math64           # terminal 2: connect GDB
+```
+
+The same works for the whole system: `make debug` and `make gdb`.
+
+## Release build
+
+```bash
+make release                        # optimized, stripped build/virt.bin
 ```
