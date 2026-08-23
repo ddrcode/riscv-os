@@ -179,7 +179,7 @@ fmt_uptime: .string "System uptime: %d seconds\n"
 1. For math functions:
 ```bash
 # Run math tests
-make test TEST_NAME=math64
+make test TESTS=math64
 ```
 
 2. For system applications:

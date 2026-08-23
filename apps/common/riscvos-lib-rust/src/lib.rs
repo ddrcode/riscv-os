@@ -12,6 +12,7 @@ use core::panic::PanicInfo;
 #[allow(non_camel_case_types)]
 #[allow(non_snake_case)]
 #[allow(non_upper_case_globals)]
+#[allow(dead_code)]                        // not every library function is wrapped (yet)
 mod bindings;
 
 pub mod bit32;

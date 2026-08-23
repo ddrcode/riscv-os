@@ -8,6 +8,10 @@ let
   inherit (pkgs.stdenv) isLinux;
 in
   pkgs.pkgsCross.riscv64-embedded.mkShell {
+    # The hardening flags (relro, PIE, ...) make no sense for a bare-metal
+    # target and only produce linker warnings
+    hardeningDisable = [ "all" ];
+
     nativeBuildInputs = with pkgs.buildPackages; [
       qemu
       minicom

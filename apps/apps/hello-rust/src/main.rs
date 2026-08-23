@@ -6,11 +6,6 @@ use core::str;
 
 use riscvos::io::{ println, prints };
 
-// include!("../../../build/bindings.rs"));
-
-// global_asm!(include_str!("../../../common/startup.s"));
-
-
 #[no_mangle]
 pub extern "C" fn main(argc: u32, argv: *const *const u8) -> i32 {
     prints("Hello, ");

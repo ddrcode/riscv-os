@@ -60,6 +60,7 @@ make run MACHINE=virt OUTPUT_DEV=5 DRIVE=apps/disc.tar
 
 Most important Makefile options:
 - `make run` - runs the system in QEMU (see notes below on building apps disc image)
+- `make test` - builds and runs all the tests in QEMU
 - `make run TEST_NAME=math64` - runs a specific test and outputs results to stdout
 - `make debug TEST_NAME=math64` - loads test to QEMU and waits for connection from GDB
 - `make gdb TEST_NAME=math64` - connects GDB with QEMU

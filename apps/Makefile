@@ -18,7 +18,8 @@ HEADERS := -I ../headers
 export ASFLAGS := -march=$(ARCH) -mabi=$(ABI) $(HEADERS) --defsym OUTPUT_DEV=2 --defsym m_$(MACHINE)=1
 export CFLAGS := -march=$(ARCH) -mabi=$(ABI)  -nostdlib -static \
                  -I $(ROOT)/../headers -T $(ROOT)/platforms/virt.ld \
-                 -ffunction-sections -fdata-sections -flto
+                 -ffunction-sections -fdata-sections -flto \
+                 -Wl,--no-warn-rwx-segments
 export LDFLAGS := -nostdlib -static
 
 # Rust: built-in tier-3 target (rv32em, ilp32e) - no custom target spec needed.
@@ -74,7 +75,7 @@ $(OUT)/libcommon.a: $(OUT)/common.o
 	$(TOOL)-ar -rcs $@ $<
 
 common/riscvos-lib-rust/src/bindings.rs: ../headers/bindings.h $(OUT)
-	bindgen $< -o $@ --ctypes-prefix=cty --use-core
+	bindgen $< -o $@ --ctypes-prefix=cty --use-core -- -Wno-incompatible-library-redeclaration
 
 $(OUT)/%.elf: apps/%/* $(OUT)/common.o
 	$(MAKE) -C ./apps/$(patsubst %.elf,%,$(@F)) -f $(patsubst %.elf,%,$(@F)).mk $(ROOT)/$@

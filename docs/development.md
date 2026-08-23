@@ -155,14 +155,17 @@ endfn
 ### Running Tests
 
 ```bash
-# Run all tests
+# Run all self-terminating tests
 make test
 
-# Run specific test
-make test TEST_NAME=test_name
+# Run a subset
+make test TESTS="math64 string"
+
+# Run a single test interactively (output on the console)
+make run TEST_NAME=math64
 
 # Run with debugging
-make debug TEST_NAME=test_name
+make debug TEST_NAME=math64
 ```
 
 ## Debugging

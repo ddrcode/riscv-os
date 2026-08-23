@@ -10,10 +10,3 @@ cty = "0.2.2"
 name = "riscvos"
 path = "src/lib.rs"
 
-[profile.release]
-# opt-level = "z"     # Optimize for size.
-lto = true          # Enable Link Time Optimization
-codegen-units = 1   # Reduce number of codegen units to increase optimizations.
-panic = "abort"     # Abort on panic
-strip = true        # Automatically strip symbols from the binary.
-
