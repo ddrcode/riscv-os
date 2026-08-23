@@ -31,3 +31,10 @@ Welcome to the RISC-V OS documentation! This documentation provides detailed inf
    - Supported Platforms
    - Hardware Requirements
    - Adding New Hardware Support
+
+6. [API Reference](api.md)
+   - System Calls
+   - Error Codes and System Configuration
+   - Program ABI
+   - Standard Library, Shell Commands
+   - Device Manager and HAL

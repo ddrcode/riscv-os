@@ -1,4 +1,4 @@
-rustup toolchain install nightly
-rustup +nightly target add riscv32im-unknown-none-elf
-rustup component add rust-src
-
+#!/bin/sh
+# The toolchain (pinned nightly + rust-src) is declared in rust-toolchain.toml;
+# rustup installs it automatically on first use. This script just does it explicitly.
+cd "$(dirname "$0")/.." && rustup toolchain install

@@ -15,7 +15,7 @@ RISC-V OS is a minimalistic operating system implemented primarily in assembly l
 - **Memory Layout**
   - Currently configured with 4MB of RAM, but intended to work with much smaller RAM
   - System: below 32kB
-  - Application space: 64kB (starting from address `0x81000000`)
+  - Application space: 256kB (starting from address `0x80100000`, see `PROGRAM_RAM` in `headers/config.s`)
 
 ### 2. Interrupt Handling
 

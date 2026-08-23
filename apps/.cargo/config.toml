@@ -1,2 +1,6 @@
 [build]
 target = "riscv32em-unknown-none-elf"
+
+# Tier-3 target: core must be built from source (requires nightly + rust-src)
+[unstable]
+build-std = ["core"]

@@ -10,9 +10,12 @@ typedef unsigned char u8;
 
 typedef unsigned char byte;
 
+// C23 made bool, true and false keywords; define them only for older standards
+#if !defined(__STDC_VERSION__) || __STDC_VERSION__ < 202311L
 typedef u8 bool;
 #define true 1
 #define false 0
+#endif
 
 typedef struct {
     u32 low;

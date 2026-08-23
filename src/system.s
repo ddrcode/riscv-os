@@ -95,6 +95,7 @@ fn sys_call
     addr_from_vec sysfn_vector, a5, t0 # fetch function address from vector
     beqz t0, 1f                        # error if fn not found (addr 0)
 
+        mv a5, zero                    # no error unless the function sets one
         jalr t0                        # execute system function
         j 2f
 
@@ -175,6 +176,8 @@ fn sys_sleep
 
     li t0, 16                          # compute how many timer IRQs to wait
     divu t0, a1, t0                    # assuming the frequency is 16ms
+    seqz t1, t0                        # wait for at least one tick, otherwise
+    add t0, t0, t1                     # the counter below would wrap around
 
     li t2, 0x80000007                  # timer IRQ code
 1:

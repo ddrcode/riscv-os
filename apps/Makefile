@@ -21,7 +21,10 @@ export CFLAGS := -march=$(ARCH) -mabi=$(ABI)  -nostdlib -static \
                  -ffunction-sections -fdata-sections -flto
 export LDFLAGS := -nostdlib -static
 
-CARGO_FLAGS := -Zbuild-std=core --target ./riscv32im-unknown-none-elf.json --release
+# Rust: built-in tier-3 target (rv32em, ilp32e) - no custom target spec needed.
+# Toolchain is pinned in rust-toolchain.toml; build-std is configured in .cargo/config.toml
+RUST_TARGET := riscv32em-unknown-none-elf
+CARGO_FLAGS := --release --target $(RUST_TARGET)
 
 # ifneq ($(filter release, $(MAKECMDGOALS)),)
     # CFLAGS += -Os -Wl,--gc-sections
@@ -77,7 +80,7 @@ $(OUT)/%.elf: apps/%/* $(OUT)/common.o
 	$(MAKE) -C ./apps/$(patsubst %.elf,%,$(@F)) -f $(patsubst %.elf,%,$(@F)).mk $(ROOT)/$@
 
 build-rust: $(OUT)/libcommon.a common/riscvos-lib-rust/src/bindings.rs
-	OUT=$(OUT) cargo build -Zbuild-std=core --target platforms/riscv32im-unknown-none-elf.json --release
+	OUT=$(OUT) cargo build $(CARGO_FLAGS)
 
 build-all: $(APP_TARGETS) build-rust
 
@@ -87,7 +90,7 @@ $(RELEASE)/%: $(OUT)/%.elf | $(RELEASE)
 
 release-rust: build-rust $(RELEASE)
 	@for app in $(RUST_APPS); do \
-		cp target/riscv32im-unknown-none-elf/release/$$app $(OUT)/$$app.elf; \
+		cp target/$(RUST_TARGET)/release/$$app $(OUT)/$$app.elf; \
 		$(TOOL)-strip --strip-all $(OUT)/$$app.elf; \
 		$(TOOL)-objcopy -O binary $(OUT)/$$app.elf $(RELEASE)/$$app; \
 	done

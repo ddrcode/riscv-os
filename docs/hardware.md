@@ -55,7 +55,7 @@ This document details the hardware platforms and requirements for running RISC-V
 
 ### Framebuffer
 - **Features**:
-  - Text mode (40x25 characters)
+  - Text mode (80x25 characters, or 40x25 in wide mode)
   - Basic graphics support
   - Memory-mapped display
   
