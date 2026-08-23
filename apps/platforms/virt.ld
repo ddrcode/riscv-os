@@ -2,17 +2,9 @@ ENTRY(_start)
 
 MEMORY
 {
-   /* qemu-system-risc64 virt machine */
+   /* Program area of the OS (PROGRAM_RAM in headers/config.s) */
    RAM (rwx)   : ORIGIN = 0x80100000, LENGTH = 256K
 }
-
-/* see https://sourceware.org/binutils/docs/ld/PHDRS.html */
-/* PHDRS */
-/* { */
-/*     text PT_LOAD; */
-/*     data PT_LOAD; */
-/*     bss PT_LOAD; */
-/* } */
 
 SECTIONS
 {
@@ -21,8 +13,14 @@ SECTIONS
         *(.text.start);
         *(.text .text.*)
     } > RAM
-    .rodata : ALIGN(32) { *(.rodata) } > RAM
-    .data : ALIGN(32) { *(.data) }
-    .bss : ALIGN(32) { *(.bss) }
-}
+    .rodata : ALIGN(32) { *(.rodata .rodata.* .srodata .srodata.*) } > RAM
+    .data : ALIGN(32) { *(.data .data.* .sdata .sdata.*) } > RAM
 
+    /* .bss is not part of the binary; it's zeroed by common/startup.s */
+    .bss : ALIGN(32) {
+        __bss_start = .;
+        *(.bss .bss.* .sbss .sbss.* COMMON)
+        . = ALIGN(4);
+        __bss_end = .;
+    } > RAM
+}
