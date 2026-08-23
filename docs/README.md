@@ -1,33 +1,12 @@
 # RISC-V OS Documentation
 
-Welcome to the RISC-V OS documentation! This documentation provides detailed information about the implementation, architecture, and usage of our minimalistic RISC-V operating system.
-
-## Table of Contents
-
-1. [Getting Started Guide](getting_started.md)
-   - Setting up your environment
-   - Making your first contribution
-   - Development tips and tutorials
-
-2. [Architecture Overview](architecture.md)
-   - System Architecture
-   - Memory Layout
-   - Interrupt Handling
-   - Hardware Abstraction Layer
-
-3. [Building and Running](building.md)
-   - Prerequisites
-   - Build Instructions
-   - Running in QEMU
-   - Debugging Guide
-
-4. [Development Guide](development.md)
-   - Project Structure
-   - Coding Standards
-   - Adding New Features
-   - Testing Guidelines
-
-5. [Hardware Support](hardware.md)
-   - Supported Platforms
-   - Hardware Requirements
-   - Adding New Hardware Support
+1. [Getting Started](getting_started.md) - setup, code style, your first program
+2. [Architecture](architecture.md) - boot sequence, memory layout, privilege
+   modes, interrupts, subsystems
+3. [Building and Running](building.md) - build, run, test and debug commands
+4. [API Reference](api.md) - system calls, error codes, program ABI, standard
+   library, shell commands, HAL
+5. [Development Guide](development.md) - project structure, conventions, how to
+   add system calls, drivers and platforms
+6. [Hardware Support](hardware.md) - supported platforms and devices
+7. [Notes](notes.md) - loose notes and links collected during development

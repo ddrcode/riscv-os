@@ -75,9 +75,9 @@ fn get_date
     li t0, SECS_PER_DAY
     divu a1, a0, t0                    # number of days since 1.01.1970
 
-    add t0, a1, a2                     # compute day of the week
+    addi t0, a1, 3                     # compute day of the week (Monday = 0)
     li t1, 7
-    remu a5, t0, t1                    # knowing that 1.01.1970 was Thursday
+    remu a5, t0, t1                    # knowing that 1.01.1970 was Thursday (3)
 
     li t1, 719468
     add a1, a1, t1                     # udays = days + 719468

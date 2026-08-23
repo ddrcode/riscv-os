@@ -1,258 +1,124 @@
-# Getting Started with RISC-V OS Development
+# Getting Started
 
-Welcome to the RISC-V OS project! This guide will help you make your first contribution to the project.
+This guide walks you from a fresh clone to your first own program running on the OS.
 
-## Prerequisites
-
-Before you begin, ensure you have:
-1. Basic understanding of assembly programming
-2. Familiarity with RISC-V instruction set (or willingness to learn)
-3. Development environment set up (see below)
-
-## Setting Up Your Development Environment
-
-### 1. Install Required Tools
-
-The easiest way to get started is using Nix:
+## Setup
 
 ```bash
-# Install Nix
-curl -L https://nixos.org/nix/install | sh
-
-# Optional but recommended: Install direnv
-nix-env -i direnv
-```
-
-### 2. Clone the Repository
-
-```bash
-# Clone main repository
 git clone https://github.com/ddrcode/riscv-os.git
 cd riscv-os
-
-# Clone applications repository
-git clone https://github.com/ddrcode/riscv-os-apps apps
+nix-shell            # or `direnv allow` if you use nix-direnv
 ```
 
-### 3. Set Up Development Environment
+The repository contains both the system and the programs (`apps/`); the single
+nix shell provides the complete toolchain for both (see
+[building.md](building.md) for the details and for working without nix).
+
+Check that everything works:
 
 ```bash
-# Using Nix shell
-nix-shell
-
-# Or if using direnv
-direnv allow
+make test                         # the test suite, a few seconds
+cd apps && make disc && cd ..     # the applications disc
+make run DRIVE=apps/disc.tar      # boot the system; try: ls, date, snake
 ```
 
-## Understanding the Code Style
+## Understanding the code style
 
-### Key Macros
+Functions are written with the macros from
+[`headers/macros.s`](../headers/macros.s):
 
-1. **Function Definition**
 ```assembly
 fn my_function
-    stack_alloc 16             # Allocate 16-bytes stack frame
-    push s0, 8                 # Push registry value to the stack (word starting at byte 8)
+    stack_alloc 16             # allocate a 16-byte stack frame, save ra
+    push s0, 8                 # save a register (word at byte 8 of the frame)
 
-    # Function body here
-    
-    pop s0, 8                  # Pop word from stack, starting from byte 8 of the frame
-    stack_free 16              # Free stack frame
+    # function body
+
+    pop s0, 8
+    stack_free 16              # restore ra, free the frame
     ret
 endfn
 ```
 
-2. **System Call**
-Make a system call (`ecall`). The list of all syscall names can be found in the
-[consts.s](../headers/consts.s) file. 
+System functions are invoked with the `syscall` macro; the function ids and
+other constants live in [`headers/consts.s`](../headers/consts.s), the complete
+reference in [api.md](api.md):
+
 ```assembly
-syscall SYSCALL_NAME           # Expands to proper ecall sequence
+li a0, '!'
+syscall SYSFN_PRINT_CHAR       # expands to: li a5, SYSFN_PRINT_CHAR; ecall
+bnez a5, handle_error          # a5 holds the error code (0 = success)
 ```
 
+Conventions (naming, comments, structure) are described in
+[development.md](development.md#coding-conventions).
 
-### Coding Conventions
+## Your first program
 
-1. **Naming**
-   - Functions: lowercase with underscores (e.g., `get_status`)
-   - Labels: descriptive, lower-case (e.g., `uart_0_buffer:`)
-   - Constants: uppercase with underscores (e.g., `SYSCALL_SLEEP`)
-   - Local labels: numbered (`1:`, `2:`, etc.)
-
-2. **Documentation**
-   - Every function must have a header comment
-   - Document arguments and return values
-   - Explain complex algorithms
-   - For structures create table-like comment explaining starting byte, length and name/meaning
-
-3. **Code Organization**
-   - Group related functions together
-   - Use appropriate sections (.text, .data, .rodata)
-   - Keep functions focused and small
-
-## Your First Contribution
-
-Let's walk through some common first contributions:
-
-### 1. Adding a Math Function
-
-Let's implement 64-bit multiplication in `lib/math64.s`:
+Programs live in `apps/apps/`, one directory each. Create
+`apps/apps/greet/greet.s`:
 
 ```assembly
-# Function: umul64
-# Description: 64-bit unsigned multiplication
-#
-# Arguments:
-#     a0 (alo) - least significant word of a
-#     a1 (ahi) - most significant word of a
-#     a2 (blo) - least significant word of b
-#     a3 (bhi) - most significant word of b
-# Returns:
-#     a0 (rlo) - least significant word of result
-#     a1 (rhi) - most significant word of result
-fn umul64
-    stack_alloc 24
-    push ra, 0
-    push s1, 4
-    push s2, 8
-    
-    # Algorithm:
-    #   r = alo * blo             # Low word multiplication
-    #   r += (alo * bhi) << 32    # Cross multiplication 1
-    #   r += (ahi * blo) << 32    # Cross multiplication 2
-    #   r += (ahi * bhi) << 64    # High word multiplication
-    
-    # Your implementation here
-    
-    pop s2, 8
-    pop s1, 4
-    pop ra, 0
-    stack_free 24
-    ret
-endfn
-```
-
-### 2. Creating a System Application
-
-Let's create a simple "uptime" application in `apps/apps/uptime.s`:
-
-```assembly
-# Display system uptime
-# author: Your Name
-#
-# See LICENSE file for license details.
-
-.include "macros.s"
+# Prints a greeting
 .include "consts.s"
-.include "syscalls.s"
+.include "macros.s"
 
 .section .text
-.global _start
+.global main
 
-fn _start
+fn main
     stack_alloc
-    push ra, 0
-    
-    # Get system uptime
-    syscall SYS_UPTIME
-    
-    # Convert ticks to readable format
-    mv a1, a0
-    la a0, fmt_uptime
-    call printf
-    
-    # Exit program
-    li a0, 0              # Exit code 0
-    syscall SYS_EXIT
-    
-    pop ra, 0
+    la a0, msg
+    call println               # the standard library (lib/) is linked in
+    setz a0                    # exit code
     stack_free
     ret
 endfn
 
 .section .rodata
-fmt_uptime: .string "System uptime: %d seconds\n"
+msg: .string "Hello from my first program!"
 ```
 
-### 3. Testing Your Changes
+Then:
 
-1. For math functions:
+1. Copy `apps/apps/hello-asm/hello-asm.mk` to `apps/apps/greet/greet.mk` and
+   change the `ELF` name and the source file in it.
+2. Add `greet` to the `APPS` list in `apps/Makefile`.
+3. Build and run:
+
 ```bash
-# Run math tests
-make test TEST_NAME=math64
-```
-
-2. For system applications:
-```bash
-# Build application
-cd apps
-make
-make disc
-
-# Run in OS
-cd ..
+cd apps && make disc && cd ..
 make run DRIVE=apps/disc.tar
-
-# In QEMU shell
-> uptime
+> greet
+Hello from my first program!
 ```
 
-## Common First Tasks
+Programs receive `argc`/`argv` (see [api.md](api.md#program-abi)) and can also
+be written in C (`apps/apps/hello-c`) or Rust (`apps/apps/hello-rust`, using the
+`riscvos` crate from `apps/common`).
 
-1. **Math Library Enhancement**
-   - Add new math functions (e.g., mul64, sqrt32)
-   - Optimize existing functions
-   - Add test cases
+## First contributions
 
-2. **System Applications**
-   - Create new utility applications
-   - Enhance existing applications
-   - Add new features to apps
+- issues labeled
+  [good first issue](https://github.com/ddrcode/riscv-os/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) -
+  e.g. [#41](https://github.com/ddrcode/riscv-os/issues/41), multiplication
+  functions in `lib/math32.s`
+- a new program for the disc (a tool, a game, a demo)
+- new test cases in `tests/` (`make test TESTS=<name>` runs one suite)
+- documentation fixes
 
-3. **Documentation**
-   - Improve function documentation
-   - Add usage examples
-   - Create tutorials
+## Debugging
 
-4. **Testing**
-   - Add test cases
-   - Improve test coverage
-   - Create benchmarks
-
-## Development Tips
-
-### Debugging with GDB
-
-1. Start QEMU in debug mode:
 ```bash
-make debug TEST_NAME=math64
+make debug TEST_NAME=math64    # terminal 1: QEMU waits for GDB
+make gdb TEST_NAME=math64      # terminal 2
 ```
 
-2. Connect GDB:
-```bash
-make gdb TEST_NAME=math64
-```
-
-3. Common GDB commands:
-```gdb
-break umul64           # Set breakpoint
-continue              # Run until breakpoint
-info registers        # View registers
-stepi                # Step one instruction
-x/10i $pc           # View next 10 instructions
-```
+Handy GDB commands: `break umul64`, `continue`, `stepi`, `info registers`,
+`x/10i $pc`.
 
 ## Resources
 
-- [RISC-V Assembly Programming Guide](https://riscv-programming.org/book/riscv-book.html)
-- [RISC-V Specifications](https://riscv.org/specifications/)
-- [Project Wiki](https://github.com/ddrcode/riscv-os/wiki)
-- [Community Chat](https://github.com/ddrcode/riscv-os/discussions)
-
-## Getting Help
-
-1. Check existing documentation in `docs/`
-2. Read the source code comments
-3. Use GitHub issues for questions
-4. Join our community chat
-
-Remember: Every expert was once a beginner. Don't be afraid to ask questions and make mistakes. Happy coding!
+- [RISC-V Assembly Programming book](https://riscv-programming.org/book/riscv-book.html)
+- [RISC-V cheat sheet](https://projectf.io/posts/riscv-cheat-sheet/)
+- [Project issues](https://github.com/ddrcode/riscv-os/issues) - questions welcome

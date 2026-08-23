@@ -1,232 +1,126 @@
 # Development Guide
 
-This guide provides information for developers who want to understand, modify, or extend the RISC-V OS.
-
-## Project Structure
+## Project structure
 
 ```
 riscv-os/
-├── apps/           # External applications
-├── build/          # Build artifacts
-├── headers/        # Header files
-│   ├── drivers/    # Device driver headers
-│   ├── hal/        # Hardware abstraction headers
-│   ├── platforms/  # Platform-specific headers
-│   ├── sys/        # System-specific headers
-│   ├── config.s    # Configuration macros
-│   ├── consts.s    # Common constants
-│   ├── macros.s    # Common macros
-│   ├── math32.h    # 32-bit math operations
-│   ├── math64.h    # 64-bit math operations
-│   ├── string.h    # String operations
-│   └── types.h     # Common type definitions
-├── lib/            # Shared library functions
-│   ├── math32.s    # 32-bit math operations
-│   ├── math64.s    # 64-bit math operations
-│   └── string.s    # String manipulation functions
-├── platforms/      # Platform-specific linker and make files
-├── src/            # Source code
-│   ├── drivers/    # Device drivers
-│   ├── hal/        # Hardware Abstraction Layer
-│   └── platforms/  # Platform implementations
-└── tests/          # Test files
+├── apps/            # programs, built separately (see apps/Makefile)
+│   ├── apps/        # one directory per program (Assembly, C, Rust)
+│   ├── common/      # program startup code and the Rust library (riscvos crate)
+│   └── platforms/   # program linker scripts
+├── docs/
+├── headers/         # C headers of the library + assembly constants and macros
+│   ├── drivers/     # driver headers
+│   ├── hal/         # driver structures (HAL)
+│   └── platforms/   # per-machine constants (memory map, devices)
+├── lib/             # standard library, linked into the OS and the programs
+├── platforms/       # per-machine linker scripts and make configuration
+├── src/             # the kernel
+│   ├── drivers/
+│   ├── hal/
+│   └── platforms/   # per-machine initialization and IRQ routing
+└── tests/           # tests, executed in QEMU (make test)
 ```
 
-### Key Files
+Key files: `src/startup.s` (boot), `src/irq.s` (interrupts and exceptions),
+`src/system.s` (core system functions), `src/sysfn.s` (system call handlers),
+`src/shell.s`, `headers/config.s` + `headers/consts.s` + `headers/macros.s`
+(configuration, constants, macros).
 
-- `src/main.s`: System entry point
-- `src/irq.s`: Interrupt handling
-- `src/shell.s`: Shell implementation
-- `src/system.s`: Core system functions
-- `src/sysfn.s`: System call implementations
-- `headers/config.s`: System configuration
-- `headers/consts.s`: Common constants
-- `headers/macros.s`: Common macros
-- `headers/types.h`: Common type definitions
-- `lib/math32.s`: 32-bit math operations
-- `lib/math64.s`: 64-bit math operations
-- `lib/string.s`: String manipulation functions
-- `lib/io.s`: Input/Output to UART and/or framebuffer
+## Coding conventions
 
-## Coding Standards
+- functions and labels: lowercase with underscores (`read_line`, `uart_0_buffer:`)
+- constants: uppercase with underscores (`SYSFN_SLEEP`)
+- local labels: numbered (`1:`, `2:`)
+- every function has a header comment describing arguments, returned values and
+  the error code; structures get a table-like comment (byte, length, meaning)
+- group related functions; use `.text`/`.data`/`.rodata` sections appropriately
+- every exit path must restore exactly what the entry path saved
 
-### Assembly Style Guide
-
-1. **Naming Conventions**
-   - Functions: lowercase with underscores (e.g., `handle_interrupt`)
-   - Labels: descriptive names with colons
-   - Constants: uppercase with underscores
-   - Registers: use standard RISC-V register names
-
-2. **Comments**
-   - Begin files with header comment (author, license)
-   - Document function parameters and return values
-   - Explain complex algorithms
-
-3. **Code Organization**
-   - Group related functions together
-   - Use sections appropriately (.text, .data, .rodata)
-   - Keep functions focused and small
-   - Use macros for repeated code patterns
-
-### Example Function Template
+Function template:
 
 ```assembly
-# Function Name: my_function
-# Description: Brief description of what the function does
-#
-# Parameters:
-#   a0 - first parameter description
-#   a1 - second parameter description
-#
+# Description of what the function does
+# Arguments:
+#     a0 - first argument
 # Returns:
-#   a0 - return value description
-#   a5 - error code (0 if successful)
-#
-# Modifies: list of registers modified
+#     a0 - result
+#     a5 - error code (0 on success)
 fn my_function
-    # Function prologue
-    stack_alloc
-    push s1, 0
-    
-    # Function body
-    ...
-    
-    # Function epilogue
-    pop s1, 0
-    stack_free
+    stack_alloc                        # allocates the frame, saves ra
+    push s1, 8                         # save the registers you use
+
+    # function body
+
+    pop s1, 8
+    stack_free                         # restores ra, frees the frame
     ret
 endfn
 ```
 
-## Adding New Features
+The macros (`fn`, `stack_alloc`, `push`, `syscall`, ...) are defined in
+[`headers/macros.s`](../headers/macros.s).
 
-### Adding a New System Call
+## Adding a new system call
 
-1. Define the system call number in `headers/consts.s`
-2. Implement the handler in `src/sysfn.s`
-3. Add error handling
-4. Update documentation
-5. Add tests
+1. Add the `SYSFN_*` constant in `headers/consts.s`
+2. Implement the handler in `src/sysfn.s`: arguments in `a0`-`a4`, result in
+   `a0`, error code in `a5` (the dispatcher zeroes `a5` beforehand)
+3. Add the handler to `sysfn_vector` (same file)
+4. Document it in [`docs/api.md`](api.md)
+5. Add a case to `tests/test_syscall.c`
 
-### Adding a New Driver
+## Adding a new driver
 
-1. Create driver file in `src/drivers/`
-2. Implement required HAL interface
-3. Add platform-specific configuration
-4. Update device manager
-5. Add documentation and tests
+1. Create the driver in `src/drivers/`, implementing the structure from
+   `headers/hal/` (base address + function pointers)
+2. Register it in the platform's `platform_start` (`add_device` macro) and route
+   its interrupt in the platform's `external_irq_vector`
+3. Add the source file to `DRIVERS` in `platforms/<machine>.mk`
 
-### Adding Platform Support
+## Adding a new platform
 
-1. Create platform file in `src/platforms/`
-2. Define hardware configuration in `headers/platforms`
-3. Implement platform initialization
-4. Update build system in `platforms`
-5. Add documentation
+1. `src/platforms/<machine>.s` - `platform_start` and `external_irq_vector`
+2. `headers/platforms/config-<machine>.s` - memory map, devices, screen size
+3. `platforms/<machine>.ld` and `platforms/<machine>.mk` - linker script,
+   drivers list, QEMU options
+4. Register the machine in `headers/config.s`
 
-## Testing Guidelines
+## Testing
 
-### Test Categories
-
-1. **Unit Tests**
-   - Individual function testing
-   - Error condition verification
-   - Edge case handling
-
-2. **Integration Tests**
-   - System call testing
-   - Device driver testing
-   - Platform testing
-
-3. **System Tests**
-   - Full system functionality
-   - Performance testing
-   - Stress testing
-
-### Writing Tests
-
-1. Create test file in `tests/` directory
-2. Implement test setup and teardown
-3. Define test cases
-4. Add error checking
-5. Document expected results
-
-### Running Tests
+Tests live in `tests/`, written in C or assembly, and are linked with the kernel
+objects (minus `main`); the helpers are in `headers/assert.h`. A test prints its
+results and a summary line, which `tests/run.sh` uses to stop QEMU and report
+the outcome.
 
 ```bash
-# Run all tests
-make test
-
-# Run specific test
-make test TEST_NAME=test_name
-
-# Run with debugging
-make debug TEST_NAME=test_name
+make test                        # all self-terminating tests
+make test TESTS="math64 string"  # a subset
+make run TEST_NAME=math64        # single test, interactively
 ```
+
+A new self-terminating test: add `tests/test_<name>.c` and add `<name>` to
+`TESTS` in the `Makefile`.
 
 ## Debugging
 
-### Using GDB
-
-1. Start QEMU in debug mode:
-   ```bash
-   make debug TEST_NAME=test_name
-   ```
-
-2. Connect GDB:
-   ```bash
-   make gdb TEST_NAME=test_name
-   ```
-
-### Common Debug Commands
-
-```gdb
-# Set breakpoint
-break function_name
-
-# Examine memory
-x/Nx address
-
-# Show registers
-info registers
-
-# Step instruction
-stepi
-
-# Continue execution
-continue
+```bash
+make debug TEST_NAME=math64      # QEMU waits for GDB
+make gdb TEST_NAME=math64        # in a second terminal
 ```
 
-## Performance Optimization
-
-### Guidelines
-
-1. Profile code to identify bottlenecks
-2. Optimize critical paths
-3. Use appropriate RISC-V extensions
-4. Minimize memory access
-5. Consider cache behavior
-
-### Tools
-
-- Performance counters
-- Execution profiling
-- Memory analysis
-- Instruction counting
+Useful GDB commands: `break <function>`, `stepi`, `info registers`,
+`x/10i $pc`, `x/Nx <addr>`, `continue`.
 
 ## Contributing
 
-1. Fork the repository
-2. Create feature branch
-3. Make changes following guidelines
-4. Add tests
-5. Update documentation
-6. Submit pull request
+Fork, create a branch, follow the conventions above, add tests and update the
+docs, open a pull request. Issues labeled
+[good first issue](https://github.com/ddrcode/riscv-os/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
+are a good place to start.
 
 ## Resources
 
 - [RISC-V Specifications](https://riscv.org/specifications/)
-- [RISC-V Assembly Programming](https://riscv-programming.org/book/riscv-book.html)
-- [Project Issues](https://github.com/ddrcode/riscv-os/issues)
-- [Wiki](https://github.com/ddrcode/riscv-os/wiki)
+- [An Introduction to Assembly Programming with RISC-V](https://riscv-programming.org/book/riscv-book.html)
+- [Project issues](https://github.com/ddrcode/riscv-os/issues)

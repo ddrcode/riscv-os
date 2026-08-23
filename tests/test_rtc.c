@@ -2,53 +2,33 @@
 #include "time.h"
 #include "string.h"
 
+// Reads the current time from the RTC (via time_now) and checks
+// it's sane. Requires a platform with an RTC (i.e. virt).
 
-// void query_rtc(int times) {
-//     print("Quering RTC\n");
-//
-//     while(times--) {
-//         char strlo[33], strhi[33];
-//         u32 tlo, regs[6];
-//         tlo = rtc_read_time();
-//         regarr(regs);
-//         u32 thi = regs[0];
-//
-//         utoa(tlo, strlo, 10);
-//         utoa(thi, strhi, 10);
-//
-//         print("hi: ");
-//         print(strhi);
-//         print(", lo: ");
-//         print(strlo);
-//         eol();
-//     }
-// }
+void test_time_now(void) {
+    char str[33];
+    print_test_name("time_now", "error code");
 
-void time_in_sec() {
-    print("Time in sec: ");
-    char strlo[33], strhi[33];
-    u32 tlo, regs[6];
+    Result now = time_now();
+    assert_eq(now.err, 0);
 
-    tlo = time_now();
-
-    regarr(regs);
-    u32 thi = regs[0];
-
-    utoa(tlo, strlo, 10);
-    utoa(thi, strhi, 10);
-
-    print("hi: ");
-    print(strhi);
-    print(", lo: ");
-    print(strlo);
+    print("Seconds since epoch: ");
+    utoa(now.val, str, 10);
+    print(str);
+    print(" [");
+    date_time_to_str(now.val, str);
+    print(str);
+    print("]");
     eol();
+
+    // 2025-01-01 00:00:00 UTC - RTC must report something after that
+    print_test_name("time_now", "is after 2025");
+    assert_eq(now.val > 1735689600, 1);
 }
 
 int main(int argc, char* argv[]) {
     eol();
-    // query_rtc(10);
-    eol();
-    time_in_sec();
+    test_time_now();
     print_summary();
     return 0;
 }

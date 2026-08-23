@@ -18,10 +18,14 @@ HEADERS := -I ../headers
 export ASFLAGS := -march=$(ARCH) -mabi=$(ABI) $(HEADERS) --defsym OUTPUT_DEV=2 --defsym m_$(MACHINE)=1
 export CFLAGS := -march=$(ARCH) -mabi=$(ABI)  -nostdlib -static \
                  -I $(ROOT)/../headers -T $(ROOT)/platforms/virt.ld \
-                 -ffunction-sections -fdata-sections -flto
+                 -ffunction-sections -fdata-sections -flto \
+                 -Wl,--no-warn-rwx-segments
 export LDFLAGS := -nostdlib -static
 
-CARGO_FLAGS := -Zbuild-std=core --target ./riscv32im-unknown-none-elf.json --release
+# Rust: built-in tier-3 target (rv32em, ilp32e) - no custom target spec needed.
+# Toolchain is pinned in rust-toolchain.toml; build-std is configured in .cargo/config.toml
+RUST_TARGET := riscv32em-unknown-none-elf
+CARGO_FLAGS := --release --target $(RUST_TARGET)
 
 # ifneq ($(filter release, $(MAKECMDGOALS)),)
     # CFLAGS += -Os -Wl,--gc-sections
@@ -71,13 +75,13 @@ $(OUT)/libcommon.a: $(OUT)/common.o
 	$(TOOL)-ar -rcs $@ $<
 
 common/riscvos-lib-rust/src/bindings.rs: ../headers/bindings.h $(OUT)
-	bindgen $< -o $@ --ctypes-prefix=cty --use-core
+	bindgen $< -o $@ --ctypes-prefix=cty --use-core -- -Wno-incompatible-library-redeclaration
 
 $(OUT)/%.elf: apps/%/* $(OUT)/common.o
 	$(MAKE) -C ./apps/$(patsubst %.elf,%,$(@F)) -f $(patsubst %.elf,%,$(@F)).mk $(ROOT)/$@
 
 build-rust: $(OUT)/libcommon.a common/riscvos-lib-rust/src/bindings.rs
-	OUT=$(OUT) cargo build -Zbuild-std=core --target platforms/riscv32im-unknown-none-elf.json --release
+	OUT=$(OUT) cargo build $(CARGO_FLAGS)
 
 build-all: $(APP_TARGETS) build-rust
 
@@ -87,7 +91,7 @@ $(RELEASE)/%: $(OUT)/%.elf | $(RELEASE)
 
 release-rust: build-rust $(RELEASE)
 	@for app in $(RUST_APPS); do \
-		cp target/riscv32im-unknown-none-elf/release/$$app $(OUT)/$$app.elf; \
+		cp target/$(RUST_TARGET)/release/$$app $(OUT)/$$app.elf; \
 		$(TOOL)-strip --strip-all $(OUT)/$$app.elf; \
 		$(TOOL)-objcopy -O binary $(OUT)/$$app.elf $(RELEASE)/$$app; \
 	done
