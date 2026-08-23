@@ -26,13 +26,11 @@ nix-env -i direnv
 ### 2. Clone the Repository
 
 ```bash
-# Clone main repository
 git clone https://github.com/ddrcode/riscv-os.git
 cd riscv-os
-
-# Clone applications repository
-git clone https://github.com/ddrcode/riscv-os-apps apps
 ```
+
+The repository contains both the system and the programs (`apps/`).
 
 ### 3. Set Up Development Environment
 
@@ -43,6 +41,9 @@ nix-shell
 # Or if using direnv
 direnv allow
 ```
+
+The shell provides the complete toolchain (RISC-V binutils and gcc, QEMU,
+rustup and bindgen for the Rust programs) for the whole repository, including `apps/`.
 
 ## Understanding the Code Style
 
